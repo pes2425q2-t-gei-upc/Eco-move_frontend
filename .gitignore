@@ -45,6 +45,8 @@ flutter_*.png
 linked_*.ds
 unlinked.ds
 unlinked_spec.ds
+.pub-cache/
+
 
 # Android related
 **/android/**/gradle-wrapper.jar
@@ -86,6 +88,9 @@ unlinked_spec.ds
 **/ios/Flutter/flutter_export_environment.sh
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/**/xcuserdata/
+**/ios/Flutter/ephemeral/
+**/macos/Flutter/ephemeral/
 
 # macOS
 **/Flutter/ephemeral/
@@ -98,6 +103,7 @@ unlinked_spec.ds
 **/windows/flutter/generated_plugin_registrant.cc
 **/windows/flutter/generated_plugin_registrant.h
 **/windows/flutter/generated_plugins.cmake
+
 
 # Linux
 **/linux/flutter/generated_plugin_registrant.cc
@@ -117,3 +123,9 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+
+
+# IDE settings
+.idea/
+.vscode/
+
