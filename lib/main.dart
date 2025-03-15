@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());
@@ -28,6 +30,35 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  List<Map<String, dynamic>> estaciones = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchEstaciones(); // Llamamos a la API al iniciar
+  }
+
+  Future<void> _fetchEstaciones() async {
+    final url = Uri.parse(
+      'http://127.0.0.1:8000/api_punts_carrega/ubicacions/',
+    );
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(
+          json.decode(response.body),
+        );
+        setState(() {
+          estaciones = data;
+        });
+      } else {
+        print('Error al cargar datos: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error en la solicitud: $e');
+    }
+  }
+
   void _showAlert() {
     TextEditingController mensajeController = TextEditingController();
 
@@ -64,17 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  final List<Map<String, String>> estaciones = [
-    {'id': '1', 'nombre': 'Estación Centro', 'ubicacion': 'Calle A, Ciudad X'},
-    {
-      'id': '2',
-      'nombre': 'Carga Rápida Norte',
-      'ubicacion': 'Avenida B, Ciudad Y',
-    },
-    {'id': '3', 'nombre': 'Punto Verde', 'ubicacion': 'Plaza C, Ciudad Z'},
-  ];
-
-  Widget _buildEstacionCard(Map<String, String> estacion) {
+  Widget _buildEstacionCard(Map<String, dynamic> estacion) {
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -84,11 +105,14 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'ID: ${estacion['id']}',
+              'ID Ubicación: ${estacion['id_ubicacio']}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            Text('Nombre: ${estacion['nombre']}'),
-            Text('Ubicación: ${estacion['ubicacion']}'),
+            Text('Dirección: ${estacion['direccio']}'),
+            Text('Ciudad: ${estacion['ciutat']}'),
+            Text('Provincia: ${estacion['provincia']}'),
+            Text('Latitud: ${estacion['lat']}'),
+            Text('Longitud: ${estacion['lng']}'),
           ],
         ),
       ),
