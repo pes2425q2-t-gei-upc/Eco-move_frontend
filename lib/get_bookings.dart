@@ -48,32 +48,56 @@ class BookingsScreen extends StatelessWidget {
     List<dynamic> jsonList = jsonDecode(jsonString);
     List<Booking> bookings = jsonList.map((json) => Booking.fromJson(json)).toList();
 
+    final ScrollController scrollController = ScrollController();
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Mis reservas"),
       ),
-      body: ListView.builder(
-        itemCount: bookings.length,
-        itemBuilder: (context, index) {
-          final booking = bookings[index];
-          return Card(
-            color: Color(0xfffcc5d1),
-            elevation: 10,
-            margin: EdgeInsets.all(10),
-            child: ListTile(
-              title: Text(booking.adress),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Data: ${booking.date}'),
-                  Text('Hora: ${booking.hour}')
-                ],
-              )
+      body: Scrollbar(
+        controller: scrollController,
+          thickness: 8,
+          radius: Radius.circular(10), // Round edges
+          thumbVisibility: true,
+          child: ListView.builder(
+            controller: scrollController,
+            itemCount: bookings.length,
+            itemBuilder: (context, index) {
+              final booking = bookings[index];
+              return Card(
+                  color: Color(0xfff0daeb),
+                  elevation: 10,
+                  margin: EdgeInsets.all(10),
+                  child: Column(
+                      children: [
+                        ListTile(
+                            title: Text(booking.adress),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Data: ${booking.date}'),
+                                Text('Hora: ${booking.hour}')
+                              ],
+                            )
+                        ),
+                        Row(
+                          children: [
+                            TextButton(
+                                onPressed: (){},
+                                child: Text("Editar")),
+                            TextButton(
+                                onPressed: (){},
+                                child: Text("Eliminar"))
+                          ],
+                        )
 
-            ),
-          );
-        },
-      ),
+                      ]
+                  )
+              );
+            },
+          ),
+      )
+
     );
   }
 }
