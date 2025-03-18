@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,17 +32,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  int _selectedIndex = 0;
   List<Map<String, dynamic>> estaciones = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchEstaciones(); // Llamamos a la API al iniciar
   }
 
   Future<void> _fetchEstaciones() async {
     final url = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/ubicacions/',
+      'https://eco-move-backend.onrender.com/api_punts_carrega/ubicacions/',
     );
     try {
       final response = await http.get(url);
@@ -95,6 +97,14 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Widget _buildEstacionesList() {
+    return ListView(
+      padding: const EdgeInsets.all(10),
+      children:
+          estaciones.map((estacion) => _buildEstacionCard(estacion)).toList(),
+    );
+  }
+
   Widget _buildEstacionCard(Map<String, dynamic> estacion) {
     return Card(
       elevation: 3,
@@ -119,6 +129,34 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Widget _showMap() {
+    return FlutterMap(
+      options: MapOptions(
+        center: LatLng(41.38974691281002, 2.1133222801818614),
+        minZoom: 10.0,
+        maxZoom: 25.0,
+        zoom: 18.0,
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          subdomains: ['a', 'b', 'c'],
+        ),
+      ],
+    );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+      if (_selectedIndex == 2) {
+        _fetchEstaciones();
+      } else if (_selectedIndex == 1) {
+        _showMap();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -127,11 +165,10 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(10),
-        children:
-            estaciones.map((estacion) => _buildEstacionCard(estacion)).toList(),
-      ),
+      body:
+          _selectedIndex == 2
+              ? _buildEstacionesList()
+              : (_selectedIndex == 1 ? _showMap() : Container()),
       floatingActionButton: Align(
         alignment: Alignment.bottomRight,
         child: Padding(
@@ -147,6 +184,19 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Mapa'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.ev_station),
+            label: 'Estaciones',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.green,
+        onTap: _onItemTapped,
       ),
     );
   }
