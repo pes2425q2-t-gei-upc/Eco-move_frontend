@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'gestio_reserva.dart';
 
 void main() {
   runApp(const MyApp());
@@ -59,6 +60,12 @@ class _MyHomePageState extends State<MyHomePage> {
     } catch (e) {
       print('Error en la solicitud: $e');
     }
+  }
+
+  void _abrirEstacionScreen(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => EstacionScreen()));
   }
 
   void _showAlert() {
@@ -129,12 +136,36 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  MarkerLayer _buildMarkersLayer() {
+    return MarkerLayer(
+      markers:
+          estaciones.map((estacion) {
+            return Marker(
+              width: 40.0,
+              height: 40.0,
+              point: LatLng(estacion['lat'], estacion['lng']),
+              builder:
+                  (ctx) => Container(
+                    child: IconButton(
+                      icon: Icon(Icons.location_on),
+                      color: Colors.red,
+                      iconSize: 30,
+                      onPressed: () {
+                        _abrirEstacionScreen(context);
+                      },
+                    ),
+                  ),
+            );
+          }).toList(),
+    );
+  }
+
   Widget _showMap() {
     return FlutterMap(
       options: MapOptions(
         center: LatLng(41.38974691281002, 2.1133222801818614),
-        minZoom: 10.0,
-        maxZoom: 25.0,
+        minZoom: 8.0,
+        maxZoom: 30.0,
         zoom: 18.0,
       ),
       children: [
@@ -142,6 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
           urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
           subdomains: ['a', 'b', 'c'],
         ),
+        _buildMarkersLayer(),
       ],
     );
   }
@@ -152,6 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (_selectedIndex == 2) {
         _fetchEstaciones();
       } else if (_selectedIndex == 1) {
+        _fetchEstaciones();
         _showMap();
       }
     });
