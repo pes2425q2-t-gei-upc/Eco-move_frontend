@@ -1,19 +1,23 @@
+import 'package:eco_move_frontend/edit_booking.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'edit_booking.dart';
 
 // Define Booking class
 class Booking {
   final String adress;
   final String date;
   final String hour;
+  final String duration;
 
-  Booking({required this.adress, required this.date, required this.hour});
+  Booking({required this.adress, required this.date, required this.hour, required this.duration});
 
   factory Booking.fromJson(Map<String, dynamic> json) {
     return Booking(
-      adress: json['adreça'],
+      adress: json['direccion'],
       date: json['data'],
       hour: json['hora'],
+      duration: json['duracion']
     );
   }
 }
@@ -35,10 +39,10 @@ class BookingsScreen extends StatelessWidget {
   // JSON string containing booking data
   final String jsonString = '''
   [
-    {"adreça": "Plaça Espanya", "data": "2025-03-14", "hora": "10:30"},
-    {"adreça": "Plaça Catalunya", "data": "2025-03-15", "hora": "12:00"},
-    {"adreça": "Avinguda Barcelona", "data": "2025-03-16", "hora": "13:00"},
-    {"adreça": "Edifici vertex, UPC", "data": "2025-03-17", "hora": "14:00"}
+    {"direccion": "Plaça Espanya", "data": "2025-03-14", "hora": "10:30", "duracion" : "30 minutos"},
+    {"direccion": "Plaça Catalunya", "data": "2025-03-15", "hora": "12:00", "duracion" : "30 minutos"},
+    {"direccion": "Avinguda Barcelona", "data": "2025-03-16", "hora": "13:00", "duracion" : "30 minutos"},
+    {"direccion": "Edifici vertex, UPC", "data": "2025-03-17", "hora": "14:00", "duracion" : "30 minutos"}
   ]
   ''';
 
@@ -83,7 +87,17 @@ class BookingsScreen extends StatelessWidget {
                         Row(
                           children: [
                             TextButton(
-                                onPressed: (){},
+                                onPressed: (){
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => EditChargerScreen(
+                                        date: booking.date,
+                                        hour: booking.hour,
+                                        duration: booking.duration,
+                                      ),
+                                    ),
+                                  );
+                                },
                                 child: Text("Editar")),
                             TextButton(
                                 onPressed: (){},
