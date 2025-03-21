@@ -1,9 +1,11 @@
+import 'package:eco_move_frontend/book_charger.dart';
+import 'package:eco_move_frontend/calculate_price.dart';
 import 'package:flutter/material.dart';
-import 'calculate_price.dart';
-import 'book_charger.dart';
+// import 'calculate_price.dart';
+// import 'book_charger.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -13,118 +15,168 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       // Set up the theme and other MaterialApp properties as necessary
-      home: EstacionScreen(), // Use your home screen widget here
+      home: EstacionScreen(idStation: '12345'), // Use your home screen widget here
     );
   }
 }
 
-class EstacionScreen extends StatelessWidget {
+class EstacionScreen extends StatefulWidget {
+  final String idStation;
+
+  const EstacionScreen({required this.idStation, super.key});
+
+  @override
+  State<EstacionScreen> createState() => _EstacionScreenState();
+}
+
+class _EstacionScreenState extends State<EstacionScreen> {
+  final Map<String, dynamic> stationData = {
+    'id': '12345',
+    'tipoEnchufe': ['Tesla', 'Schuko'],
+    'potencia': ['22 kW', '7 kW'],
+    'estado': 'Disponible',
+    'direccion': 'Avinguda Barcelona 48',
+    'precio': '3 €',
+  };
+
+  // Track which button is selected (only one can be selected)
+  int? selectedIndex;
+
+  void _selectButton(int index) {
+    setState(() {
+      // If the same button is pressed again, keep it selected
+      // Otherwise, select the new button
+      selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Estación {parametre}')),
+      appBar: AppBar(title: Text('Estación ${stationData['id']}')),
 
       body: Padding(
-        padding: EdgeInsets.all(30.0),
+        padding: const EdgeInsets.all(30.0),
         child: Column(
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center, // Center items vertically
               children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Tipo de enchufe: ',
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Text(
-                  '{Parametre}',
+                const Text(
+                  'Tipo de enchufe: ',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
+                const SizedBox(width: 10),
+                // Wrap the buttons in a Row instead of Wrap for better alignment
+                Wrap(
+                  spacing: 10, // Space between buttons
+                  runSpacing: 10, // Space between rows if wrapped
+                  children: List.generate(
+                    stationData['tipoEnchufe'].length,
+                        (index) {
+                      String tipo = stationData['tipoEnchufe'][index];
+                      bool isSelected = selectedIndex == index;
+
+                      return ElevatedButton(
+                        onPressed: () => _selectButton(index),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isSelected ? Colors.blueGrey : Colors.white,
+                          foregroundColor: isSelected ? Colors.white : Colors.blueGrey,
+                          side: const BorderSide(
+                            color: Colors.blueGrey,
+                            width: 2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(tipo),
+                    );
+                  },
+                ),
                 ),
               ],
             ),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Potencia: ',
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
+                const Text(
+                  'Potencia: ',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  '{Parametre}',
-                  style: TextStyle(
+                  selectedIndex != null && selectedIndex! < stationData['potencia'].length
+                      ? stationData['potencia'][selectedIndex!]
+                      : stationData['potencia'][0],
+                  style: const TextStyle(
                     color: Colors.black,
                     fontSize: 18,
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Estado: ',
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
+                const Text(
+                  'Estado: ',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  '{Parametre}',
-                  style: TextStyle(
+                  stationData['estado'],
+                  style: const TextStyle(
                     color: Colors.black,
                     fontSize: 18,
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Dirección: ',
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
+                const Text(
+                  'Dirección: ',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  '{Parametre}',
-                  style: TextStyle(
+                  stationData['direccion'],
+                  style: const TextStyle(
                     color: Colors.black,
                     fontSize: 18,
                   ),
                 ),
               ],
             ),
-            SizedBox(
+            const SizedBox(
               height: 60,
             ),
             TextButton(
               onPressed: () {},
               style: TextButton.styleFrom(
-                backgroundColor: Color(0xFF2C8235),
+                backgroundColor: const Color(0xFF2C8235),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(13), // Rounded corners
                 ),
               ),
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.location_on, color: Colors.white),
@@ -133,26 +185,28 @@ class EstacionScreen extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ChargeCalculatorScreen(
-                      tipoCarga: 'Carga rápida',
-                      precio: '3 €',
-                    ),
-                  ),
+                 Navigator.of(context).push(
+                   MaterialPageRoute(
+                     builder: (context) => ChargeCalculatorScreen(
+                       tipoCarga: selectedIndex != null && selectedIndex! < stationData['potencia'].length
+                           ? stationData['potencia'][selectedIndex!]
+                           : stationData['potencia'][0],
+                       precio: stationData['precio'],
+                     ),
+                   ),
                 );
               },
               style: TextButton.styleFrom(
-                backgroundColor: Color(0xFF54a0e8),
+                backgroundColor: const Color(0xFF54a0e8),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(13), // Rounded corners
                 ),
               ),
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.money, color: Colors.white),
@@ -161,23 +215,23 @@ class EstacionScreen extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextButton(
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => BookChargerScreen(),
-                  ),
-                );
+                   MaterialPageRoute(
+                     builder: (context) => BookChargerScreen(),
+                   ),
+                 );
               },
               style: TextButton.styleFrom(
-                backgroundColor: Color(0xFFa955e0),
+                backgroundColor: const Color(0xFFa955e0),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(13), // Rounded corners
                 ),
               ),
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.calendar_month, color: Colors.white),
