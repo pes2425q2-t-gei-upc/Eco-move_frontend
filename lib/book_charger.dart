@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
 
 void main() {
   runApp(MyApp());
@@ -99,6 +103,34 @@ class _DateTimePickerWithDropdownState
     }
   }
 
+  List<Map<String, dynamic>> estaciones = [];
+//MIRAR COM FER EL POST
+  Future<void> _fetchEstacion(Map<String, dynamic> nuevaEstacion) async {
+    final url = Uri.parse(
+      'https://eco-move-backend.onrender.com/api_punts_carrega/ubicacions/',
+    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(nuevaEstacion),
+      );
+
+      if (response.statusCode == 201) {
+        print('Estación creada correctamente');
+        // Si necesitas actualizar la lista después de crearla:
+        _fetchEstaciones();
+      } else {
+        print('Error al crear estación: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error en la solicitud: $e');
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -167,6 +199,7 @@ class _DateTimePickerWithDropdownState
                   SnackBar(
                     content: Text(
                         'Fecha: ${_dateController.text} - Hora: ${_timeController.text} - Opción: $_selectedValue'),
+
                   ),
                 );
               } else {

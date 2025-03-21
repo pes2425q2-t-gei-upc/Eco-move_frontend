@@ -15,12 +15,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       // Set up the theme and other MaterialApp properties as necessary
-      home: EstacionScreen(), // Use your home screen widget here
+      home: EstacionScreen(id_station: '12345'), // Use your home screen widget here
     );
   }
 }
 
 class EstacionScreen extends StatelessWidget {
+
+  final String id_station;
+
+  const EstacionScreen({super.key, required this.id_station});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
