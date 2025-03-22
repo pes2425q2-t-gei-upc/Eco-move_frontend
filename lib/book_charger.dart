@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'dart:convert';
 
 
@@ -50,14 +51,8 @@ class _DateTimePickerWithDropdownState
     extends State<DateTimePickerWithDropdown> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
+  final MaskedTextController _durationController = MaskedTextController(mask: '00:00:00');
 
-  String? _selectedValue;
-  final List<String> _dropdownItems = [
-    '30 minutos',
-    '1 hora',
-    '1 hora 30 minutos',
-    '2 horas'
-  ];
 
   @override
   void dispose() {
@@ -129,7 +124,7 @@ class _DateTimePickerWithDropdownState
         TextField(
           controller: _timeController,
           decoration: InputDecoration(
-            hintText: 'HH:mm',
+            hintText: 'hh:mm',
             hintStyle: TextStyle(color: Colors.grey),
             border: OutlineInputBorder(),
             suffixIcon: Icon(Icons.access_time),
@@ -140,24 +135,12 @@ class _DateTimePickerWithDropdownState
         SizedBox(height: 16), // Space between fields
 
         // Dropdown Menu
-        Text('Duración estimada'),
-        SizedBox(height: 8),
-        DropdownButton<String>(
-          value: _selectedValue,
-          hint: Text('-'),
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedValue = newValue;
-            });
-          },
-          items: _dropdownItems.map((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(item),
-            );
-          }).toList(),
+        TextField(
+            controller: _durationController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'Duración estimada (hh:mm:ss)'),
         ),
-        SizedBox(height: 30),
+        SizedBox(height: 8),
 
         // Button to confirm the date, time, and dropdown selection
         Center(
@@ -165,14 +148,14 @@ class _DateTimePickerWithDropdownState
             onPressed: () {
               if (_dateController.text.isNotEmpty &&
                   _timeController.text.isNotEmpty &&
-                  _selectedValue != null) {
+                  _durationController.text.isNotEmpty) {
                 //ScaffoldMessenger.of(context).showSnackBar(
                   //SnackBar(
                     //content: Text(
                       //  'Fecha: ${_dateController.text} - Hora: ${_timeController.text} - Opción: $_selectedValue'),
                   //),
                 //);
-                createReservation('46391170', _dateController.text, _timeController.text, _selectedValue);
+                createReservation('46391170', _dateController.text, _timeController.text, _durationController.text);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -200,7 +183,7 @@ class _DateTimePickerWithDropdownState
       'estacion': id,
       'fecha': date,
       'hora': hour,
-      'duracion': '02:00:00',
+      'duracion': duration,
     };
 
     try {
