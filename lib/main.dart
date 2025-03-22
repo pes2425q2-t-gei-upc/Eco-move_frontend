@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'gestio_reserva.dart';
+import 'package:geolocator/geolocator.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,10 +36,39 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   List<Map<String, dynamic>> estaciones = [];
+  LatLng? myPosition;
 
   @override
   void initState() {
     super.initState();
+    _getPosition();
+  }
+
+  Future<Position?> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    permission = await Geolocator.checkPermission();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled');
+    }
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions denied');
+      }
+    }
+    return await Geolocator.getCurrentPosition();
+  }
+
+  void _getPosition() async {
+    Position? position = await _determinePosition();
+    if (position != null) {
+      setState(() {
+        myPosition = LatLng(position.latitude, position.longitude);
+      });
+    }
   }
 
   Future<void> _fetchEstaciones() async {
@@ -163,9 +193,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _showMap() {
     return FlutterMap(
       options: MapOptions(
-        center: LatLng(41.38974691281002, 2.1133222801818614),
-        minZoom: 8.0,
-        maxZoom: 30.0,
+        center: myPosition,
+        minZoom: 5.0,
+        maxZoom: 25.0,
         zoom: 18.0,
       ),
       children: [
@@ -174,6 +204,19 @@ class _MyHomePageState extends State<MyHomePage> {
           subdomains: ['a', 'b', 'c'],
         ),
         _buildMarkersLayer(),
+        if (myPosition != null)
+          MarkerLayer(
+            markers: [
+              Marker(
+                width: 40.0,
+                height: 40.0,
+                point: myPosition!,
+                builder:
+                    (ctx) =>
+                        Icon(Icons.location_pin, color: Colors.blue, size: 30),
+              ),
+            ],
+          ),
       ],
     );
   }
@@ -184,6 +227,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (_selectedIndex == 2) {
         _fetchEstaciones();
       } else if (_selectedIndex == 1) {
+        _getPosition();
         _fetchEstaciones();
         _showMap();
       }
