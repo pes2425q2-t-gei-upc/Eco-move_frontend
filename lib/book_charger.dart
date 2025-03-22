@@ -1,4 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 
 void main() {
   runApp(MyApp());
@@ -70,7 +74,6 @@ class _DateTimePickerWithDropdownState
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-
     if (pickedDate != null) {
       String formattedDate =
           "${pickedDate.day.toString().padLeft(2, '0')}/"
@@ -163,12 +166,13 @@ class _DateTimePickerWithDropdownState
               if (_dateController.text.isNotEmpty &&
                   _timeController.text.isNotEmpty &&
                   _selectedValue != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        'Fecha: ${_dateController.text} - Hora: ${_timeController.text} - Opción: $_selectedValue'),
-                  ),
-                );
+                //ScaffoldMessenger.of(context).showSnackBar(
+                  //SnackBar(
+                    //content: Text(
+                      //  'Fecha: ${_dateController.text} - Hora: ${_timeController.text} - Opción: $_selectedValue'),
+                  //),
+                //);
+                createReservation(46391170, _dateController.text, _timeController.text, _selectedValue);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -188,4 +192,35 @@ class _DateTimePickerWithDropdownState
       ],
     );
   }
+
+  Future<void> createReservation(int id, String date, String hour, String? duration) async {
+    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/crear/');
+
+    final Map<String, dynamic> data = {
+      'id': id,
+      'date': date,
+      'hour': hour,
+      'duration': duration,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(data),
+      );
+
+      if (response.statusCode == 201) {
+        print('Reservation created successfully');
+      } else {
+        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+  
+
 }

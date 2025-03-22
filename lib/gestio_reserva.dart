@@ -1,8 +1,6 @@
-import 'package:eco_move_frontend/book_charger.dart';
-import 'package:eco_move_frontend/calculate_price.dart';
 import 'package:flutter/material.dart';
-// import 'calculate_price.dart';
-// import 'book_charger.dart';
+import 'calculate_price.dart';
+import 'book_charger.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,8 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // Set up the theme and other MaterialApp properties as necessary
-      home: EstacionScreen(idStation: '12345'), // Use your home screen widget here
+      home: EstacionScreen(idStation: '12345'),
     );
   }
 }
@@ -39,13 +36,10 @@ class _EstacionScreenState extends State<EstacionScreen> {
     'precio': '3 €',
   };
 
-  // Track which button is selected (only one can be selected)
   int? selectedIndex;
 
   void _selectButton(int index) {
     setState(() {
-      // If the same button is pressed again, keep it selected
-      // Otherwise, select the new button
       selectedIndex = index;
     });
   }
@@ -61,7 +55,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center, // Center items vertically
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Text(
                   'Tipo de enchufe: ',
@@ -72,10 +66,9 @@ class _EstacionScreenState extends State<EstacionScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                // Wrap the buttons in a Row instead of Wrap for better alignment
                 Wrap(
-                  spacing: 10, // Space between buttons
-                  runSpacing: 10, // Space between rows if wrapped
+                  spacing: 10,
+                  runSpacing: 10,
                   children: List.generate(
                     stationData['tipoEnchufe'].length,
                         (index) {
