@@ -172,7 +172,7 @@ class _DateTimePickerWithDropdownState
                       //  'Fecha: ${_dateController.text} - Hora: ${_timeController.text} - Opción: $_selectedValue'),
                   //),
                 //);
-                createReservation(46391170, _dateController.text, _timeController.text, _selectedValue);
+                createReservation('46391170', _dateController.text, _timeController.text, _selectedValue);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -193,14 +193,14 @@ class _DateTimePickerWithDropdownState
     );
   }
 
-  Future<void> createReservation(int id, String date, String hour, String? duration) async {
+  Future<void> createReservation(String id, String date, String hour, String? duration) async {
     final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/crear/');
 
     final Map<String, dynamic> data = {
-      'id': id,
-      'date': date,
-      'hour': hour,
-      'duration': duration,
+      'estacion': id,
+      'fecha': date,
+      'hora': hour,
+      'duracion': '02:00:00',
     };
 
     try {
