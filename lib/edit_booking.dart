@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
+import 'package:http/http.dart' as http;
+
 
 void main() {
   runApp(MyApp());
@@ -10,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: EditChargerScreen(date: '', hour: '', duration: '',),
+      home: EditChargerScreen(date: '', hour: '', duration: '', id: 0 ,estacion: '',),
     );
   }
 }
@@ -21,24 +26,28 @@ class EditChargerScreen extends StatelessWidget {
   final String date;
   final String hour;
   final String duration;
+  final int id;
+  final String estacion;
 
-  const EditChargerScreen({super.key, required this.date, required this.hour, required this.duration});
+  const EditChargerScreen({super.key, required this.date, required this.hour, required this.duration, required this.id, required this.estacion});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Editar reserva del cargador',
+          'Editar reserva del cargador $estacion',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: Padding(
         padding: EdgeInsets.all(30.0),
         child: DateTimePickerWithDropdown(
+          id: id,
           date: date,
           hour: hour,
-          duration: duration
+          duration: duration,
+          estacion: estacion,
         ),
       ),
     );
@@ -50,12 +59,16 @@ class DateTimePickerWithDropdown extends StatefulWidget {
   final String date;
   final String hour;
   final String duration;
+  final int id;
+  final String estacion;
 
   const DateTimePickerWithDropdown({
     super.key,
     required this.date,
     required this.hour,
     required this.duration,
+    required this.id,
+    required this.estacion,
   });
 
 
@@ -68,11 +81,13 @@ class _DateTimePickerWithDropdownState
     extends State<DateTimePickerWithDropdown> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
+  final MaskedTextController _durationController = MaskedTextController(mask: '00:00:00');
+
 
 
   DateTime? _initialDate;
   TimeOfDay? _initialTime;
-  String? _selectedValue;
+
 
   void initState() {
     super.initState();
@@ -80,7 +95,7 @@ class _DateTimePickerWithDropdownState
     // Set initial values from widget parameters
     _dateController.text = widget.date;
     _timeController.text = widget.hour;
-    _selectedValue = widget.duration;
+    _durationController.text = widget.duration;
     print(widget.duration);
 
     // Parse the date and time
@@ -91,12 +106,6 @@ class _DateTimePickerWithDropdownState
     );
   }
 
-  final List<String> _dropdownItems = [
-    '30 minutos',
-    '1 hora',
-    '1 hora 30 minutos',
-    '2 horas'
-  ];
 
   @override
   void dispose() {
@@ -179,23 +188,10 @@ class _DateTimePickerWithDropdownState
         ),
         SizedBox(height: 16), // Space between fields
 
-        // Dropdown Menu
-        Text('Duración estimada'),
-        SizedBox(height: 8),
-        DropdownButton<String>(
-          value: _selectedValue,
-          hint: Text('-'),
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedValue = newValue;
-            });
-          },
-          items: _dropdownItems.map((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(item),
-            );
-          }).toList(),
+        TextField(
+          controller: _durationController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(labelText: 'Duración estimada (hh:mm:ss)'),
         ),
         SizedBox(height: 30),
 
@@ -205,14 +201,14 @@ class _DateTimePickerWithDropdownState
             onPressed: () {
               if (_dateController.text.isNotEmpty &&
                   _timeController.text.isNotEmpty &&
-                  _selectedValue != null) {
+                  _durationController.text.isNotEmpty) {
                 showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
                         title: Text('Confirmar modificación'),
                         content: Text(
-                            '¿Estás seguro de que deseas modificar la reserva?\n\nFecha: ${_dateController.text}\nHora: ${_timeController.text}\nDuración: $_selectedValue'),
+                            '¿Estás seguro de que deseas modificar la reserva?\n\nFecha: ${_dateController.text}\nHora: ${_timeController.text}\nDuración: ${_durationController.text}'),
                       actions: <Widget>[
                         TextButton(
                             onPressed: () {
@@ -222,6 +218,7 @@ class _DateTimePickerWithDropdownState
                         ),
                         TextButton(
                             onPressed: () {
+                              editBooking(widget.id, _dateController.text, _timeController.text, _durationController.text, widget.estacion);
                               Navigator.of(context).pop(); // Close the dialog
                               Navigator.pop(context); // Go back to the previous screen
                             },
@@ -251,4 +248,35 @@ class _DateTimePickerWithDropdownState
       ],
     );
   }
+
+  Future<void> editBooking(int id, String date, String hour, String? duration, String estacion) async {
+    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/$id/modificar/');
+
+    final Map<String, dynamic> data = {
+      'estacion': estacion,
+      'fecha': date,
+      'hora': hour,
+      'duracion': duration,
+    };
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(data),
+      );
+
+      if (response.statusCode == 200) {
+        print('Reservation created successfully');
+      } else {
+        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+
 }

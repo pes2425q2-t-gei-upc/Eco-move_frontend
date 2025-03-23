@@ -8,12 +8,14 @@ class Booking {
   final String fecha;
   final String hora;
   final String duracion;
+  final int id;
 
   Booking({
     required this.estacion,
     required this.fecha,
     required this.hora,
     required this.duracion,
+    required this.id,
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class Booking {
       fecha: json['fecha'],
       hora: json['hora'],
       duracion: json['duracion'],
+      id: json['id'],
     );
   }
 }
@@ -122,6 +125,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
                                       date: booking.fecha,
                                       hour: booking.hora,
                                       duration: booking.duracion,
+                                      id: booking.id,
+                                      estacion: booking.estacion,
                                     ),
                                   ),
                                 );
@@ -130,6 +135,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
                             ),
                             TextButton(
                               onPressed: () {
+
+                                deleteBooking(booking.id);
                               },
                               child: Text("Eliminar"),
                             ),
@@ -144,6 +151,79 @@ class _BookingsScreenState extends State<BookingsScreen> {
           }
         },
       ),
+    );
+  }
+
+  Future<void> deleteBooking(int id) async {
+    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/$id/eliminar/');
+    bool? confirmDelete = await _showConfirmationDialog();
+    if (confirmDelete == true) {
+      try {
+        final response = await http.delete(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        );
+        if (response.statusCode == 200) {
+          _showDialog('Reserva eliminada con éxito', isSuccess: true);
+          setState(() {
+            futureBookings = fetchBookings(); // Refrescar la lista
+          });
+        } else if (response.statusCode == 404) {
+          _showDialog('La reserva no existe.', isSuccess: false);
+        } else {
+          _showDialog('Error al eliminar la reserva.', isSuccess: false);
+        }
+      } catch (e) {
+        _showDialog('Error: $e', isSuccess: false);
+      }
+    }
+  }
+
+  Future<bool?> _showConfirmationDialog() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmación'),
+          content: Text('¿Está seguro de que quiere eliminar la reserva?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Text('Eliminar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDialog(String message, {required bool isSuccess}) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(isSuccess ? 'Éxito' : 'Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Aceptar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
