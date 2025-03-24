@@ -100,13 +100,13 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 itemBuilder: (context, index) {
                   final booking = bookings[index];
                   return Card(
-                    color: Color(0xfff0daeb),
-                    elevation: 10,
+                    color: Color(0xffebe8e8),
+                    elevation: 5,
                     margin: EdgeInsets.all(10),
                     child: Column(
                       children: [
                         ListTile(
-                          title: Text(booking.estacion),
+                          title: Text('#${booking.estacion}'),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [

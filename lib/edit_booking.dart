@@ -81,7 +81,7 @@ class _DateTimePickerWithDropdownState
     extends State<DateTimePickerWithDropdown> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
-  final MaskedTextController _durationController = MaskedTextController(mask: '00:00:00');
+  final MaskedTextController _durationController = MaskedTextController(mask: '00:00');
 
 
 
@@ -191,7 +191,7 @@ class _DateTimePickerWithDropdownState
         TextField(
           controller: _durationController,
           keyboardType: TextInputType.number,
-          decoration: InputDecoration(labelText: 'Duración estimada (hh:mm:ss)'),
+          decoration: InputDecoration(labelText: 'Duración estimada (hh:mm)'),
         ),
         SizedBox(height: 30),
 
@@ -269,9 +269,9 @@ class _DateTimePickerWithDropdownState
       );
 
       if (response.statusCode == 200) {
-        print('Reservation created successfully');
+        print('Reservation modified successfully');
       } else {
-        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
+        print('Failed to modify reservation: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('Error: $e');
