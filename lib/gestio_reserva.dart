@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'calculate_price.dart';
 import 'book_charger.dart';
 
@@ -12,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: EstacionScreen(idStation: '12345'),
+      home: EstacionScreen(idStation: '46391170'),
     );
   }
 }
@@ -23,33 +26,51 @@ class EstacionScreen extends StatefulWidget {
   const EstacionScreen({required this.idStation, super.key});
 
   @override
-  State<EstacionScreen> createState() => _EstacionScreenState();
+  State<EstacionScreen> createState() => _EstacionScreenState(idStation: idStation);
 }
 
 class _EstacionScreenState extends State<EstacionScreen> {
-  final Map<String, dynamic> stationData = {
-    'id': '12345',
-    'tipoEnchufe': ['Tesla', 'Schuko'],
-    'potencia': ['22 kW', '7 kW'],
-    'estado': 'Disponible',
-    'direccion': 'Avinguda Barcelona 48',
-    'precio': '3 €',
-  };
+  final String idStation;
+  Map<String, dynamic> stationData = {};
+  bool isLoading = true; // New flag for loading state
 
-  int? selectedIndex;
+  _EstacionScreenState({required this.idStation});
 
-  void _selectButton(int index) {
-    setState(() {
-      selectedIndex = index;
-    });
+  Future<void> _fetchStations() async {
+    final url = Uri.parse(
+      'http://10.0.2.2:8000/api_punts_carrega/estacions/$idStation/', // Ensure this URL is correct
+    );
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        String decodedResponse = utf8.decode(response.bodyBytes);
+        Map<String, dynamic> data = jsonDecode(decodedResponse);
+
+        setState(() {
+          stationData = data;
+          isLoading = false; // Data is fetched, stop loading
+        });
+      } else {
+        print('Error: Received status code ${response.statusCode}');  // Print error if status code isn't 200
+      }
+    } catch (e) {
+      print('Error during HTTP request: $e');  // Catch any errors during the request
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStations(); // Fetch data when the widget is initialized
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Estación ${stationData['id']}')),
-
-      body: Padding(
+      appBar: AppBar(title: Text('Estación ${stationData['id_punt'] ?? 'Cargando...'}')),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator()) // Show loading spinner while data is being fetched
+          : Padding(
         padding: const EdgeInsets.all(30.0),
         child: Column(
           children: [
@@ -66,32 +87,10 @@ class _EstacionScreenState extends State<EstacionScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: List.generate(
-                    stationData['tipoEnchufe'].length,
-                        (index) {
-                      String tipo = stationData['tipoEnchufe'][index];
-                      bool isSelected = selectedIndex == index;
-
-                      return ElevatedButton(
-                        onPressed: () => _selectButton(index),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isSelected ? Colors.blueGrey : Colors.white,
-                          foregroundColor: isSelected ? Colors.white : Colors.blueGrey,
-                          side: const BorderSide(
-                            color: Colors.blueGrey,
-                            width: 2,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Text(tipo),
-                    );
-                  },
-                ),
+                Text(
+                  stationData['tipus_carregador'] != null && stationData['tipus_carregador'].isNotEmpty
+                      ? stationData['tipus_carregador'][0]
+                      : 'Desconocido',
                 ),
               ],
             ),
@@ -107,9 +106,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
                   ),
                 ),
                 Text(
-                  selectedIndex != null && selectedIndex! < stationData['potencia'].length
-                      ? stationData['potencia'][selectedIndex!]
-                      : stationData['potencia'][0],
+                  stationData['potencia'] != null ? '${stationData['potencia']} kW' : 'N/A',
                   style: const TextStyle(
                     color: Colors.black,
                     fontSize: 18,
@@ -129,7 +126,9 @@ class _EstacionScreenState extends State<EstacionScreen> {
                   ),
                 ),
                 Text(
-                  stationData['estado'],
+                  stationData['nplaces'] != null && int.tryParse(stationData['nplaces'])! > 0
+                      ? 'Disponible'
+                      : 'Ocupat',
                   style: const TextStyle(
                     color: Colors.black,
                     fontSize: 18,
@@ -148,12 +147,16 @@ class _EstacionScreenState extends State<EstacionScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
-                  stationData['direccion'],
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                  ),
+                Expanded(
+                    child:Text(
+                      stationData['direccio'] ?? 'No disponible',
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 18,
+                      ),
+                      overflow: TextOverflow.ellipsis,  // Handle overflow with ellipsis
+                      softWrap: true,
+                    ),
                 ),
               ],
             ),
@@ -181,15 +184,13 @@ class _EstacionScreenState extends State<EstacionScreen> {
             const SizedBox(height: 16),
             TextButton(
               onPressed: () {
-                 Navigator.of(context).push(
-                   MaterialPageRoute(
-                     builder: (context) => ChargeCalculatorScreen(
-                       tipoCarga: selectedIndex != null && selectedIndex! < stationData['potencia'].length
-                           ? stationData['potencia'][selectedIndex!]
-                           : stationData['potencia'][0],
-                       precio: stationData['precio'],
-                     ),
-                   ),
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ChargeCalculatorScreen(
+                      tipoCarga: stationData['tipus_velocitat'],
+                      precio: '3 €',
+                    ),
+                  ),
                 );
               },
               style: TextButton.styleFrom(
@@ -212,10 +213,10 @@ class _EstacionScreenState extends State<EstacionScreen> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).push(
-                   MaterialPageRoute(
-                     builder: (context) => BookChargerScreen(),
-                   ),
-                 );
+                  MaterialPageRoute(
+                    builder: (context) => BookChargerScreen(),
+                  ),
+                );
               },
               style: TextButton.styleFrom(
                 backgroundColor: const Color(0xFFa955e0),

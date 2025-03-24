@@ -51,7 +51,7 @@ class _DateTimePickerWithDropdownState
     extends State<DateTimePickerWithDropdown> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
-  final MaskedTextController _durationController = MaskedTextController(mask: '00:00:00');
+  final MaskedTextController _durationController = MaskedTextController(mask: '00:00');
 
 
   @override
@@ -138,7 +138,7 @@ class _DateTimePickerWithDropdownState
         TextField(
             controller: _durationController,
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: 'Duración estimada (hh:mm:ss)'),
+            decoration: InputDecoration(labelText: 'Duración estimada (hh:mm)'),
         ),
         SizedBox(height: 8),
 
@@ -149,13 +149,37 @@ class _DateTimePickerWithDropdownState
               if (_dateController.text.isNotEmpty &&
                   _timeController.text.isNotEmpty &&
                   _durationController.text.isNotEmpty) {
-                //ScaffoldMessenger.of(context).showSnackBar(
-                  //SnackBar(
-                    //content: Text(
-                      //  'Fecha: ${_dateController.text} - Hora: ${_timeController.text} - Opción: $_selectedValue'),
-                  //),
-                //);
-                createReservation('46391170', _dateController.text, _timeController.text, _durationController.text);
+                showDialog(
+                    context: context,
+                    builder: (BuildContext conext)
+                {
+                  return AlertDialog(
+                    title: Text('Confirmar reserva'),
+                    content: Text(
+                        '¿Estás seguro de que deseas reservar?\n\nFecha: ${_dateController
+                            .text}\nHora: ${_timeController
+                            .text}\nDuración: ${_durationController.text}'),
+                    actions: <Widget>[
+                      TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Cancelar')
+                      ),
+                      TextButton(
+                          onPressed: () {
+                            createReservation('46391170', _dateController.text,
+                                _timeController.text, _durationController.text);
+                            Navigator.of(context).pop(); // Close the dialog
+                            Navigator.pop(
+                                context); // Go back to the previous screen
+                          },
+                          child: Text('Confirmar')
+                      ),
+                    ],
+                  );
+                }
+                );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
