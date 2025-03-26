@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'calculate_price.dart';
 import 'book_charger.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -178,7 +180,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
               height: 60,
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () => _openGoogleMaps(41.58138888888, 1.620833333333),
               style: TextButton.styleFrom(
                 backgroundColor: const Color(0xFF2C8235),
                 foregroundColor: Colors.white,
@@ -253,4 +255,12 @@ class _EstacionScreenState extends State<EstacionScreen> {
       ),
     );
   }
+
+  Future<void> _openGoogleMaps(double destinationLatitude, double destinationLongitude) async {
+    final url = 'https://www.google.com/maps/dir/?api=1&destination=$destinationLatitude,$destinationLongitude';
+    if (!await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
 }
