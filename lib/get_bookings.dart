@@ -118,8 +118,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
                         Row(
                           children: [
                             TextButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
+                              onPressed: () async {
+                                final result = await Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) => EditChargerScreen(
                                       date: booking.fecha,
@@ -130,6 +130,12 @@ class _BookingsScreenState extends State<BookingsScreen> {
                                     ),
                                   ),
                                 );
+                                if (result== true) {
+                                  setState(() {
+                                    futureBookings = fetchBookings();
+                                  });
+                                }
+
                               },
                               child: Text("Editar"),
                             ),
