@@ -201,7 +201,7 @@ class _DateTimePickerWithDropdownState
   }
 
   Future<void> createReservation(String id, String date, String hour, String? duration) async {
-    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/crear/');
+    final url = Uri.parse('https://eco-move-backend.onrender.com/api_punts_carrega/reservas/crear/');
 
     final Map<String, dynamic> data = {
       'estacion': id,

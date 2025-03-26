@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: EstacionScreen(idStation: '46391170'),
+      home: EstacionScreen(idStation: '46109488'),
     );
   }
 }
@@ -38,7 +38,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
 
   Future<void> _fetchStations() async {
     final url = Uri.parse(
-      'http://10.0.2.2:8000/api_punts_carrega/estacions/$idStation/', // Ensure this URL is correct
+      'https://eco-move-backend.onrender.com/api_punts_carrega/estacions/$idStation/', // Ensure this URL is correct
     );
     try {
       final response = await http.get(url);
@@ -67,7 +67,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Estación ${stationData['id_punt'] ?? 'Cargando...'}')),
+      appBar: AppBar(title: Text('Estación ${stationData['direccio'] ?? 'Cargando...'}')),
       body: isLoading
           ? Center(child: CircularProgressIndicator()) // Show loading spinner while data is being fetched
           : Padding(
@@ -87,10 +87,24 @@ class _EstacionScreenState extends State<EstacionScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Text(
-                  stationData['tipus_carregador'] != null && stationData['tipus_carregador'].isNotEmpty
-                      ? stationData['tipus_carregador'][0]
-                      : 'Desconocido',
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Wrap(
+                    spacing: 8.0, // Horizontal spacing between chips
+                    runSpacing: 4.0, // Vertical spacing between rows
+                    children: (stationData['tipus_carregador'] as List<dynamic>? ?? [])
+                        .expand((tipo) => (tipo ?? '').split('+')) // Split by '+'
+                        .map<Widget>((tipo) => Chip(
+                      label: Text(
+                        tipo.trim(), // Remove any surrounding whitespace
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ))
+                        .toList(),
+                  ),
                 ),
               ],
             ),
@@ -140,7 +154,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
             Row(
               children: [
                 const Text(
-                  'Dirección: ',
+                  'Ciudad: ',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
@@ -149,7 +163,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
                 ),
                 Expanded(
                     child:Text(
-                      stationData['direccio'] ?? 'No disponible',
+                      stationData['ciutat'] ?? 'No disponible',
                       style: const TextStyle(
                         color: Colors.black,
                         fontSize: 18,
