@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'gestio_reserva.dart';
+import 'package:geolocator/geolocator.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,24 +36,87 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   List<Map<String, dynamic>> estaciones = [];
+  LatLng? myPosition;
+  String filtroSeleccionado = 'Todas';
 
   @override
   void initState() {
     super.initState();
+    _getPosition();
+    _fetchEstaciones();
+  }
+
+  Future<Position?> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    permission = await Geolocator.checkPermission();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled');
+    }
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions denied');
+      }
+    }
+    return await Geolocator.getCurrentPosition();
+  }
+
+  void _getPosition() async {
+    Position? position = await _determinePosition();
+    if (position != null) {
+      setState(() {
+        myPosition = LatLng(position.latitude, position.longitude);
+      });
+    }
   }
 
   Future<void> _fetchEstaciones() async {
-    final url = Uri.parse(
-      'https://eco-move-backend.onrender.com/api_punts_carrega/ubicacions/',
-    );
+    String endpoint;
+
+    if (filtroSeleccionado == 'Todas') {
+      endpoint =
+          'https://eco-move-backend.onrender.com/api_punts_carrega/estacions/';
+    } else {
+      if (myPosition != null) {
+        endpoint =
+            'https://eco-move-backend.onrender.com/api_punts_carrega/punt_mes_proper/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}';
+      } else {
+        print('Error: myPosition es null');
+        return;
+      }
+    }
+
+    final url = Uri.parse(endpoint);
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
-        List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(
-          json.decode(response.body),
-        );
+        List<dynamic> data = json.decode(response.body);
+
+        List<Map<String, dynamic>> filteredData =
+            data.map((estacion) {
+              // Si la respuesta es de "Más cercanas", accedemos a "estacio_carrega"
+              Map<String, dynamic> estacioCarrega =
+                  estacion.containsKey('estacio_carrega')
+                      ? estacion['estacio_carrega']
+                      : estacion;
+
+              return {
+                "id_punt": estacioCarrega["id_punt"],
+                "lat": estacioCarrega["lat"],
+                "lng": estacioCarrega["lng"],
+                "direccio": estacioCarrega["direccio"],
+                "ciutat": estacioCarrega["ciutat"],
+                "nplaces_lliures": estacioCarrega["nplaces"],
+                "potencia": estacioCarrega["potencia"],
+                "tipus_velocitat": estacioCarrega["tipus_velocitat"],
+              };
+            }).toList();
+
         setState(() {
-          estaciones = data;
+          estaciones = filteredData;
         });
       } else {
         print('Error al cargar datos: ${response.statusCode}');
@@ -105,32 +169,68 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildEstacionesList() {
-    return ListView(
-      padding: const EdgeInsets.all(10),
-      children:
-          estaciones.map((estacion) => _buildEstacionCard(estacion)).toList(),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: DropdownButton<String>(
+            value: filtroSeleccionado,
+            onChanged: (String? newValue) {
+              if (newValue != null) {
+                setState(() {
+                  filtroSeleccionado = newValue;
+                  _fetchEstaciones();
+                });
+              }
+            },
+            items:
+                ['Todas', 'Más cercanas'].map<DropdownMenuItem<String>>((
+                  String value,
+                ) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+          ),
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(10),
+            children:
+                estaciones
+                    .map((estacion) => _buildEstacionCard(estacion))
+                    .toList(),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildEstacionCard(Map<String, dynamic> estacion) {
-    return Card(
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'ID Ubicación: ${estacion['id_ubicacio']}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text('Dirección: ${estacion['direccio']}'),
-            Text('Ciudad: ${estacion['ciutat']}'),
-            Text('Provincia: ${estacion['provincia']}'),
-            Text('Latitud: ${estacion['lat']}'),
-            Text('Longitud: ${estacion['lng']}'),
-          ],
+    return InkWell(
+      onTap: () {
+        _abrirEstacionScreen(context);
+      },
+      child: Card(
+        elevation: 3,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'ID Punto: ${estacion['id_punt']}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text('Dirección: ${estacion['direccio']}'),
+              Text('Ciudad: ${estacion['ciutat']}'),
+              Text('Plazas libres: ${estacion['nplaces_lliures']}'),
+              Text('Potencia: ${estacion['potencia']} kW'),
+              Text('Tipo de velocidad: ${estacion['tipus_velocitat']}'),
+            ],
+          ),
         ),
       ),
     );
@@ -163,9 +263,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _showMap() {
     return FlutterMap(
       options: MapOptions(
-        center: LatLng(41.38974691281002, 2.1133222801818614),
-        minZoom: 8.0,
-        maxZoom: 30.0,
+        center: myPosition,
+        minZoom: 5.0,
+        maxZoom: 25.0,
         zoom: 18.0,
       ),
       children: [
@@ -174,6 +274,19 @@ class _MyHomePageState extends State<MyHomePage> {
           subdomains: ['a', 'b', 'c'],
         ),
         _buildMarkersLayer(),
+        if (myPosition != null)
+          MarkerLayer(
+            markers: [
+              Marker(
+                width: 40.0,
+                height: 40.0,
+                point: myPosition!,
+                builder:
+                    (ctx) =>
+                        Icon(Icons.location_pin, color: Colors.blue, size: 30),
+              ),
+            ],
+          ),
       ],
     );
   }
@@ -182,9 +295,8 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _selectedIndex = index;
       if (_selectedIndex == 2) {
-        _fetchEstaciones();
       } else if (_selectedIndex == 1) {
-        _fetchEstaciones();
+        _getPosition();
         _showMap();
       }
     });
