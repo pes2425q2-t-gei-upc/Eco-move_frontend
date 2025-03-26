@@ -57,7 +57,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
   }
 
   Future<List<Booking>> fetchBookings() async {
-    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/');
+    final url = Uri.parse('https://eco-move-backend.onrender.com/api_punts_carrega/reservas/');
     try {
       final response = await http.get(url);
 
@@ -86,7 +86,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No hay reservas disponibles.'));
+            return Center(child: Text('No hay reservas'));
           } else {
             final bookings = snapshot.data!;
             return Scrollbar(
