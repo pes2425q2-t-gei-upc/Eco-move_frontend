@@ -228,7 +228,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => BookChargerScreen(),
+                    builder: (context) => BookChargerScreen(idStation: idStation),
                   ),
                 );
               },
