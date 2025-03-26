@@ -130,18 +130,16 @@ class _BookingsScreenState extends State<BookingsScreen> {
                                     ),
                                   ),
                                 );
-                                if (result== true) {
-                                  setState(() {
-                                    futureBookings = fetchBookings();
-                                  });
-                                }
 
+                                // This is the important part - refresh regardless of result value
+                                setState(() {
+                                  futureBookings = fetchBookings();
+                                });
                               },
                               child: Text("Editar"),
                             ),
                             TextButton(
                               onPressed: () {
-
                                 deleteBooking(booking.id);
                               },
                               child: Text("Eliminar"),
@@ -161,7 +159,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
   }
 
   Future<void> deleteBooking(int id) async {
-    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/$id/eliminar/');
+    final url = Uri.parse('https://eco-move-backend.onrender.com/api_punts_carrega/reservas/$id/eliminar/');
     bool? confirmDelete = await _showConfirmationDialog();
     if (confirmDelete == true) {
       try {
