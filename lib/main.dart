@@ -126,10 +126,12 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _abrirEstacionScreen(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => EstacionScreen()));
+  void _abrirEstacionScreen(BuildContext context, String idEstacion) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => EstacionScreen(idStation: idEstacion),
+      ),
+    );
   }
 
   void _showAlert() {
@@ -210,7 +212,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _buildEstacionCard(Map<String, dynamic> estacion) {
     return InkWell(
       onTap: () {
-        _abrirEstacionScreen(context);
+        _abrirEstacionScreen(context, estacion['id_punt'].toString());
       },
       child: Card(
         elevation: 3,
@@ -251,7 +253,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       color: Colors.red,
                       iconSize: 30,
                       onPressed: () {
-                        _abrirEstacionScreen(context);
+                        _abrirEstacionScreen(
+                          context,
+                          estacion['id_punt'].toString(),
+                        );
                       },
                     ),
                   ),
@@ -265,8 +270,8 @@ class _MyHomePageState extends State<MyHomePage> {
       options: MapOptions(
         center: myPosition,
         minZoom: 5.0,
-        maxZoom: 25.0,
-        zoom: 18.0,
+        maxZoom: 18.0,
+        zoom: 15.0,
       ),
       children: [
         TileLayer(
