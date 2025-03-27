@@ -1,23 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: BookChargerScreen(),
-    );
-  }
-}
+import 'package:http/http.dart' as http;
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
+import 'dart:convert';
 
 
 class BookChargerScreen extends StatelessWidget {
-  const BookChargerScreen({super.key});
+  final String idStation;
+  const BookChargerScreen({super.key, required this.idStation});
 
   @override
   Widget build(BuildContext context) {
@@ -30,13 +20,15 @@ class BookChargerScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: EdgeInsets.all(30.0),
-        child: DateTimePickerWithDropdown(),
+        child: DateTimePickerWithDropdown(idStation: idStation),
       ),
     );
   }
 }
 
 class DateTimePickerWithDropdown extends StatefulWidget {
+  final String idStation;
+  DateTimePickerWithDropdown({super.key, required this.idStation});
   @override
   _DateTimePickerWithDropdownState createState() =>
       _DateTimePickerWithDropdownState();
@@ -46,14 +38,8 @@ class _DateTimePickerWithDropdownState
     extends State<DateTimePickerWithDropdown> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
+  final MaskedTextController _durationController = MaskedTextController(mask: '00:00');
 
-  String? _selectedValue;
-  final List<String> _dropdownItems = [
-    '30 minutos',
-    '1 hora',
-    '1 hora 30 minutos',
-    '2 horas'
-  ];
 
   @override
   void dispose() {
@@ -70,7 +56,6 @@ class _DateTimePickerWithDropdownState
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-
     if (pickedDate != null) {
       String formattedDate =
           "${pickedDate.day.toString().padLeft(2, '0')}/"
@@ -126,7 +111,7 @@ class _DateTimePickerWithDropdownState
         TextField(
           controller: _timeController,
           decoration: InputDecoration(
-            hintText: 'HH:mm',
+            hintText: 'hh:mm',
             hintStyle: TextStyle(color: Colors.grey),
             border: OutlineInputBorder(),
             suffixIcon: Icon(Icons.access_time),
@@ -137,24 +122,12 @@ class _DateTimePickerWithDropdownState
         SizedBox(height: 16), // Space between fields
 
         // Dropdown Menu
-        Text('Duración estimada'),
-        SizedBox(height: 8),
-        DropdownButton<String>(
-          value: _selectedValue,
-          hint: Text('-'),
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedValue = newValue;
-            });
-          },
-          items: _dropdownItems.map((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(item),
-            );
-          }).toList(),
+        TextField(
+            controller: _durationController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'Duración estimada (hh:mm)'),
         ),
-        SizedBox(height: 30),
+        SizedBox(height: 8),
 
         // Button to confirm the date, time, and dropdown selection
         Center(
@@ -162,12 +135,88 @@ class _DateTimePickerWithDropdownState
             onPressed: () {
               if (_dateController.text.isNotEmpty &&
                   _timeController.text.isNotEmpty &&
-                  _selectedValue != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
+                  _durationController.text.isNotEmpty) {
+                showDialog(
+                    context: context,
+                    builder: (BuildContext conext)
+                {
+                  return AlertDialog(
+                    title: Text('Confirmar reserva'),
                     content: Text(
-                        'Fecha: ${_dateController.text} - Hora: ${_timeController.text} - Opción: $_selectedValue'),
-                  ),
+                        '¿Estás seguro de que deseas reservar?\n\nFecha: ${_dateController
+                            .text}\nHora: ${_timeController
+                            .text}\nDuración: ${_durationController.text}'),
+                    actions: <Widget>[
+                      TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Cancelar')
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // Parse the selected date
+                          DateTime selectedDate = DateTime.parse(
+                            _dateController.text.isEmpty
+                                ? DateTime.now().toString()
+                                : _dateController.text.split('/').reversed.join('-'), // Convert to DateTime
+                          );
+
+                          // Parse the selected time
+                          List<String> timeParts = _timeController.text.split(':');
+                          TimeOfDay selectedTime = TimeOfDay(
+                            hour: int.parse(timeParts[0]),
+                            minute: int.parse(timeParts[1]),
+                          );
+
+                          DateTime selectedDateTime = DateTime(
+                            selectedDate.year,
+                            selectedDate.month,
+                            selectedDate.day,
+                            selectedTime.hour,
+                            selectedTime.minute,
+                          );
+
+                          // Check if the selected date and time are valid
+                          if (selectedDateTime.isBefore(DateTime.now())) {
+                            // Show the dialog if the selected date and time are invalid
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Fecha y hora no válidas'),
+                                  content: Text('Por favor, selecciona una fecha y hora válida.'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text('Cerrar'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          } else {
+                            // Proceed with reservation creation if valid
+                            createReservation(widget.idStation, _dateController.text,
+                                _timeController.text, _durationController.text);
+
+                            Navigator.of(context).pop(); // Close the dialog
+                            Navigator.pop(context); // Go back to the previous screen
+                          }
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Color(0xffa610ad),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        ),
+                        child: Text('Confirmar reserva'),
+                      ),
+
+                    ],
+                  );
+                }
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -188,4 +237,35 @@ class _DateTimePickerWithDropdownState
       ],
     );
   }
+
+  Future<void> createReservation(String id, String date, String hour, String? duration) async {
+    final url = Uri.parse('https://eco-move-backend.onrender.com/api_punts_carrega/reservas/crear/');
+
+    final Map<String, dynamic> data = {
+      'estacion': id,
+      'fecha': date,
+      'hora': hour,
+      'duracion': duration,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(data),
+      );
+
+      if (response.statusCode == 201) {
+        print('Reservation created successfully');
+      } else {
+        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+
 }
