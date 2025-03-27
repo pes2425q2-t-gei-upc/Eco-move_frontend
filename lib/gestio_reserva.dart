@@ -180,7 +180,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
               height: 60,
             ),
             TextButton(
-              onPressed: () => _openGoogleMaps(41.58138888888, 1.620833333333),
+              onPressed: () => _openGoogleMaps(stationData['lat'], stationData['lng']),
               style: TextButton.styleFrom(
                 backgroundColor: const Color(0xFF2C8235),
                 foregroundColor: Colors.white,
