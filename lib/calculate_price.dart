@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ChargeCalculatorScreen extends StatefulWidget {
   final String tipoCarga;
@@ -7,8 +9,8 @@ class ChargeCalculatorScreen extends StatefulWidget {
   const ChargeCalculatorScreen({
     super.key,
     required this.tipoCarga,
-    required this.precio});
-
+    required this.precio,
+  });
 
   @override
   ChargeCalculatorScreenState createState() => ChargeCalculatorScreenState();
@@ -19,20 +21,53 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
   final TextEditingController currentPercentageController = TextEditingController();
   final TextEditingController desiredPercentageController = TextEditingController();
 
+  double? pricePerKWh;
+
+  @override
+  void initState() {
+    super.initState();
+    _getPrice();
+  }
+
+  Future<void> _getPrice() async {
+    final url = Uri.parse(
+      'http://10.0.2.2/api_punts_carrega/api/preu_kwh/', // Cambiado a HTTP
+    );
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          pricePerKWh = double.tryParse(data['price'].toString());
+        });
+        print('Precio por kWh: $pricePerKWh');
+      } else {
+        print('Error: Received status code ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error obteniendo precio: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      print('Error during HTTP request: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error de conexión: $e')),
+      );
+    }
+  }
+
   void _showPriceDialog(double price) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Precio de carga'),
+          title: const Text('Precio de carga'),
           content: Text('El precio total es: €${price.toStringAsFixed(2)}'),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
                 Navigator.of(context).popUntil((route) => route.isFirst);
               },
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -45,14 +80,30 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
     double currentPercentage = double.tryParse(currentPercentageController.text) ?? 0;
     double desiredPercentage = double.tryParse(desiredPercentageController.text) ?? 0;
 
-    if (batteryCapacity > 0 && currentPercentage >= 0 && desiredPercentage > currentPercentage) { //POSAR MÉS CONDICIONS
+    if (batteryCapacity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La capacidad de la batería debe ser mayor que 0')),
+      );
+      return;
+    }
+
+    if (currentPercentage < 0 || currentPercentage > 100 ||
+        desiredPercentage < 0 || desiredPercentage > 100 ||
+        desiredPercentage <= currentPercentage) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Introduce valores de porcentaje válidos')),
+      );
+      return;
+    }
+
+    if (pricePerKWh != null) {
       double energyRequired = (desiredPercentage - currentPercentage) / 100 * batteryCapacity;
-      double price = energyRequired * 0.20;
+      double price = energyRequired * pricePerKWh!;
 
       _showPriceDialog(price);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter valid values')),
+        const SnackBar(content: Text('No se ha obtenido el precio por kWh')),
       );
     }
   }
@@ -68,89 +119,74 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Calcular precio de carga')),
+      appBar: AppBar(title: const Text('Calcular precio de carga')),
       body: Padding(
-        padding: EdgeInsets.all(30.0),
+        padding: const EdgeInsets.all(30.0),
         child: Column(
           children: [
             Container(
-              padding: EdgeInsets.all(15),
+              padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                color: Color(0xffbcccf7),
+                color: const Color(0xffbcccf7),
               ),
               child: Column(
                 children: [
                   Row(
                     children: [
-                      Text('Tipo de carga: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('Tipo de carga: ', style: TextStyle(fontWeight: FontWeight.bold)),
                       Text(widget.tipoCarga),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
-                      Text('Precio: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text(widget.precio),
+                      const Text('Precio: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(pricePerKWh != null
+                          ? '€${pricePerKWh!.toStringAsFixed(2)} / kWh'
+                          : 'Cargando...'),
                     ],
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Capacidad de la batería (kWh)'),
-            ),
-            TextField(
-              controller: batteryCapacityController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'Ej: 60',
-                hintStyle: TextStyle(color: Colors.grey),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 25),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Porcentaje actual de la bateria (%)'),
-            ),
-            TextField(
-              controller: currentPercentageController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'Ej: 20',
-                hintStyle: TextStyle(color: Colors.grey),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 25),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Porcentaje deseado de carga (%)'),
-            ),
-            TextField(
-              controller: desiredPercentageController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'Ej: 80',
-                hintStyle: TextStyle(color: Colors.grey),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 20),
+            const SizedBox(height: 16),
+            _buildInputField('Capacidad de la batería (kWh)', batteryCapacityController, 'Ej: 60'),
+            const SizedBox(height: 25),
+            _buildInputField('Porcentaje actual de la batería (%)', currentPercentageController, 'Ej: 20'),
+            const SizedBox(height: 25),
+            _buildInputField('Porcentaje deseado de carga (%)', desiredPercentageController, 'Ej: 80'),
+            const SizedBox(height: 20),
             TextButton(
               onPressed: _calculatePrice,
               style: TextButton.styleFrom(
-                backgroundColor: Color(0xff6d89d6),
+                backgroundColor: const Color(0xff6d89d6),
                 foregroundColor: Colors.white,
               ),
-              child: Text('Calcular precio'),
+              child: const Text('Calcular precio'),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildInputField(
+      String label, TextEditingController controller, String hintText) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label),
+        TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: const TextStyle(color: Colors.grey),
+            border: const OutlineInputBorder(),
+          ),
+        ),
+      ],
     );
   }
 }
