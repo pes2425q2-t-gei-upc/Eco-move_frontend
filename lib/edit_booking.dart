@@ -1,44 +1,41 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: EditChargerScreen(date: '', hour: '', duration: '',),
-    );
-  }
-}
-
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
+import 'package:http/http.dart' as http;
 
 class EditChargerScreen extends StatelessWidget {
-
   final String date;
   final String hour;
   final String duration;
+  final int id;
+  final String estacion;
 
-  const EditChargerScreen({super.key, required this.date, required this.hour, required this.duration});
+  const EditChargerScreen({
+    super.key,
+    required this.date,
+    required this.hour,
+    required this.duration,
+    required this.id,
+    required this.estacion,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Editar reserva del cargador',
+          'Editar reserva del cargador $estacion',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: Padding(
         padding: EdgeInsets.all(30.0),
         child: DateTimePickerWithDropdown(
+          id: id,
           date: date,
           hour: hour,
-          duration: duration
+          duration: duration,
+          estacion: estacion,
         ),
       ),
     );
@@ -46,57 +43,48 @@ class EditChargerScreen extends StatelessWidget {
 }
 
 class DateTimePickerWithDropdown extends StatefulWidget {
-
   final String date;
   final String hour;
   final String duration;
+  final int id;
+  final String estacion;
 
   const DateTimePickerWithDropdown({
     super.key,
     required this.date,
     required this.hour,
     required this.duration,
+    required this.id,
+    required this.estacion,
   });
-
 
   @override
   _DateTimePickerWithDropdownState createState() =>
       _DateTimePickerWithDropdownState();
 }
 
-class _DateTimePickerWithDropdownState
-    extends State<DateTimePickerWithDropdown> {
+class _DateTimePickerWithDropdownState extends State<DateTimePickerWithDropdown> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
-
+  final MaskedTextController _durationController = MaskedTextController(mask: '00:00');
 
   DateTime? _initialDate;
   TimeOfDay? _initialTime;
-  String? _selectedValue;
 
+  @override
   void initState() {
     super.initState();
 
-    // Set initial values from widget parameters
     _dateController.text = widget.date;
     _timeController.text = widget.hour;
-    _selectedValue = widget.duration;
-    print(widget.duration);
+    _durationController.text = widget.duration;
 
-    // Parse the date and time
-    _initialDate = DateTime.tryParse(widget.date);  // Assuming the date format is "yyyy-MM-dd"
+    _initialDate = DateTime.tryParse(widget.date);
     _initialTime = TimeOfDay(
       hour: int.parse(widget.hour.split(":")[0]),
       minute: int.parse(widget.hour.split(":")[1]),
     );
   }
-
-  final List<String> _dropdownItems = [
-    '30 minutos',
-    '1 hora',
-    '1 hora 30 minutos',
-    '2 horas'
-  ];
 
   @override
   void dispose() {
@@ -105,11 +93,10 @@ class _DateTimePickerWithDropdownState
     super.dispose();
   }
 
-  // Function to show the date picker
   Future<void> _selectDate() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _initialDate,
+      initialDate: _initialDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
@@ -125,7 +112,6 @@ class _DateTimePickerWithDropdownState
     }
   }
 
-  // Function to show the time picker
   Future<void> _selectTime() async {
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
@@ -147,7 +133,6 @@ class _DateTimePickerWithDropdownState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Date Picker Field
         Text('Fecha'),
         SizedBox(height: 8),
         TextField(
@@ -161,9 +146,8 @@ class _DateTimePickerWithDropdownState
           readOnly: true,
           onTap: _selectDate,
         ),
-        SizedBox(height: 16), // Space between fields
+        SizedBox(height: 16),
 
-        // Time Picker Field
         Text('Hora'),
         SizedBox(height: 8),
         TextField(
@@ -177,59 +161,104 @@ class _DateTimePickerWithDropdownState
           readOnly: true,
           onTap: _selectTime,
         ),
-        SizedBox(height: 16), // Space between fields
+        SizedBox(height: 16),
 
-        // Dropdown Menu
-        Text('Duración estimada'),
-        SizedBox(height: 8),
-        DropdownButton<String>(
-          value: _selectedValue,
-          hint: Text('-'),
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedValue = newValue;
-            });
-          },
-          items: _dropdownItems.map((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(item),
-            );
-          }).toList(),
+        TextField(
+          controller: _durationController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(labelText: 'Duración estimada (hh:mm)'),
         ),
         SizedBox(height: 30),
 
-        // Button to confirm the date, time, and dropdown selection
         Center(
           child: TextButton(
             onPressed: () {
               if (_dateController.text.isNotEmpty &&
                   _timeController.text.isNotEmpty &&
-                  _selectedValue != null) {
+                  _durationController.text.isNotEmpty) {
                 showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('Confirmar modificación'),
-                        content: Text(
-                            '¿Estás seguro de que deseas modificar la reserva?\n\nFecha: ${_dateController.text}\nHora: ${_timeController.text}\nDuración: $_selectedValue'),
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Confirmar modificación'),
+                      content: Text(
+                          '¿Estás seguro de que deseas modificar la reserva?\n\nFecha: ${_dateController.text}\nHora: ${_timeController.text}\nDuración: ${_durationController.text}'),
                       actions: <Widget>[
                         TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('Cancelar')
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Cancelar'),
                         ),
                         TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(); // Close the dialog
-                              Navigator.pop(context); // Go back to the previous screen
-                            },
-                            child: Text('Confirmar')
+                          onPressed: () async{
+                            String selectedDate = _dateController.text;
+
+                            List<String> dateParts = selectedDate.split('/');
+                            int day = int.parse(dateParts[0]);
+                            int month = int.parse(dateParts[1]);
+                            int year = int.parse(dateParts[2]);
+
+                            List<String> timeParts = _timeController.text.split(':');
+                            int hour = int.parse(timeParts[0]);
+                            int minute = int.parse(timeParts[1]);
+
+                            DateTime selectedDateTime = DateTime(
+                              year,
+                              month,
+                              day,
+                              hour,
+                              minute,
+                            );
+
+                            if (selectedDateTime.isBefore(DateTime.now())) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text('Fecha y hora no válidas'),
+                                    content: Text('Por favor, selecciona una fecha y hora en el futuro.'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text('Cerrar'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            } else {
+                              bool success = await editBooking(
+                                widget.id,
+                                selectedDate,
+                                _timeController.text,
+                                _durationController.text,
+                                widget.estacion,
+                              );
+
+                              if (success) {
+                                Navigator.of(context).pop();
+                                Navigator.pop(context, true);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error al modificar la reserva')),
+                                );
+                                Navigator.of(context).pop();
+                              }
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: Color(0xffa610ad),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          ),
+                          child: Text('Confirmar reserva'),
                         ),
                       ],
-                      );
-                    },
+                    );
+                  },
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -237,7 +266,6 @@ class _DateTimePickerWithDropdownState
                     content: Text('Por favor, selecciona fecha, hora y duración estimada'),
                   ),
                 );
-
               }
             },
             style: TextButton.styleFrom(
@@ -250,5 +278,35 @@ class _DateTimePickerWithDropdownState
         ),
       ],
     );
+  }
+
+  Future<bool> editBooking(int id, String date, String hour, String? duration, String estacion) async {
+    final url = Uri.parse('https://eco-move-backend.onrender.com/api_punts_carrega/reservas/$id/modificar/');
+
+    final Map<String, dynamic> data = {
+      'estacion': estacion,
+      'fecha': date,
+      'hora': hour,
+      'duracion': duration,
+    };
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(data),
+      );
+
+      if (response.statusCode == 200) {
+        print('Reservation modified successfully');
+        return true;
+      } else {
+        print('Failed to modify reservation: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error: $e');
+      return false;
+    }
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'gestio_reserva.dart';
 import 'package:geolocator/geolocator.dart';
+import 'get_bookings.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,6 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Map<String, dynamic>> estaciones = [];
   LatLng? myPosition;
   String filtroSeleccionado = 'Todas';
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -74,6 +76,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _fetchEstaciones() async {
+    setState(() {
+      _isLoading = true;
+    });
     String endpoint;
 
     if (filtroSeleccionado == 'Todas') {
@@ -85,6 +90,9 @@ class _MyHomePageState extends State<MyHomePage> {
             'https://eco-move-backend.onrender.com/api_punts_carrega/punt_mes_proper/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}';
       } else {
         print('Error: myPosition es null');
+        setState(() {
+          _isLoading = false;
+        });
         return;
       }
     }
@@ -117,19 +125,28 @@ class _MyHomePageState extends State<MyHomePage> {
 
         setState(() {
           estaciones = filteredData;
+          _isLoading = false;
         });
       } else {
         print('Error al cargar datos: ${response.statusCode}');
+        setState(() {
+          _isLoading = false; // Ocultar indicador de carga si ocurre un error
+        });
       }
     } catch (e) {
       print('Error en la solicitud: $e');
+      setState(() {
+        _isLoading = false; // Ocultar indicador de carga si ocurre un error
+      });
     }
   }
 
-  void _abrirEstacionScreen(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => EstacionScreen()));
+  void _abrirEstacionScreen(BuildContext context, String idEstacion) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => EstacionScreen(idStation: idEstacion),
+      ),
+    );
   }
 
   void _showAlert() {
@@ -195,13 +212,18 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(10),
-            children:
-                estaciones
-                    .map((estacion) => _buildEstacionCard(estacion))
-                    .toList(),
-          ),
+          child:
+              _isLoading
+                  ? Center(
+                    child: CircularProgressIndicator(),
+                  ) // Indicador de carga
+                  : ListView(
+                    padding: const EdgeInsets.all(10),
+                    children:
+                        estaciones
+                            .map((estacion) => _buildEstacionCard(estacion))
+                            .toList(),
+                  ),
         ),
       ],
     );
@@ -210,7 +232,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _buildEstacionCard(Map<String, dynamic> estacion) {
     return InkWell(
       onTap: () {
-        _abrirEstacionScreen(context);
+        _abrirEstacionScreen(context, estacion['id_punt'].toString());
       },
       child: Card(
         elevation: 3,
@@ -248,10 +270,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   (ctx) => Container(
                     child: IconButton(
                       icon: Icon(Icons.location_on),
-                      color: Colors.red,
+                      color: Colors.green,
                       iconSize: 30,
                       onPressed: () {
-                        _abrirEstacionScreen(context);
+                        _abrirEstacionScreen(
+                          context,
+                          estacion['id_punt'].toString(),
+                        );
                       },
                     ),
                   ),
@@ -265,8 +290,8 @@ class _MyHomePageState extends State<MyHomePage> {
       options: MapOptions(
         center: myPosition,
         minZoom: 5.0,
-        maxZoom: 25.0,
-        zoom: 18.0,
+        maxZoom: 18.0,
+        zoom: 16.0,
       ),
       children: [
         TileLayer(
@@ -282,8 +307,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 height: 40.0,
                 point: myPosition!,
                 builder:
-                    (ctx) =>
-                        Icon(Icons.location_pin, color: Colors.blue, size: 30),
+                    (ctx) => Icon(
+                      Icons.person_pin_circle,
+                      color: Colors.blue,
+                      size: 30,
+                    ),
               ),
             ],
           ),
@@ -294,12 +322,63 @@ class _MyHomePageState extends State<MyHomePage> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      if (_selectedIndex == 2) {
-      } else if (_selectedIndex == 1) {
+      if (_selectedIndex == 1) {
         _getPosition();
         _showMap();
       }
     });
+  }
+
+  void _navigateToBookingsScreen() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => BookingsScreen()));
+  }
+
+  Widget _buildHomePage() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          InkWell(
+            onTap: _navigateToBookingsScreen,
+            borderRadius: BorderRadius.circular(12.0),
+            splashColor: Colors.white24,
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 200),
+              padding: EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(12.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 5,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(Icons.calendar_month, color: Colors.white, size: 30),
+                  SizedBox(width: 10),
+                  Text(
+                    'Mis Reservas',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -313,14 +392,14 @@ class _MyHomePageState extends State<MyHomePage> {
       body:
           _selectedIndex == 2
               ? _buildEstacionesList()
-              : (_selectedIndex == 1 ? _showMap() : Container()),
+              : (_selectedIndex == 1 ? _showMap() : _buildHomePage()),
       floatingActionButton: Align(
         alignment: Alignment.bottomRight,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(10.0),
           child: CircleAvatar(
             backgroundColor: Colors.red,
-            radius: 22,
+            radius: 20,
             child: IconButton(
               icon: const Icon(Icons.warning, color: Colors.white),
               onPressed: () {
