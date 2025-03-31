@@ -34,7 +34,8 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).popUntil((route) => route.isFirst);
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
               },
               child: const Text('OK'),
             ),
