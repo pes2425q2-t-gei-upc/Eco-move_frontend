@@ -21,39 +21,8 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
   final TextEditingController currentPercentageController = TextEditingController();
   final TextEditingController desiredPercentageController = TextEditingController();
 
-  double? pricePerKWh;
+  double? pricePerKWh = 0.0697;
 
-  @override
-  void initState() {
-    super.initState();
-    _getPrice();
-  }
-
-  Future<void> _getPrice() async {
-    final url = Uri.parse(
-      'http://10.0.2.2/api_punts_carrega/api/preu_kwh/', // Cambiado a HTTP
-    );
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          pricePerKWh = double.tryParse(data['price'].toString());
-        });
-        print('Precio por kWh: $pricePerKWh');
-      } else {
-        print('Error: Received status code ${response.statusCode}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error obteniendo precio: ${response.statusCode}')),
-        );
-      }
-    } catch (e) {
-      print('Error during HTTP request: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error de conexión: $e')),
-      );
-    }
-  }
 
   void _showPriceDialog(double price) {
     showDialog(
