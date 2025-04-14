@@ -82,8 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
     String endpoint;
 
     if (filtroSeleccionado == 'Todas') {
-      endpoint =
-          'https://eco-move-backend.onrender.com/api_punts_carrega/estacions/';
+      endpoint = 'http://127.0.0.1:8000/api_punts_carrega/estacions/';
     } else {
       if (myPosition != null) {
         endpoint =
@@ -393,7 +392,7 @@ class _MyHomePageState extends State<MyHomePage> {
           _selectedIndex == 2
               ? _buildEstacionesList()
               : (_selectedIndex == 1 ? _showMap() : _buildHomePage()),
-      floatingActionButton: Align(
+      /*floatingActionButton: Align(
         alignment: Alignment.bottomRight,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
@@ -408,7 +407,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
         ),
-      ),
+      ), */
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
