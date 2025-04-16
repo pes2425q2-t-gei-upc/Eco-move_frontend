@@ -2,7 +2,7 @@ import 'package:eco_move_frontend/edit_booking.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart'; // Importa el paquete intl
+import 'package:intl/intl.dart';
 
 import 'package:table_calendar/table_calendar.dart';
 
@@ -151,11 +151,20 @@ class _BookingsScreenState extends State<BookingsScreen> {
             },
             calendarStyle: CalendarStyle(
               todayDecoration: BoxDecoration(
-                color: Colors.blue,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.green, // Borde verde para el día actual
+                  width: 2,
+                ),
+              ),
+              todayTextStyle: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.normal,
               ),
               selectedDecoration: BoxDecoration(
-                color: Colors.green,
+                color: Colors.green.withAlpha(
+                  127,
+                ), // Reemplazado withOpacity(0.5) con withAlpha(127)
                 shape: BoxShape.circle,
               ),
             ),
@@ -164,9 +173,6 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 if (events.isNotEmpty) {
                   final booking =
                       events.first as Booking; // Toma el primer evento
-                  final formattedHour = DateFormat('HH:mm').format(
-                    DateTime.parse('1970-01-01 ${booking.hora}'),
-                  ); // Formatea la hora
                   return Positioned(
                     bottom: 1,
                     child: Container(
@@ -176,7 +182,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'Reserva: $formattedHour',
+                        'Reserva', // Cambiado para que solo diga "Reserva"
                         style: TextStyle(
                           color: Colors.white, // Texto blanco
                           fontSize: 10,
@@ -212,25 +218,81 @@ class _BookingsScreenState extends State<BookingsScreen> {
                       itemCount: reservasDelDia.length,
                       itemBuilder: (context, index) {
                         final booking = reservasDelDia[index];
-                        return Card(
-                          color: Color(0xffebe8e8),
-                          elevation: 5,
-                          margin: EdgeInsets.all(10),
-                          child: Column(
-                            children: [
-                              ListTile(
-                                title: Text('#${booking.estacion}'),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Fecha: ${booking.fecha}'),
-                                    Text('Hora: ${booking.hora}'),
-                                  ],
-                                ),
+                        return Container(
+                          margin: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          padding: EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.3),
+                                spreadRadius: 2,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
                               ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Row(
                                 children: [
-                                  TextButton(
+                                  Icon(
+                                    Icons.ev_station,
+                                    color: Colors.green,
+                                    size: 24,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Estación: ${booking.estacion}',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Divider(color: Colors.grey[300]),
+                              SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Fecha: ${booking.fecha}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Hora: ${booking.hora}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Duración: ${booking.duracion} horas',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  ElevatedButton.icon(
                                     onPressed: () async {
                                       final result = await Navigator.of(
                                         context,
@@ -254,13 +316,46 @@ class _BookingsScreenState extends State<BookingsScreen> {
                                         allBookings,
                                       );
                                     },
-                                    child: Text("Editar"),
+                                    icon: Icon(
+                                      Icons.edit,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ), // Ícono blanco
+                                    label: Text(
+                                      "Editar",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ), // Texto blanco
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blueAccent,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
                                   ),
-                                  TextButton(
+                                  SizedBox(width: 8),
+                                  ElevatedButton.icon(
                                     onPressed: () {
                                       deleteBooking(booking.id);
                                     },
-                                    child: Text("Eliminar"),
+                                    icon: Icon(
+                                      Icons.delete,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ), // Ícono blanco
+                                    label: Text(
+                                      "Eliminar",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ), // Texto blanco
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.redAccent,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
