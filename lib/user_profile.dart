@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'User Profile',
+      title: 'Perfil usuario',
       theme: ThemeData(
         primarySwatch: Colors.lightGreen,
         useMaterial3: true,
@@ -23,18 +26,24 @@ class MyApp extends StatelessWidget {
 }
 
 class UserProfile {
-  String name;
+  String firstName;
+  String lastName;
   String email;
   String description;
   String language;
   String telephone;
+  String dni;
+  String username;
 
   UserProfile({
-    required this.name,
+    required this.firstName,
+    required this.lastName,
     required this.email,
     required this.description,
     required this.language,
     required this.telephone,
+    required this.dni,
+    required this.username,
   });
 }
 
@@ -49,41 +58,51 @@ class _UserProfilePageState extends State<UserProfilePage> {
   bool isEditing = false;
 
   final UserProfile userProfile = UserProfile(
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    description: 'Flutter developer with 3 years of experience. Passionate about building beautiful and functional mobile applications.',
-    language: 'English',
-    telephone: '+1 123-456-7890',
+    firstName: 'Laura',
+    lastName: 'van Dinteren',
+    email: 'laura.van.dinteren@estudiantat.upc.edu',
+    description: 'nose que posar aqui pero vale',
+    language: 'Català',
+    telephone: '653972950',
+    dni: '47114817Z',
+    username: 'lauravandi',
   );
 
   // Controllers for edit form
-  late TextEditingController nameController;
+  late TextEditingController firstNameController;
+  late TextEditingController lastNameController;
   late TextEditingController emailController;
   late TextEditingController descriptionController;
   late TextEditingController languageController;
   late TextEditingController telephoneController;
+  late TextEditingController usernameController;
 
   @override
   void initState() {
     super.initState();
     _initControllers();
+    //iniUser();
   }
 
   void _initControllers() {
-    nameController = TextEditingController(text: userProfile.name);
+    firstNameController = TextEditingController(text: userProfile.firstName);
+    lastNameController = TextEditingController(text: userProfile.lastName);
     emailController = TextEditingController(text: userProfile.email);
     descriptionController = TextEditingController(text: userProfile.description);
     languageController = TextEditingController(text: userProfile.language);
     telephoneController = TextEditingController(text: userProfile.telephone);
+    usernameController = TextEditingController(text: userProfile.username);
   }
 
   @override
   void dispose() {
-    nameController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
     emailController.dispose();
     descriptionController.dispose();
     languageController.dispose();
     telephoneController.dispose();
+    usernameController.dispose();
     super.dispose();
   }
 
@@ -91,16 +110,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (isEditing) {
       // Save the data
       setState(() {
-        userProfile.name = nameController.text;
+        userProfile.firstName = firstNameController.text;
+        userProfile.lastName = lastNameController.text;
         userProfile.email = emailController.text;
         userProfile.description = descriptionController.text;
         userProfile.language = languageController.text;
         userProfile.telephone = telephoneController.text;
+        userProfile.username = usernameController.text;
         isEditing = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
+        const SnackBar(content: Text('Perfil actualizado correctamente')),
       );
     } else {
       // Enter edit mode
@@ -115,7 +136,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Profile'),
+        title: const Text('Perfil usuario'),
         actions: [
           IconButton(
             icon: Icon(isEditing ? Icons.save : Icons.edit),
@@ -133,7 +154,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildProfileHeader(),
+         // _buildProfileHeader(),
           const SizedBox(height: 24),
           _buildInfoSection('Email', userProfile.email, Icons.email),
           _buildInfoSection('Phone', userProfile.telephone, Icons.phone),
@@ -156,7 +177,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           ),
           const SizedBox(height: 16),
           Text(
-            userProfile.name,
+            '${userProfile.firstName} ${userProfile.lastName}',
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -220,22 +241,27 @@ class _UserProfilePageState extends State<UserProfilePage> {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          const Center(
+          /*const Center(
             child: CircleAvatar(
               radius: 60,
               backgroundColor: Colors.blue,
               child: Icon(Icons.person, size: 80, color: Colors.white),
             ),
-          ),
+          ),*/
           const SizedBox(height: 24),
-          _buildTextField('Name', nameController, Icons.person),
+          _buildTextField('Nombre', firstNameController, Icons.person),
+          _buildTextField('Apellido', lastNameController, Icons.person_2),
+          _buildTextField('Usuario', usernameController, Icons.supervised_user_circle),
           _buildTextField('Email', emailController, Icons.email, keyboardType: TextInputType.emailAddress),
-          _buildTextField('Phone', telephoneController, Icons.phone, keyboardType: TextInputType.phone),
-          _buildTextField('Language', languageController, Icons.language),
-          _buildTextField('About', descriptionController, Icons.description, maxLines: 4),
+          _buildTextField('Telefono', telephoneController, Icons.phone, keyboardType: TextInputType.phone),
+          _buildTextField('Idioma', languageController, Icons.language),
+          _buildTextField('Descripcion', descriptionController, Icons.description, maxLines: 4),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: _toggleEditMode,
+            onPressed: () {
+              _toggleEditMode();
+              editUser();
+            },
             style: ElevatedButton.styleFrom(
               minimumSize: const Size.fromHeight(50),
             ),
@@ -265,5 +291,74 @@ class _UserProfilePageState extends State<UserProfilePage> {
         maxLines: maxLines,
       ),
     );
+  }
+
+  Future<void> editUser() async {
+    print('Starting editUser function...');
+    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/usuari/1/');
+
+    final Map<String, dynamic> data = {
+      'first_name': userProfile.firstName,
+      'last_name': userProfile.lastName,
+      'email': userProfile.email,
+      'username':userProfile.username,
+      'dni': userProfile.dni,
+      'idioma':userProfile.language,
+      'telefon':userProfile.telephone,
+      'descripcio':userProfile.description,
+      'is_admin': false,
+    };
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(data),
+      );
+
+      if (response.statusCode == 200) {
+        print('Reservation created successfully');
+      } else {
+        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  Future<void> iniUser() async {
+    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/usuari/');
+
+    final Map<String, dynamic> data = {
+      'first_name': userProfile.firstName,
+      'last_name': userProfile.lastName,
+      'email': userProfile.email,
+      'username':userProfile.username,
+      'dni': userProfile.dni,
+      'idioma':userProfile.language,
+      'telefon':userProfile.telephone,
+      'descripcio':userProfile.description,
+      'is_admin': false,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(data),
+      );
+
+      if (response.statusCode == 201) {
+        print('Reservation created successfully');
+      } else {
+        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
   }
 }
