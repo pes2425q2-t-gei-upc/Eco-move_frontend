@@ -136,7 +136,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Perfil usuario'),
+        title: const Text('Mi perfil'),
         actions: [
           IconButton(
             icon: Icon(isEditing ? Icons.save : Icons.edit),
