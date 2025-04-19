@@ -25,27 +25,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class UserProfile {
-  String firstName;
-  String lastName;
-  String email;
-  String description;
-  String language;
-  String telephone;
-  String dni;
-  String username;
 
-  UserProfile({
-    required this.firstName,
-    required this.lastName,
-    required this.email,
-    required this.description,
-    required this.language,
-    required this.telephone,
-    required this.dni,
-    required this.username,
-  });
-}
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({Key? key}) : super(key: key);
@@ -55,18 +35,7 @@ class UserProfilePage extends StatefulWidget {
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
-  bool isEditing = false;
 
-  final UserProfile userProfile = UserProfile(
-    firstName: 'Laura',
-    lastName: 'van Dinteren',
-    email: 'laura.van.dinteren@estudiantat.upc.edu',
-    description: 'nose que posar aqui pero vale',
-    language: 'Català',
-    telephone: '653972950',
-    dni: '471148122',
-    username: 'lauravandi',
-  );
 
   // Controllers for edit form
   late TextEditingController firstNameController;
@@ -76,6 +45,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
   late TextEditingController languageController;
   late TextEditingController telephoneController;
   late TextEditingController usernameController;
+  late TextEditingController dniController;
+
+  String? selectedLanguage;
+
 
   @override
   void initState() {
@@ -85,13 +58,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void _initControllers() {
-    firstNameController = TextEditingController(text: userProfile.firstName);
-    lastNameController = TextEditingController(text: userProfile.lastName);
-    emailController = TextEditingController(text: userProfile.email);
-    descriptionController = TextEditingController(text: userProfile.description);
-    languageController = TextEditingController(text: userProfile.language);
-    telephoneController = TextEditingController(text: userProfile.telephone);
-    usernameController = TextEditingController(text: userProfile.username);
+    firstNameController = TextEditingController();
+    lastNameController = TextEditingController();
+    emailController = TextEditingController();
+    descriptionController = TextEditingController();
+    languageController = TextEditingController();
+    telephoneController = TextEditingController();
+    usernameController = TextEditingController();
+    dniController = TextEditingController();
   }
 
   @override
@@ -106,37 +80,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
     super.dispose();
   }
 
-  void _toggleEditMode() {
-    if (isEditing) {
-      // Save the data
-      setState(() {
-        userProfile.firstName = firstNameController.text;
-        userProfile.lastName = lastNameController.text;
-        userProfile.email = emailController.text;
-        userProfile.description = descriptionController.text;
-        userProfile.language = languageController.text;
-        userProfile.telephone = telephoneController.text;
-        userProfile.username = usernameController.text;
-        isEditing = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Perfil actualizado correctamente')),
-      );
-    } else {
-      // Enter edit mode
-      setState(() {
-        _initControllers();
-        isEditing = true;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Perfil usuario'),
+        title: const Text('Registro usuario'),
       ),
       body: _buildProfileView(),
     );
@@ -152,17 +101,52 @@ class _UserProfilePageState extends State<UserProfilePage> {
           const SizedBox(height: 24),
           _buildTextField('Nombre', firstNameController, Icons.person),
           _buildTextField('Apellido', lastNameController, Icons.person),
+          _buildTextField('Usuario',  usernameController, Icons.person),
           _buildTextField('Email', emailController, Icons.email),
-          _buildTextField('Usuario',  usernameController, Icons.email),
           _buildTextField('Teléfono', telephoneController, Icons.phone),
-          _buildTextField('Idioma',languageController, Icons.language),
+          _buildLanguageDropdown(),
+          _buildTextField('DNI',dniController, Icons.person),
           const SizedBox(height: 16),
-          _buildDescriptionSection(),
+          _registerButton(),
 
         ],
       ),
     );
   }
+  Widget _buildLanguageDropdown() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: DropdownButtonFormField<String>(
+        decoration: const InputDecoration(
+          labelText: 'Idioma',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.language),
+        ),
+        value: selectedLanguage,
+        items: const [
+          DropdownMenuItem(
+            value: 'Català',
+            child: Text('Català'),
+          ),
+          DropdownMenuItem(
+            value: 'Castellano',
+            child: Text('Castellano'),
+          ),
+          DropdownMenuItem(
+            value: 'English',
+            child: Text('English'),
+          ),
+        ],
+        onChanged: (value) {
+          setState(() {
+            selectedLanguage = value;
+            languageController.text = value!; // Actualizar también el controller para que al registrarte envíe el idioma correcto
+          });
+        },
+      ),
+    );
+  }
+
   Widget _buildTextField(
       String label,
       TextEditingController controller,
@@ -174,7 +158,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
-          labelText: label,
+          hintText: label,
+          hintStyle: const TextStyle(color: Colors.grey),
           prefixIcon: Icon(icon),
           border: const OutlineInputBorder(),
         ),
@@ -185,27 +170,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
 
-  Widget _buildProfileHeader() {
-    return Center(
-      child: Column(
-        children: [
-          const CircleAvatar(
-            radius: 60,
-            backgroundColor: Colors.blue,
-            child: Icon(Icons.person, size: 80, color: Colors.white),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '${userProfile.firstName} ${userProfile.lastName}',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildInfoSection(String title, IconData icon) {
     return Padding(
@@ -235,28 +199,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  Widget _buildDescriptionSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'About',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+  Widget _registerButton() {
+    return Center(
+      child: ElevatedButton(
+        onPressed: () {
+          createUser();
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xE278A879),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         ),
-        const SizedBox(height: 8),
-        Text(
-          'Descripción',
-          style: const TextStyle(fontSize: 16),
-        ),
-        TextButton(
-            onPressed: () {
-              createUser();
-            },
-            child: Text('Registrarme'))
-      ],
+        child: const Text('Registrarme'),
+      ),
     );
   }
 
@@ -268,7 +223,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       'last_name': lastNameController.text,
       'email': emailController.text,
       'username': usernameController.text,
-      'dni': '1122332222',
+      'dni': dniController.text,
       'idioma': languageController.text,
       'telefon':telephoneController.text,
       'descripcio':descriptionController.text,
