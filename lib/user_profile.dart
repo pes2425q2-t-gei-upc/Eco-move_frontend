@@ -140,7 +140,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
         actions: [
           IconButton(
             icon: Icon(isEditing ? Icons.save : Icons.edit),
-            onPressed: _toggleEditMode,
+            onPressed: () {
+              if (isEditing) {
+                _toggleEditMode();
+                editUser();
+              } else {
+                _toggleEditMode();
+              }
+            },
           ),
         ],
       ),
@@ -154,11 +161,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-         // _buildProfileHeader(),
+          _buildProfileHeader(),
           const SizedBox(height: 24),
+          _buildInfoSection('Nombre', userProfile.firstName, Icons.person),
+          _buildInfoSection('Apellido', userProfile.lastName, Icons.person),
+          _buildInfoSection('Usuario', userProfile.username, Icons.person),
           _buildInfoSection('Email', userProfile.email, Icons.email),
-          _buildInfoSection('Phone', userProfile.telephone, Icons.phone),
-          _buildInfoSection('Language', userProfile.language, Icons.language),
+          _buildInfoSection('Teléfono', userProfile.telephone, Icons.phone),
+          _buildInfoSection('Idioma', userProfile.language, Icons.language),
           const SizedBox(height: 16),
           _buildDescriptionSection(),
         ],
@@ -172,7 +182,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         children: [
           const CircleAvatar(
             radius: 60,
-            backgroundColor: Colors.blue,
+            backgroundColor: Color(0xE278A879),
             child: Icon(Icons.person, size: 80, color: Colors.white),
           ),
           const SizedBox(height: 16),
@@ -193,7 +203,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Icon(icon, color: Colors.blue),
+          Icon(icon, color: Color(0xE278A879)),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,8 +260,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
           ),*/
           const SizedBox(height: 24),
           _buildTextField('Nombre', firstNameController, Icons.person),
-          _buildTextField('Apellido', lastNameController, Icons.person_2),
-          _buildTextField('Usuario', usernameController, Icons.supervised_user_circle),
+          _buildTextField('Apellido', lastNameController, Icons.person),
+          _buildTextField('Usuario', usernameController, Icons.person),
           _buildTextField('Email', emailController, Icons.email, keyboardType: TextInputType.emailAddress),
           _buildTextField('Telefono', telephoneController, Icons.phone, keyboardType: TextInputType.phone),
           _buildTextField('Idioma', languageController, Icons.language),
@@ -263,9 +273,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
               editUser();
             },
             style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(50),
+              backgroundColor: Color(0xE278A879),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             ),
-            child: const Text('Save Profile'),
+            child: const Text('Guardar cambios'),
           ),
         ],
       ),
