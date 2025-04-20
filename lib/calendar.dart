@@ -50,15 +50,14 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
     });
 
     try {
-      final formattedDate = "${day.day.toString().padLeft(2, '0')}-${day.month.toString().padLeft(2, '0')}-${day.year}";
-
+      final formattedDate = "${day.day.toString().padLeft(2, '0')}/${day.month.toString().padLeft(2, '0')}/${day.year}";
       // Replace this URL with your actual API endpoint
       final response = await http.get(
         Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/?dia=$formattedDate'),
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
         setState(() {
           _bookings = data.map((item) => Booking.fromJson(item)).toList();
           _isLoading = false;
@@ -87,7 +86,7 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Booking Calendar'),
+        title: const Text('Calendario'),
       ),
       body: Column(
         children: [
@@ -120,7 +119,7 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
                 shape: BoxShape.circle,
               ),
               selectedDecoration: BoxDecoration(
-                color: Colors.deepPurple,
+                color: Color(0xE278A879),
                 shape: BoxShape.circle,
               ),
             ),
@@ -130,20 +129,20 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _bookings.isEmpty
-                ? const Center(child: Text('No bookings for this date'))
+                ? const Center(child: Text('No hay reservas para este dia'))
                 : ListView.builder(
               itemCount: _bookings.length,
               itemBuilder: (context, index) {
                 final booking = _bookings[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(
+                  color: Color(0xFFF0FFF0),
+                margin: const EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 4.0,
                   ),
                   child: ListTile(
-                    title: Text(booking.title),
-                    subtitle: Text('${booking.startTime} - ${booking.endTime}'),
-                    trailing: Text(booking.status),
+                    title: Text(booking.station),
+                    subtitle: Text('${booking.date}\n${booking.startTime} - ${booking.endTime}'),
                   ),
                 );
               },
@@ -156,27 +155,27 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
 }
 
 class Booking {
-  final String id;
-  final String title;
+  final int id;
+  final String station;
+  final String date;
   final String startTime;
   final String endTime;
-  final String status;
 
   Booking({
     required this.id,
-    required this.title,
+    required this.station,
     required this.startTime,
     required this.endTime,
-    required this.status,
+    required this.date,
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
     return Booking(
       id: json['id'],
-      title: json['title'],
-      startTime: json['startTime'],
-      endTime: json['endTime'],
-      status: json['status'],
+      station: json['estacion']['direccio'],
+      startTime: json['hora_inicio_salida'],
+      endTime: json['hora_fin_salida'],
+      date: json['fecha_salida'],
     );
   }
 }
