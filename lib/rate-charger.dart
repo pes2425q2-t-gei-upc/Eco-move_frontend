@@ -89,21 +89,15 @@ class _RatingScreenState extends State<RatingScreen> {
 
 
   Future<void> sendRating() async {
-    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/usuari/');
-    await _fetchUser();
-    final Map<String, dynamic> userr = {
-      'email': userData['email'],
-      'username': userData['username'],
-      'dni': userData['dni'],
-    };
-    print(userr);
-    final Map<String, dynamic> data = {
-      'Estacion': widget.idStation,
-      'Usuario': userr,
-      'Puntuacion': _rating,
-      'Comentario': _commentController.text,
-    };
+    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/valoraciones_estaciones/');
 
+    final Map<String, dynamic> data = {
+      'estacion': widget.idStation,
+      'usuario': 1,
+      'puntuacion': _rating,
+      'comentario': _commentController.text,
+    };
+  print(data);
     try {
       final response = await http.post(
         url,
