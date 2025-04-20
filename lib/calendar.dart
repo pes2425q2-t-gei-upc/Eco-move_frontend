@@ -1,0 +1,182 @@
+import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Booking Calendar',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: const BookingCalendarPage(),
+    );
+  }
+}
+
+class BookingCalendarPage extends StatefulWidget {
+  const BookingCalendarPage({super.key});
+
+  @override
+  _BookingCalendarPageState createState() => _BookingCalendarPageState();
+}
+
+class _BookingCalendarPageState extends State<BookingCalendarPage> {
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+  List<Booking> _bookings = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay = _focusedDay;
+    _fetchBookings(_selectedDay!);
+  }
+
+  Future<void> _fetchBookings(DateTime day) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final formattedDate = "${day.day.toString().padLeft(2, '0')}-${day.month.toString().padLeft(2, '0')}-${day.year}";
+
+      // Replace this URL with your actual API endpoint
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/?dia=$formattedDate'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _bookings = data.map((item) => Booking.fromJson(item)).toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _bookings = [];
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load bookings for $formattedDate')),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _bookings = [];
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Booking Calendar'),
+      ),
+      body: Column(
+        children: [
+          TableCalendar(
+            firstDay: DateTime.utc(2020, 1, 1),
+            lastDay: DateTime.utc(2030, 12, 31),
+            focusedDay: _focusedDay,
+            calendarFormat: _calendarFormat,
+            selectedDayPredicate: (day) {
+              return isSameDay(_selectedDay, day);
+            },
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+              _fetchBookings(selectedDay);
+            },
+            onFormatChanged: (format) {
+              setState(() {
+                _calendarFormat = format;
+              });
+            },
+            onPageChanged: (focusedDay) {
+              _focusedDay = focusedDay;
+            },
+            calendarStyle: const CalendarStyle(
+              todayDecoration: BoxDecoration(
+                color: Colors.blue,
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: BoxDecoration(
+                color: Colors.deepPurple,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          const Divider(),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _bookings.isEmpty
+                ? const Center(child: Text('No bookings for this date'))
+                : ListView.builder(
+              itemCount: _bookings.length,
+              itemBuilder: (context, index) {
+                final booking = _bookings[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 4.0,
+                  ),
+                  child: ListTile(
+                    title: Text(booking.title),
+                    subtitle: Text('${booking.startTime} - ${booking.endTime}'),
+                    trailing: Text(booking.status),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class Booking {
+  final String id;
+  final String title;
+  final String startTime;
+  final String endTime;
+  final String status;
+
+  Booking({
+    required this.id,
+    required this.title,
+    required this.startTime,
+    required this.endTime,
+    required this.status,
+  });
+
+  factory Booking.fromJson(Map<String, dynamic> json) {
+    return Booking(
+      id: json['id'],
+      title: json['title'],
+      startTime: json['startTime'],
+      endTime: json['endTime'],
+      status: json['status'],
+    );
+  }
+}
