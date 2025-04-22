@@ -45,7 +45,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   late TextEditingController languageController;
   late TextEditingController telephoneController;
   late TextEditingController usernameController;
-  late TextEditingController dniController;
+  late TextEditingController pass1Controller;
+  late TextEditingController pass2Controller;
 
   String? selectedLanguage;
 
@@ -65,7 +66,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     languageController = TextEditingController();
     telephoneController = TextEditingController();
     usernameController = TextEditingController();
-    dniController = TextEditingController();
+    pass1Controller = TextEditingController();
+    pass2Controller = TextEditingController();
   }
 
   @override
@@ -77,6 +79,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     languageController.dispose();
     telephoneController.dispose();
     usernameController.dispose();
+    pass1Controller.dispose();
+    pass2Controller.dispose();
     super.dispose();
   }
 
@@ -104,8 +108,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
           _buildTextField('Usuario',  usernameController, Icons.person),
           _buildTextField('Email', emailController, Icons.email),
           _buildTextField('Teléfono', telephoneController, Icons.phone),
+          _buildTextField('Contraseña', pass1Controller, Icons.password),
+          _buildTextField('Repita su contraseña', pass2Controller, Icons.password),
           _buildLanguageDropdown(),
-          _buildTextField('DNI',dniController, Icons.person),
           const SizedBox(height: 16),
           _registerButton(),
 
@@ -216,19 +221,21 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> createUser() async {
-    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/usuari/');
+    final url = Uri.parse('http://10.0.2.2:8000/register/');
 
     final Map<String, dynamic> data = {
       'first_name': firstNameController.text,
       'last_name': lastNameController.text,
       'email': emailController.text,
       'username': usernameController.text,
-      'dni': dniController.text,
       'idioma': languageController.text,
       'telefon':telephoneController.text,
       'descripcio':descriptionController.text,
-      'is_admin': false,
+      'password': pass1Controller.text,
+      'password2': pass2Controller.text,
     };
+
+    print(data);
 
     try {
       final response = await http.post(
