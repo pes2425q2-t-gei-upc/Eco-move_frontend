@@ -155,7 +155,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         onChanged: (value) {
           setState(() {
             selectedLanguage = value;
-            languageController.text = value!; // Actualizar también el controller para que al registrarte envíe el idioma correcto
+            languageController.text = value!; 
           });
         },
       ),
@@ -281,7 +281,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
 
   void _validatePasswords() {
-    // First check if password is at least 8 characters
     if (pass1Controller.text.length < 8) {
       showDialog(
         context: context,
@@ -301,7 +300,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
         },
       );
     }
-    // Then check if passwords match
     else if (pass1Controller.text != pass2Controller.text) {
       showDialog(
         context: context,
