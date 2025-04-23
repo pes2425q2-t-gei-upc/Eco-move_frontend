@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'chat.dart';
 
@@ -17,13 +20,58 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const ChatListScreen(),
+      home: ChatListScreen(),
     );
   }
 }
 
-class ChatListScreen extends StatelessWidget {
-  const ChatListScreen({Key? key}) : super(key: key);
+class ChatListScreen extends StatefulWidget {
+  ChatListScreen({Key? key}) : super(key: key);
+
+  @override
+  _ChatListScreenState createState() => _ChatListScreenState();
+}
+
+
+
+class _ChatListScreenState extends State<ChatListScreen> {
+
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  late String? token;
+
+  Future<void> getAccessToken() async {
+    token = await _secureStorage.read(key: 'access');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getAccessToken();
+  }
+
+
+  Future<void> _fetchChats() async {
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/social/chat/my_chats/'),
+        headers: {
+          'Authorization': 'Bearer ${token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+      } else {
+        print('Error ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      print('Error en la petición: $e');
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {

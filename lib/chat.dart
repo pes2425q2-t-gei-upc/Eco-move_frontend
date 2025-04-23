@@ -102,7 +102,7 @@ class _ChatScreenState extends State<ChatScreen> {
       print('Error: $e');
     }
   }
-
+//TO DO que s'actualitzi tot el rato !!!!! (polling)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
