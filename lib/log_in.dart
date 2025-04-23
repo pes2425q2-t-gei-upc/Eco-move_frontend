@@ -20,7 +20,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final url = Uri.parse('http://10.0.2.2:8000/token/');
 
     final Map<String, dynamic> data = {
-      'email': _usernameController.text,
+      'email': _emailController.text,
       'password': _passwordController.text,
     };
 
@@ -139,7 +139,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
 
 
-
   Widget _buildTextField(
       String label,
       TextEditingController controller,
@@ -184,8 +183,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 32),
                 _buildTextField(
-                  'Usuario',
-                  _usernameController,
+                  'Email',
+                  _emailController,
                   Icons.person,
                 ),
                 _buildTextField(
@@ -200,6 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    foregroundColor: Colors.black,
                   ),
                   child: const Text(
                     'Iniciar sesión',
