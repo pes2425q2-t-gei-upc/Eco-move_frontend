@@ -37,16 +37,17 @@ class ChatListScreen extends StatefulWidget {
 class _ChatListScreenState extends State<ChatListScreen> {
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  late String? token;
-
-  Future<void> getAccessToken() async {
+  String token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ1NTE5NTEwLCJpYXQiOjE3NDU0MzMxMTAsImp0aSI6ImY5NDRkYjQ2OWViMzRhZWNiNGFmNDI0ZjA2NjgwNTBjIiwidXNlcl9pZCI6MX0.E6e-BZoxBo47sK3UgG1FPDy9uEIfusqmst0oxD7ue2c';
+  final List<dynamic> chatsList = [];
+  /*Future<void> getAccessToken() async {
     token = await _secureStorage.read(key: 'access');
-  }
+  }*/
 
   @override
   void initState() {
     super.initState();
-    getAccessToken();
+    //getAccessToken();
+    _fetchChats();
   }
 
 
@@ -62,7 +63,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        chatsList = json.decode(utf8.decode(response.bodyBytes));
       } else {
         print('Error ${response.statusCode}: ${response.body}');
       }
@@ -76,7 +77,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   Widget build(BuildContext context) {
     // Hardcoded test data
-    final List<ChatPreview> chatsList = [
+    /*final List<ChatPreview> chatsList = [
     ChatPreview(
       id: 1,
       otherUserName: 'Dani',
@@ -101,7 +102,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       lastMessageTime: DateTime.now().subtract(const Duration(days: 1)),
       unreadCount: 0,
     ),
-    ];
+    ];*/
 
     return Scaffold(
       appBar: AppBar(
