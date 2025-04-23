@@ -49,6 +49,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   late TextEditingController pass2Controller;
 
   String? selectedLanguage;
+  bool _isPass1Visible = false;
+  bool _isPass2Visible = false;
 
 
   @override
@@ -107,9 +109,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
           _buildTextField('Apellido', lastNameController, Icons.person),
           _buildTextField('Usuario',  usernameController, Icons.person),
           _buildTextField('Email', emailController, Icons.email),
-          _buildTextField('Teléfono', telephoneController, Icons.phone),
-          _buildTextField('Contraseña', pass1Controller, Icons.password),
-          _buildTextField('Repita su contraseña', pass2Controller, Icons.password),
+          _buildTextField('Teléfono (opcional)', telephoneController, Icons.phone),
+          _buildPasswordField('Contraseña', pass1Controller, isPass1Visible: _isPass1Visible, toggleVisibility: () {
+            setState(() {
+              _isPass1Visible = !_isPass1Visible;
+            });
+          }),
+          _buildPasswordField('Repita su contraseña', pass2Controller, isPass1Visible: _isPass2Visible, toggleVisibility: () {
+            setState(() {
+              _isPass2Visible = !_isPass2Visible;
+            });
+          }),
           _buildLanguageDropdown(),
           const SizedBox(height: 16),
           _registerButton(),
@@ -170,11 +180,40 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
         keyboardType: keyboardType,
         maxLines: maxLines,
+        textCapitalization: TextCapitalization.none,
+        autocorrect: false,
+
       ),
     );
   }
 
-
+  Widget _buildPasswordField(
+      String label,
+      TextEditingController controller,
+      {required bool isPass1Visible, required Function toggleVisibility}
+      ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: TextField(
+        controller: controller,
+        obscureText: !isPass1Visible,
+        decoration: InputDecoration(
+          hintText: label,
+          hintStyle: const TextStyle(color: Colors.grey),
+          prefixIcon: const Icon(Icons.password),
+          suffixIcon: IconButton(
+            icon: Icon(
+              isPass1Visible ? Icons.visibility_off : Icons.visibility,
+            ),
+            onPressed: () => toggleVisibility(),
+          ),
+          border: const OutlineInputBorder(),
+        ),
+        textCapitalization: TextCapitalization.none,
+        autocorrect: false,
+      ),
+    );
+  }
 
   Widget _buildInfoSection(String title, IconData icon) {
     return Padding(
@@ -208,7 +247,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Center(
       child: ElevatedButton(
         onPressed: () {
-          createUser();
+          _validatePasswords();
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Color(0xE278A879),
@@ -220,13 +259,79 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
+  Future<void> _alert(String r) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(r),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  void _validatePasswords() {
+    // First check if password is at least 8 characters
+    if (pass1Controller.text.length < 8) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('La contraseña debe tener al menos 8 caracteres.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+    // Then check if passwords match
+    else if (pass1Controller.text != pass2Controller.text) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('Las contraseñas no coinciden. Por favor, inténtelo de nuevo.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      createUser();
+    }
+  }
+
   Future<void> createUser() async {
     final url = Uri.parse('http://10.0.2.2:8000/register/');
 
     final Map<String, dynamic> data = {
       'first_name': firstNameController.text,
       'last_name': lastNameController.text,
-      'email': emailController.text,
+      'email': emailController.text.toLowerCase(),
       'username': usernameController.text,
       'idioma': languageController.text,
       'telefon':telephoneController.text,
@@ -249,7 +354,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       if (response.statusCode == 201) {
         print('Reservation created successfully');
       } else {
-        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
+        _alert(response.body);
       }
     } catch (e) {
       print('Error: $e');
