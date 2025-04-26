@@ -32,25 +32,45 @@ class ChatListScreen extends StatefulWidget {
   _ChatListScreenState createState() => _ChatListScreenState();
 }
 
-
-
 class _ChatListScreenState extends State<ChatListScreen> {
-
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? token = '';
   List<dynamic> chatsList = [];
-
+  Map<int, String> lastMessages = {}; // Add this to store last messages
 
   Future<String?> getAccessToken() async {
     return await _secureStorage.read(key: 'access');
   }
 
+  Future<void> deleteAccessToken() async {
+    return await _secureStorage.deleteAll();
+  }
+
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
     token = await getAccessToken();
-    _fetchChats();
-    print(chatsList);
+    await _fetchChats();
+    // Fetch last messages for all chats after getting the chat list
+    _fetchAllLastMessages();
+  }
+
+  // Add this method to fetch last messages for all chats
+  Future<void> _fetchAllLastMessages() async {
+    for (var chat in chatsList) {
+      if (chat['id'] != null) {
+        final lastMessage = await _fetchLastMessage(chat['id']);
+        if (lastMessage != null) {
+          setState(() {
+            lastMessages[chat['id']] = lastMessage;
+          });
+        }
+      }
+    }
   }
 
   Future<String?> getEmail() async {
@@ -90,7 +110,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Future<void> _fetchChats() async {
-
     try {
       final response = await http.get(
         Uri.parse('http://10.0.2.2:8000/social/chat/my_chats/'),
@@ -101,7 +120,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
       );
 
       if (response.statusCode == 200) {
-        chatsList = json.decode(utf8.decode(response.bodyBytes));
+        final newChatsList = json.decode(utf8.decode(response.bodyBytes));
+        setState(() {
+          chatsList = newChatsList;
+        });
       } else {
         print('Error ${response.statusCode}: ${response.body}');
       }
@@ -109,24 +131,23 @@ class _ChatListScreenState extends State<ChatListScreen> {
       print('Error en la petición: $e');
     }
   }
-
 
   Future<void> _newChat(String email) async {
-
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/social/chat/create_chat/'),
-        headers: {
-          'Authorization': 'Bearer ${token}',
-        },
-        body: {
-          'receptor_email': email,
-        }
+          Uri.parse('http://10.0.2.2:8000/social/chat/create_chat/'),
+          headers: {
+            'Authorization': 'Bearer ${token}',
+          },
+          body: {
+            'receptor_email': email,
+          }
       );
-      _fetchChats();
-      print(chatsList);
+      await _fetchChats();
       if (response.statusCode == 201) {
         print(response.bodyBytes);
+        // After creating a new chat, fetch messages again
+        _fetchAllLastMessages();
       } else {
         print('Error ${response.statusCode}: ${response.body}');
       }
@@ -135,38 +156,38 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
+  Future<String?> _fetchLastMessage(int chatId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/social/chat/$chatId/messages/'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
 
+      if (response.statusCode == 200) {
+        final messagesJson = json.decode(utf8.decode(response.bodyBytes));
+
+        if (messagesJson.containsKey('results') && messagesJson['results'] is List) {
+          final messagesList = messagesJson['results'] as List;
+
+          if (messagesList.isNotEmpty) {
+            final lastMessage = messagesList.first; // assuming first is the newest
+            return lastMessage['content'] ?? ''; // Extract the content from the message
+          }
+        }
+      } else {
+        print('Error ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      print('Error en la petición: $e');
+    }
+    return 'No messages';
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Hardcoded test data
-    /*final List<ChatPreview> chatsList = [
-    ChatPreview(
-      id: 1,
-      otherUserName: 'Dani',
-      otherUserAvatarUrl: '',
-      lastMessage: 'Holaa no se que posar',
-      lastMessageTime: DateTime.now().subtract(const Duration(minutes: 5)),
-      unreadCount: 2,
-    ),
-    ChatPreview(
-      id: 2,
-      otherUserName: 'Alexander',
-      otherUserAvatarUrl: '',
-      lastMessage: 'Aqui tampoc se que posar',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 2)),
-      unreadCount: 0,
-    ),
-    ChatPreview(
-      id: 3,
-      otherUserName: 'Berrios',
-      otherUserAvatarUrl: '',  // Empty to test initial letter avatar
-      lastMessage: 'I aqui menys',
-      lastMessageTime: DateTime.now().subtract(const Duration(days: 1)),
-      unreadCount: 0,
-    ),
-    ];*/
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chats'),
@@ -174,6 +195,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
+              deleteAccessToken();
               print('Search button pressed');
             },
           ),
@@ -189,23 +211,31 @@ class _ChatListScreenState extends State<ChatListScreen> {
               itemCount: chatsList.length,
               itemBuilder: (context, index) {
                 final chat = chatsList[index];
-                print(chat);
-                return Text(chat.toString());
-                /*return ChatListItem(
-                  avatarUrl: chat.otherUserAvatarUrl,
-                  userName: chat.otherUserName,
-                  lastMessage: chat.lastMessage,
-                  lastMessageTime: chat.lastMessageTime,
-                  unreadCount: chat.unreadCount,
+                // Use the stored last message instead of calling the async function
+                final lastMessage = lastMessages[chat['id']] ?? 'Loading...';
+
+                // Parse timestamp string to DateTime - adjust format as needed
+                DateTime lastMessageTime = chat['last_message_timestamp'] != null
+                    ? DateTime.parse(chat['last_message_timestamp'])
+                    : DateTime.now();
+
+                return ChatListItem(
+                  userName: '${chat['receptor_first_name']} ${chat['receptor_last_name']}',
+                  lastMessage: lastMessage,
+                  lastMessageTime: lastMessageTime,
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ChatScreen(),
+                        builder: (context) => ChatScreen(
+                          chatId: chat['id'],
+                          name: chat['receptor_first_name'],
+                          lastName: chat['receptor_last_name'],
+                        ),
                       ),
-                    )
+                    );
                   },
-                );*/
+                );
               },
             ),
           ),
@@ -214,53 +244,27 @@ class _ChatListScreenState extends State<ChatListScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           getEmail();
-
         },
         foregroundColor: Colors.lightGreen,
         backgroundColor: Colors.grey[200],
         child: const Icon(Icons.chat),
       ),
     );
-
-
   }
-}
-
-// Chat preview model class
-class ChatPreview {
-  final int id;
-  final String otherUserName;
-  final String otherUserAvatarUrl;
-  final String lastMessage;
-  final DateTime lastMessageTime;
-  final int unreadCount;
-
-  ChatPreview({
-    required this.id,
-    required this.otherUserName,
-    required this.otherUserAvatarUrl,
-    required this.lastMessage,
-    required this.lastMessageTime,
-    this.unreadCount = 0,
-  });
 }
 
 // Chat list item widget
 class ChatListItem extends StatelessWidget {
-  final String avatarUrl;
   final String userName;
   final String lastMessage;
   final DateTime lastMessageTime;
-  final int unreadCount;
   final Function() onTap;
 
   const ChatListItem({
     Key? key,
-    required this.avatarUrl,
     required this.userName,
     required this.lastMessage,
     required this.lastMessageTime,
-    this.unreadCount = 0,
     required this.onTap,
   }) : super(key: key);
 
@@ -326,22 +330,6 @@ class ChatListItem extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (unreadCount > 0)
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Text(
-                            unreadCount.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
                     ],
                   ),
                 ],
@@ -354,22 +342,15 @@ class ChatListItem extends StatelessWidget {
   }
 
   Widget _buildAvatar() {
-    if (avatarUrl.isNotEmpty) {
-      return CircleAvatar(
-        radius: 24,
-        backgroundImage: NetworkImage(avatarUrl),
-      );
-    } else {
-      return CircleAvatar(
-        radius: 24,
-        backgroundColor: Colors.grey,
-        child: const Icon(
-          Icons.person,
-          color: Colors.white,
-          size: 30,
-        ),
-      );
-    }
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: Colors.grey,
+      child: const Icon(
+        Icons.person,
+        color: Colors.white,
+        size: 30,
+      ),
+    );
   }
 
   String _formatTime(DateTime time) {

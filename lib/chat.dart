@@ -2,9 +2,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
-void main() {
+/*void main() {
   runApp(const ChatApp());
 }
 
@@ -19,13 +20,16 @@ class ChatApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const ChatScreen(),
+      home: const ChatScreen(chatId: 3),
     );
   }
 }
-
+*/
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({Key? key}) : super(key: key);
+  final int chatId;
+  final String name;
+  final String lastName;
+  const ChatScreen({Key? key, required this.chatId, required this.name, required this.lastName}) : super(key: key);
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -33,8 +37,27 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
-  final List<ChatMessage> _messages = [];
+  late List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  String? token = '';
+
+
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: 'access');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    token = await getAccessToken();
+    await _fetchMessages();
+  }
+
 
   void _handleSubmitted(String text) {
     _textController.clear();
@@ -48,6 +71,8 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       );
     });
+
+    _sendMessage(widget.chatId, text);
 
     // Simulate a response from another user
     Future.delayed(const Duration(seconds: 1), () {
@@ -81,33 +106,79 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final Map<String, dynamic> data = {
       'chat': chat,
-      'text': text,
+      'content': text,
     };
 
     try {
       final response = await http.post(
         url,
         headers: {
+          'Authorization': 'Bearer ${token}',
           'Content-Type': 'application/json',
         },
         body: json.encode(data),
       );
 
       if (response.statusCode == 201) {
-        print('Reservation created successfully');
+        print('Message sent');
       } else {
-        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
+        print('Failed to send message: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('Error: $e');
     }
   }
+
+
+  Future<void> _fetchMessages() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/social/chat/${widget.chatId}/messages/'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final messagesJson = json.decode(utf8.decode(response.bodyBytes));
+
+        if (messagesJson.containsKey('results') && messagesJson['results'] is List) {
+          setState(() {
+            _messages.clear(); // Clear previous messages
+
+            // Convert each message in the results list to a ChatMessage
+            for (var message in messagesJson['results']) {
+              _messages.add(
+                ChatMessage(
+                  text: message['content'],
+                  isMe: message['sender'] != widget.chatId, // Adjust this based on your user ID logic
+                ),
+              );
+            }
+
+            // Since the API appears to return newest messages first, we might need to reverse
+            // the list to show oldest messages at the top
+            _messages = _messages.reversed.toList();
+          });
+
+          // Scroll to bottom after loading messages
+          _scrollToBottom();
+        }
+      } else {
+        print('Error ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      print('Error en la petición: $e');
+    }
+  }
+
 //TO DO que s'actualitzi tot el rato !!!!! (polling)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
+        title: Text('Chat ${widget.name} ${widget.lastName}'),
       ),
       body: Column(
         children: [
