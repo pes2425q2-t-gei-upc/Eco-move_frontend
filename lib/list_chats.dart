@@ -37,6 +37,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   String? token = '';
   List<dynamic> chatsList = [];
   Map<int, String> lastMessages = {}; // Add this to store last messages
+  late int my_id;
 
   Future<String?> getAccessToken() async {
     return await _secureStorage.read(key: 'access');
@@ -55,8 +56,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Future<void> _initialize() async {
     token = await getAccessToken();
     await _fetchChats();
+    print('chat lists vallll ${chatsList}');
+    await _getMyInfo();
     // Fetch last messages for all chats after getting the chat list
     _fetchAllLastMessages();
+
   }
 
   // Add this method to fetch last messages for all chats
@@ -156,6 +160,33 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
+  Future<void> _getMyInfo() async {
+    final url = Uri.parse('http://10.0.2.2:8000/me/');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('el body es ${response.body}');
+        final bodyJson = json.decode(response.body); // Convert String to Map
+        my_id = bodyJson['id'];
+        print(my_id);
+      } else {
+        print('Failed to send message: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+
+
   Future<String?> _fetchLastMessage(int chatId) async {
     try {
       final response = await http.get(
@@ -168,6 +199,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
       if (response.statusCode == 200) {
         final messagesJson = json.decode(utf8.decode(response.bodyBytes));
+
 
         if (messagesJson.containsKey('results') && messagesJson['results'] is List) {
           final messagesList = messagesJson['results'] as List;
@@ -220,7 +252,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     : DateTime.now();
 
                 return ChatListItem(
-                  userName: '${chat['receptor_first_name']} ${chat['receptor_last_name']}',
+                  userName: my_id == chat['receptor'] ? '${chat['creador_first_name']} ${chat['creador_last_name']}' : '${chat['receptor_first_name']} ${chat['receptor_last_name']}',
                   lastMessage: lastMessage,
                   lastMessageTime: lastMessageTime,
                   onTap: () {
@@ -229,8 +261,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       MaterialPageRoute(
                         builder: (context) => ChatScreen(
                           chatId: chat['id'],
-                          name: chat['receptor_first_name'],
-                          lastName: chat['receptor_last_name'],
+                          name: my_id == chat['receptor'] ? chat['creador_first_name'] : chat['receptor_first_name'] ,
+                          lastName: my_id == chat['receptor'] ? chat['creador_last_name'] : chat['receptor_last_name'],
                         ),
                       ),
                     );

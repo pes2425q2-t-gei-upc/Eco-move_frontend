@@ -40,6 +40,7 @@ class _ChatScreenState extends State<ChatScreen> {
   late List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  late int my_id;
   String? token = '';
 
 
@@ -55,8 +56,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _initialize() async {
     token = await getAccessToken();
+    await _getMyInfo();
     await _fetchMessages();
   }
+
 
 
   void _handleSubmitted(String text) {
@@ -129,6 +132,31 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _getMyInfo() async {
+    final url = Uri.parse('http://10.0.2.2:8000/me/');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('el body es ${response.body}');
+        final bodyJson = json.decode(response.body); // Convert String to Map
+        my_id = bodyJson['id'];
+        print(my_id);
+      } else {
+        print('Failed to send message: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
 
   Future<void> _fetchMessages() async {
     try {
@@ -142,6 +170,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (response.statusCode == 200) {
         final messagesJson = json.decode(utf8.decode(response.bodyBytes));
+        print('els missatges sonnnnnnnnnnnn ${messagesJson}');
 
         if (messagesJson.containsKey('results') && messagesJson['results'] is List) {
           setState(() {
@@ -152,7 +181,7 @@ class _ChatScreenState extends State<ChatScreen> {
               _messages.add(
                 ChatMessage(
                   text: message['content'],
-                  isMe: message['sender'] != widget.chatId, // Adjust this based on your user ID logic
+                  isMe: message['sender'] == my_id,
                 ),
               );
             }
