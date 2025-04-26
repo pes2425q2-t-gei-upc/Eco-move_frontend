@@ -37,19 +37,57 @@ class ChatListScreen extends StatefulWidget {
 class _ChatListScreenState extends State<ChatListScreen> {
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  String token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ1NTE5NTEwLCJpYXQiOjE3NDU0MzMxMTAsImp0aSI6ImY5NDRkYjQ2OWViMzRhZWNiNGFmNDI0ZjA2NjgwNTBjIiwidXNlcl9pZCI6MX0.E6e-BZoxBo47sK3UgG1FPDy9uEIfusqmst0oxD7ue2c';
-  final List<dynamic> chatsList = [];
-  /*Future<void> getAccessToken() async {
-    token = await _secureStorage.read(key: 'access');
-  }*/
+  String? token = '';
+  List<dynamic> chatsList = [];
 
-  @override
-  void initState() {
-    super.initState();
-    //getAccessToken();
-    _fetchChats();
+
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: 'access');
   }
 
+  @override
+  Future<void> initState() async {
+    super.initState();
+    token = await getAccessToken();
+    _fetchChats();
+    print(chatsList);
+  }
+
+  Future<String?> getEmail() async {
+    String? inputText;
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Escribe el mail'),
+        content: TextField(
+          onChanged: (value) {
+            inputText = value;
+          },
+          decoration: const InputDecoration(
+            hintText: "Email",
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Cancelar"),
+          ),
+          TextButton(
+            onPressed: () {
+              _newChat(inputText!);
+              Navigator.pop(context);
+            },
+            child: const Text("Guardar"),
+          ),
+        ],
+      ),
+    );
+
+    return inputText;
+  }
 
   Future<void> _fetchChats() async {
 
@@ -64,6 +102,31 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
       if (response.statusCode == 200) {
         chatsList = json.decode(utf8.decode(response.bodyBytes));
+      } else {
+        print('Error ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      print('Error en la petición: $e');
+    }
+  }
+
+
+  Future<void> _newChat(String email) async {
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/social/chat/create_chat/'),
+        headers: {
+          'Authorization': 'Bearer ${token}',
+        },
+        body: {
+          'receptor_email': email,
+        }
+      );
+      _fetchChats();
+      print(chatsList);
+      if (response.statusCode == 201) {
+        print(response.bodyBytes);
       } else {
         print('Error ${response.statusCode}: ${response.body}');
       }
@@ -126,7 +189,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
               itemCount: chatsList.length,
               itemBuilder: (context, index) {
                 final chat = chatsList[index];
-                return ChatListItem(
+                print(chat);
+                return Text(chat.toString());
+                /*return ChatListItem(
                   avatarUrl: chat.otherUserAvatarUrl,
                   userName: chat.otherUserName,
                   lastMessage: chat.lastMessage,
@@ -138,9 +203,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       MaterialPageRoute(
                         builder: (context) => ChatScreen(),
                       ),
-                    );
+                    )
                   },
-                );
+                );*/
               },
             ),
           ),
@@ -148,7 +213,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          print('New chat button pressed');
+          getEmail();
+
         },
         foregroundColor: Colors.lightGreen,
         backgroundColor: Colors.grey[200],
