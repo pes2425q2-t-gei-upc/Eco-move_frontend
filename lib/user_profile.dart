@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -32,7 +32,6 @@ class UserProfile {
   String description;
   String language;
   String telephone;
-  String dni;
   String username;
 
   UserProfile({
@@ -42,7 +41,6 @@ class UserProfile {
     required this.description,
     required this.language,
     required this.telephone,
-    required this.dni,
     required this.username,
   });
 }
@@ -56,17 +54,10 @@ class UserProfilePage extends StatefulWidget {
 
 class _UserProfilePageState extends State<UserProfilePage> {
   bool isEditing = false;
+  String? token = '';
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
-  final UserProfile userProfile = UserProfile(
-    firstName: 'Laura',
-    lastName: 'van Dinteren',
-    email: 'laura.van.dinteren@estudiantat.upc.edu',
-    description: 'nose que posar aqui pero vale',
-    language: 'Català',
-    telephone: '653972950',
-    dni: '47114817Z',
-    username: 'lauravandi',
-  );
+  late UserProfile userProfile;
 
   // Controllers for edit form
   late TextEditingController firstNameController;
@@ -80,11 +71,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
   @override
   void initState() {
     super.initState();
+    _initialize();
     _initControllers();
-    //iniUser();
+  }
+
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: 'access');
   }
 
   void _initControllers() {
+    _getMyInfo();
     firstNameController = TextEditingController(text: userProfile.firstName);
     lastNameController = TextEditingController(text: userProfile.lastName);
     emailController = TextEditingController(text: userProfile.email);
@@ -131,6 +127,47 @@ class _UserProfilePageState extends State<UserProfilePage> {
       });
     }
   }
+
+
+  Future<void> _initialize() async {
+    token = await getAccessToken();
+    _getMyInfo();
+  }
+
+
+  Future<void> _getMyInfo() async {
+    final url = Uri.parse('http://10.0.2.2:8000/me/');
+    print('el token es ${token}');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('el body es ${response.body}');
+        final bodyJson = json.decode(response.body);
+        userProfile = UserProfile(
+          firstName: bodyJson['first_name'],
+          lastName: bodyJson['first_name'],
+          email: bodyJson['first_name'],
+          description: bodyJson['first_name'],
+          language: bodyJson['first_name'],
+          telephone: bodyJson['first_name'],
+          username: bodyJson['first_name'],
+        );
+      } else {
+        print('Failed to send message: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -314,7 +351,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
       'last_name': userProfile.lastName,
       'email': userProfile.email,
       'username':userProfile.username,
-      'dni': userProfile.dni,
       'idioma':userProfile.language,
       'telefon':userProfile.telephone,
       'descripcio':userProfile.description,
@@ -340,37 +376,4 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
 
-  Future<void> iniUser() async {
-    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/usuari/');
-
-    final Map<String, dynamic> data = {
-      'first_name': userProfile.firstName,
-      'last_name': userProfile.lastName,
-      'email': userProfile.email,
-      'username':userProfile.username,
-      'dni': userProfile.dni,
-      'idioma':userProfile.language,
-      'telefon':userProfile.telephone,
-      'descripcio':userProfile.description,
-      'is_admin': false,
-    };
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode(data),
-      );
-
-      if (response.statusCode == 201) {
-        print('Reservation created successfully');
-      } else {
-        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
 }
