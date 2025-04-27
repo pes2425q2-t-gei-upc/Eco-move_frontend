@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -37,12 +39,30 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
   List<Booking> _bookings = [];
   bool _isLoading = false;
 
+
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  String? token = '';
+
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: 'access');
+  }
+
+
+
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
     _fetchBookings(_selectedDay!);
+    _initialize();
+    print(token);
   }
+
+
+  Future<void> _initialize() async {
+    token = await getAccessToken();
+  }
+
 
   Future<void> _fetchBookings(DateTime day) async {
     setState(() {
@@ -56,12 +76,16 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
         Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/?dia=$formattedDate'),
       );
 
+
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        final List<dynamic> data = json.decode(response.body);
+        final bookings = await Future.wait(data.map((item) => Booking.fromJson(item)));
         setState(() {
-          _bookings = data.map((item) => Booking.fromJson(item)).toList();
+          _bookings = bookings;
           _isLoading = false;
+
         });
+
       } else {
         setState(() {
           _bookings = [];
@@ -76,9 +100,7 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
         _bookings = [];
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      print('Error esta aqui: ${e.toString()}');
     }
   }
 
@@ -113,10 +135,17 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
             onPageChanged: (focusedDay) {
               _focusedDay = focusedDay;
             },
-            calendarStyle: const CalendarStyle(
+            calendarStyle:  CalendarStyle(
               todayDecoration: BoxDecoration(
-                color: Colors.blue,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: Color(0xE278A879),
+                  width: 3,
+                ),
+                color: Colors.transparent,
+              ),
+              todayTextStyle: const TextStyle(
+                color: Colors.black, // same color as border so it matches
               ),
               selectedDecoration: BoxDecoration(
                 color: Color(0xE278A879),
@@ -142,7 +171,7 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
                   ),
                   child: ListTile(
                     title: Text(booking.station),
-                    subtitle: Text('${booking.date}\n${booking.startTime} - ${booking.endTime}'),
+                    subtitle: Text('${booking.date}\n${booking.startTime}'),
                   ),
                 );
               },
@@ -159,23 +188,45 @@ class Booking {
   final String station;
   final String date;
   final String startTime;
-  final String endTime;
+  final String duration;
 
   Booking({
     required this.id,
     required this.station,
     required this.startTime,
-    required this.endTime,
+    required this.duration,
     required this.date,
   });
 
-  factory Booking.fromJson(Map<String, dynamic> json) {
+  static Future<String?> _fetchStation(String station) async {
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api_punts_carrega/estacions/${station}/'),
+      );
+      if (response.statusCode == 200) {
+
+        final utf8Decoded = utf8.decode(response.bodyBytes);
+        Map<String, dynamic> jsonList = jsonDecode(utf8Decoded);
+        return jsonList['direccio'];
+      }
+    } catch (e) {
+      print('Error fetching station: $e');
+    }
+    return null;
+  }
+
+  static Future<Booking> fromJson(Map<String, dynamic> json) async {
+    String stationId = json['estacion'];
+    String? dir = await _fetchStation(stationId);
+
+
     return Booking(
       id: json['id'],
-      station: json['estacion']['direccio'],
-      startTime: json['hora_inicio_salida'],
-      endTime: json['hora_fin_salida'],
-      date: json['fecha_salida'],
+      station: dir ?? 'Unknown',
+      startTime: json['hora'],
+      duration: json['duracion'],
+      date: json['fecha'],
     );
   }
 }
