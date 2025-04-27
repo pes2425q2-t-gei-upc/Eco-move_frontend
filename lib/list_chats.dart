@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'chat.dart';
 
+
 void main() {
   runApp(const MyApp());
 }
@@ -51,6 +52,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   void initState() {
     super.initState();
     _initialize();
+
   }
 
   Future<void> _initialize() async {
@@ -241,6 +243,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chats'),
+        backgroundColor: Colors.lightGreen[100],
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -255,14 +258,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ? const Center(child: Text('No hay chats'))
           : Column(
         children: [
-          const SizedBox(height: 20),
+          //const SizedBox(height: 20),
           Expanded(
             child: ListView.builder(
               itemCount: chatsList.length,
               itemBuilder: (context, index) {
                 final chat = chatsList[index];
                 final lastMessage = lastMessages[chat['id']] ?? 'Loading...';
-
 
                 return ChatListItem(
                   userName: my_id == chat['receptor'] ? '${chat['creador_first_name']} ${chat['creador_last_name']}' : '${chat['receptor_first_name']} ${chat['receptor_last_name']}',
@@ -290,7 +292,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         onPressed: () {
           getEmail();
         },
-        foregroundColor: Colors.lightGreen,
+        foregroundColor: Colors.lightGreen[100],
         backgroundColor: Colors.grey[200],
         child: const Icon(Icons.chat),
       ),
