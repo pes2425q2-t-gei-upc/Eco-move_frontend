@@ -148,7 +148,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
       );
 
       if (response.statusCode == 200) {
-        print('el body es ${response.body}');
         final bodyJson = json.decode(response.body);
         userProfile = UserProfile(
           firstName: bodyJson['first_name'],
