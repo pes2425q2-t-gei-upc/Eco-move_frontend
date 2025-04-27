@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'gestio_reserva.dart';
 import 'package:geolocator/geolocator.dart';
 import 'get_bookings.dart';
+import 'refugio_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -48,6 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Filtros seleccionados
   List<String> velocidadesSeleccionadas = [];
+  List<String> tiposCargador = [];
   int potenciaMinSeleccionada = 0;
   int potenciaMaxSeleccionada = 400;
   bool filtrarPorCercanas = false;
@@ -55,6 +57,12 @@ class _MyHomePageState extends State<MyHomePage> {
   //Refugios
   List<Map<String, dynamic>> refugios = [];
   bool mostrarRefugios = false;
+
+  // Add a new list to store selected charger types
+  List<String> tiposCargadorSeleccionados = [];
+
+  // Add a new variable to store the selected city
+  String ciudadSeleccionada = '';
 
   @override
   void initState() {
@@ -101,6 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // Modify _fetchFiltros to dynamically fetch charger types
   Future<void> _fetchFiltros() async {
     final url = Uri.parse(
       'http://127.0.0.1:8000/api_punts_carrega/opcions_filtres/',
@@ -116,6 +125,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
           potenciaMinSeleccionada = potenciaMin;
           potenciaMaxSeleccionada = potenciaMax;
+
+          // Dynamically fetch charger types
+          tiposCargador = List<String>.from(
+            data['carregadors'].map((cargador) => cargador['id']),
+          );
         });
       } else {
         print('Error al cargar filtros: ${response.statusCode}');
@@ -152,6 +166,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // Update _fetchEstaciones to include multiple charger types in the query
   Future<void> _fetchEstaciones() async {
     setState(() {
       _isLoading = true;
@@ -164,6 +179,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (velocidadesSeleccionadas.isNotEmpty) {
       queryParameters['velocitat'] = velocidadesSeleccionadas.join(',');
+    }
+
+    // Include selected charger types in the query
+    if (tiposCargadorSeleccionados.isNotEmpty) {
+      queryParameters['tipus_carregador'] = tiposCargadorSeleccionados.join(
+        ',',
+      );
+    }
+
+    // Include the city filter in the query
+    if (ciudadSeleccionada.isNotEmpty) {
+      queryParameters['ciutat'] = ciudadSeleccionada;
     }
 
     final uri = Uri.http(
@@ -197,13 +224,13 @@ class _MyHomePageState extends State<MyHomePage> {
       } else {
         print('Error al cargar datos: ${response.statusCode}');
         setState(() {
-          _isLoading = false; //Ocultar indicador de carga si ocurre un error
+          _isLoading = false;
         });
       }
     } catch (e) {
       print('Error en la solicitud: $e');
       setState(() {
-        _isLoading = false; //Ocultar indicador de carga si ocurre un error
+        _isLoading = false;
       });
     }
   }
@@ -264,6 +291,14 @@ class _MyHomePageState extends State<MyHomePage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => EstacionScreen(idStation: idEstacion),
+      ),
+    );
+  }
+
+  void _abrirRefugioScreen(BuildContext context, String idRefugio) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => RefugioScreen(idRefugio: idRefugio),
       ),
     );
   }
@@ -474,12 +509,19 @@ class _MyHomePageState extends State<MyHomePage> {
                             mostrarRefugios ? Icons.ac_unit : Icons.location_on,
                           ),
                           color: mostrarRefugios ? Colors.blue : Colors.green,
-                          iconSize: 30,
+                          iconSize: 25,
                           onPressed: () {
-                            _abrirEstacionScreen(
-                              context,
-                              estacion['id_punt'].toString(),
-                            );
+                            if (mostrarRefugios) {
+                              _abrirRefugioScreen(
+                                context,
+                                estacion['id_punt'].toString(),
+                              );
+                            } else {
+                              _abrirEstacionScreen(
+                                context,
+                                estacion['id_punt'].toString(),
+                              );
+                            }
                           },
                         ),
                       ),
@@ -518,8 +560,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     point: myPosition!,
                     builder:
                         (ctx) => Icon(
-                          Icons.person_pin_circle,
-                          color: Colors.blue,
+                          Icons.my_location,
+                          color: const Color.fromARGB(255, 255, 0, 0),
                           size: 30,
                         ),
                   ),
@@ -543,7 +585,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         },
                 backgroundColor:
                     myPosition == null ? Colors.grey : Colors.white,
-                child: const Icon(Icons.my_location, color: Colors.green),
+                child: const Icon(
+                  Icons.location_searching,
+                  color: Colors.green,
+                ),
               ),
               const SizedBox(height: 10),
               FloatingActionButton(
@@ -640,12 +685,15 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  // Update _showFilterBottomSheet to allow multiple charger types selection
   void _showFilterBottomSheet() {
-    List<String> tiposCargador = ['Tipo 1', 'Tipo 2', 'CHAdeMO', 'CCS'];
-    String tipoCargadorSeleccionado = '';
+    TextEditingController ciudadController = TextEditingController(
+      text: ciudadSeleccionada, // Pre-fill with the selected city
+    );
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true, // Allow the bottom sheet to expand dynamically
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -653,194 +701,236 @@ class _MyHomePageState extends State<MyHomePage> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
+              padding: EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                top: 16.0,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
+              ),
+              child: Wrap(
+                alignment: WrapAlignment.center, // Center the content
+                children: [
+                  const Center(
+                    child: Text(
                       'Filtrar por cercanía',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                         color: Colors.green,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 10),
-                    SwitchListTile(
-                      title: const Text('Mostrar solo estaciones más cercanas'),
-                      value: filtrarPorCercanas,
-                      onChanged: (bool value) {
-                        setModalState(() {
-                          filtrarPorCercanas = value;
-                          if (filtrarPorCercanas) {
-                            velocidadesSeleccionadas.clear();
-                            tipoCargadorSeleccionado = '';
-                            potenciaMinSeleccionada = potenciaMin;
-                            potenciaMaxSeleccionada = potenciaMax;
-                          }
-                        });
-                      },
-                      activeColor: Colors.green,
-                    ),
-                    if (!filtrarPorCercanas) ...[
-                      const SizedBox(height: 20),
-                      const Text(
+                  ),
+                  const SizedBox(height: 10),
+                  SwitchListTile(
+                    title: const Text('Mostrar solo estaciones más cercanas'),
+                    value: filtrarPorCercanas,
+                    onChanged: (bool value) {
+                      setModalState(() {
+                        filtrarPorCercanas = value;
+                        if (filtrarPorCercanas) {
+                          velocidadesSeleccionadas.clear();
+                          tiposCargadorSeleccionados.clear();
+                          potenciaMinSeleccionada = potenciaMin;
+                          potenciaMaxSeleccionada = potenciaMax;
+                          ciudadController.clear();
+                          ciudadSeleccionada = ''; // Clear city filter
+                        }
+                      });
+                    },
+                    activeColor: Colors.green,
+                  ),
+                  if (!filtrarPorCercanas) ...[
+                    const SizedBox(height: 20),
+                    const Center(
+                      child: Text(
                         'Filtrar por velocidad',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
                           color: Colors.green,
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 8.0,
-                        children:
-                            velocidades.map((velocidad) {
-                              return FilterChip(
-                                label: Text(velocidad),
-                                selected: velocidadesSeleccionadas.contains(
-                                  velocidad,
-                                ),
-                                onSelected: (selected) {
-                                  setModalState(() {
-                                    if (selected) {
-                                      velocidadesSeleccionadas.add(velocidad);
-                                    } else {
-                                      velocidadesSeleccionadas.remove(
-                                        velocidad,
-                                      );
-                                    }
-                                  });
-                                },
-                                selectedColor: Colors.green.shade100,
-                                backgroundColor: Colors.grey.shade200,
-                                labelStyle: TextStyle(
-                                  color:
-                                      velocidadesSeleccionadas.contains(
-                                            velocidad,
-                                          )
-                                          ? Colors.green
-                                          : Colors.black,
-                                ),
-                              );
-                            }).toList(),
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      alignment: WrapAlignment.center, // Center the chips
+                      spacing: 8.0,
+                      runSpacing: 8.0, // Add spacing between rows
+                      children:
+                          velocidades.map((velocidad) {
+                            return FilterChip(
+                              label: Text(velocidad),
+                              selected: velocidadesSeleccionadas.contains(
+                                velocidad,
+                              ),
+                              onSelected: (selected) {
+                                setModalState(() {
+                                  if (selected) {
+                                    velocidadesSeleccionadas.add(velocidad);
+                                  } else {
+                                    velocidadesSeleccionadas.remove(velocidad);
+                                  }
+                                });
+                              },
+                              selectedColor: Colors.green.shade100,
+                              backgroundColor: Colors.grey.shade200,
+                              labelStyle: TextStyle(
+                                color:
+                                    velocidadesSeleccionadas.contains(velocidad)
+                                        ? Colors.green
+                                        : Colors.black,
+                              ),
+                            );
+                          }).toList(),
+                    ),
+                    const SizedBox(height: 20),
+                    const Center(
+                      child: Text(
                         'Filtrar por tipo de cargador',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
                           color: Colors.green,
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 8.0,
-                        children:
-                            tiposCargador.map((tipo) {
-                              return ChoiceChip(
-                                label: Text(tipo),
-                                selected: tipoCargadorSeleccionado == tipo,
-                                onSelected: (selected) {
-                                  setModalState(() {
-                                    tipoCargadorSeleccionado =
-                                        selected ? tipo : '';
-                                  });
-                                },
-                                selectedColor: Colors.green.shade100,
-                                backgroundColor: Colors.grey.shade200,
-                                labelStyle: TextStyle(
-                                  color:
-                                      tipoCargadorSeleccionado == tipo
-                                          ? Colors.green
-                                          : Colors.black,
-                                ),
-                              );
-                            }).toList(),
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      alignment: WrapAlignment.center, // Center the chips
+                      spacing: 8.0,
+                      runSpacing: 8.0, // Add spacing between rows
+                      children:
+                          tiposCargador.map((tipo) {
+                            return FilterChip(
+                              label: Text(tipo),
+                              selected: tiposCargadorSeleccionados.contains(
+                                tipo,
+                              ),
+                              onSelected: (selected) {
+                                setModalState(() {
+                                  if (selected) {
+                                    tiposCargadorSeleccionados.add(tipo);
+                                  } else {
+                                    tiposCargadorSeleccionados.remove(tipo);
+                                  }
+                                });
+                              },
+                              selectedColor: Colors.green.shade100,
+                              backgroundColor: Colors.grey.shade200,
+                              labelStyle: TextStyle(
+                                color:
+                                    tiposCargadorSeleccionados.contains(tipo)
+                                        ? Colors.green
+                                        : Colors.black,
+                              ),
+                            );
+                          }).toList(),
+                    ),
+                    const SizedBox(height: 20),
+                    const Center(
+                      child: Text(
                         'Filtrar por potencia (kW)',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
                           color: Colors.green,
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 10),
-                      RangeSlider(
-                        values: RangeValues(
-                          potenciaMinSeleccionada.toDouble(),
-                          potenciaMaxSeleccionada.toDouble(),
+                    ),
+                    const SizedBox(height: 10),
+                    RangeSlider(
+                      values: RangeValues(
+                        potenciaMinSeleccionada.toDouble(),
+                        potenciaMaxSeleccionada.toDouble(),
+                      ),
+                      min: potenciaMin.toDouble(),
+                      max: potenciaMax.toDouble(),
+                      labels: RangeLabels(
+                        "${potenciaMinSeleccionada} kW",
+                        "${potenciaMaxSeleccionada} kW",
+                      ),
+                      onChanged: (RangeValues values) {
+                        setModalState(() {
+                          potenciaMinSeleccionada = values.start.round();
+                          potenciaMaxSeleccionada = values.end.round();
+                        });
+                      },
+                      activeColor: Colors.green,
+                      inactiveColor: Colors.grey.shade300,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Min: ${potenciaMinSeleccionada.round()} kW",
+                          style: const TextStyle(fontSize: 16),
                         ),
-                        min: potenciaMin.toDouble(),
-                        max: potenciaMax.toDouble(),
-                        labels: RangeLabels(
-                          "${potenciaMinSeleccionada} kW",
-                          "${potenciaMaxSeleccionada} kW",
+                        Text(
+                          "Max: ${potenciaMaxSeleccionada.round()} kW",
+                          style: const TextStyle(fontSize: 16),
                         ),
-                        onChanged: (RangeValues values) {
-                          setModalState(() {
-                            potenciaMinSeleccionada = values.start.round();
-                            potenciaMaxSeleccionada = values.end.round();
-                          });
-                        },
-                        activeColor: Colors.green,
-                        inactiveColor: Colors.grey.shade300,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Min: ${potenciaMinSeleccionada.round()} kW",
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          Text(
-                            "Max: ${potenciaMaxSeleccionada.round()} kW",
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                     const SizedBox(height: 20),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          if (filtrarPorCercanas) {
-                            _fetchEstacionesCercanas();
-                          } else {
-                            _fetchEstaciones();
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 30,
-                            vertical: 15,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          "Aplicar Filtros",
-                          style: TextStyle(fontSize: 18, color: Colors.white),
+                    const Center(
+                      child: Text(
+                        'Filtrar por ciudad',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.green,
                         ),
                       ),
                     ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: ciudadController,
+                      decoration: const InputDecoration(
+                        hintText: 'Introduce el nombre de la ciudad',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        setModalState(() {
+                          ciudadSeleccionada = value;
+                        });
+                      },
+                      onEditingComplete: () {
+                        if (ciudadController.text.isEmpty) {
+                          setModalState(() {
+                            ciudadSeleccionada = ''; // Clear city filter
+                          });
+                        }
+                      },
+                    ),
                   ],
-                ),
+                  const SizedBox(height: 70),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        if (filtrarPorCercanas) {
+                          _fetchEstacionesCercanas();
+                        } else {
+                          _fetchEstaciones();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 15,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "Aplicar Filtros",
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
           },
