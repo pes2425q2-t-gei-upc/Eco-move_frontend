@@ -36,6 +36,7 @@ dependencies:
   geolocator: ^10.1.0
   flutter_masked_text2: ^0.9.1
   flutter_secure_storage: ^5.0.2
+  font_awesome_flutter: ^10.4.0
 
 
 

@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 
 
 
@@ -226,11 +228,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         // Implement Google sign in
                       },
-                      icon: const Icon(Icons.g_mobiledata, size: 24),
+                      icon: const FaIcon(FontAwesomeIcons.google, size: 24, color: Colors.black,),
                       label: const Text('Google'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -239,11 +242,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         // Implement GitHub sign in
                       },
-                      icon: const Icon(Icons.code, size: 24),
+                      icon: const FaIcon(FontAwesomeIcons.github, size: 24, color: Colors.white,),
                       label: const Text('GitHub'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       ),
                     ),
                   ],
