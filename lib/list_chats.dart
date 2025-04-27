@@ -36,7 +36,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? token = '';
   List<dynamic> chatsList = [];
-  Map<int, String> lastMessages = {}; // Add this to store last messages
+  Map<int, Map<String, String>> lastMessages = {}; // Add this to store last messages
   late int my_id;
 
   Future<String?> getAccessToken() async {
@@ -71,6 +71,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         if (lastMessage != null) {
           setState(() {
             lastMessages[chat['id']] = lastMessage;
+
           });
         }
       }
@@ -186,8 +187,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
 
-
-  Future<String?> _fetchLastMessage(int chatId) async {
+  Future<Map<String, String>> _fetchLastMessage(int chatId) async {
     try {
       final response = await http.get(
         Uri.parse('http://10.0.2.2:8000/social/chat/$chatId/messages/'),
@@ -200,13 +200,18 @@ class _ChatListScreenState extends State<ChatListScreen> {
       if (response.statusCode == 200) {
         final messagesJson = json.decode(utf8.decode(response.bodyBytes));
 
-
         if (messagesJson.containsKey('results') && messagesJson['results'] is List) {
           final messagesList = messagesJson['results'] as List;
 
           if (messagesList.isNotEmpty) {
             final lastMessage = messagesList.first; // assuming first is the newest
-            return lastMessage['content'] ?? ''; // Extract the content from the message
+            print('last message es ${lastMessage}');
+
+            // Extract content and timestamp
+            String content = lastMessage['content'] ?? 'No content';
+            String timestamp = lastMessage['timestamp'] ?? 'No timestamp';
+
+            return {'content': content, 'timestamp': timestamp}; // Return a map with both
           }
         }
       } else {
@@ -215,8 +220,21 @@ class _ChatListScreenState extends State<ChatListScreen> {
     } catch (e) {
       print('Error en la petición: $e');
     }
-    return 'No messages';
+
+    return {'content': 'No messages', 'timestamp': 'No timestamp'}; // Default if no message
   }
+
+  DateTime _parseDateTime(String? timestamp) {
+    if (timestamp == null || timestamp == 'No timestamp') {
+      return DateTime.now();
+    }
+    try {
+      return DateTime.parse(timestamp);
+    } catch (_) {
+      return DateTime.now();
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -243,18 +261,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
               itemCount: chatsList.length,
               itemBuilder: (context, index) {
                 final chat = chatsList[index];
-                // Use the stored last message instead of calling the async function
                 final lastMessage = lastMessages[chat['id']] ?? 'Loading...';
 
-                // Parse timestamp string to DateTime - adjust format as needed
-                DateTime lastMessageTime = chat['last_message_timestamp'] != null
-                    ? DateTime.parse(chat['last_message_timestamp'])
-                    : DateTime.now();
 
                 return ChatListItem(
                   userName: my_id == chat['receptor'] ? '${chat['creador_first_name']} ${chat['creador_last_name']}' : '${chat['receptor_first_name']} ${chat['receptor_last_name']}',
-                  lastMessage: lastMessage,
-                  lastMessageTime: lastMessageTime,
+                  lastMessage: lastMessages[chat['id']]?['content'] ?? 'No content',
+                  lastMessageTime: _parseDateTime(lastMessages[chat['id']]?['timestamp']),
                   onTap: () {
                     Navigator.push(
                       context,

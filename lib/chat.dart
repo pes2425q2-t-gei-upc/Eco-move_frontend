@@ -1,30 +1,10 @@
-// main.dart
 import 'dart:convert';
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
-/*void main() {
-  runApp(const ChatApp());
-}
 
-class ChatApp extends StatelessWidget {
-  const ChatApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Chat',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const ChatScreen(chatId: 3),
-    );
-  }
-}
-*/
 class ChatScreen extends StatefulWidget {
   final int chatId;
   final String name;
@@ -43,6 +23,9 @@ class _ChatScreenState extends State<ChatScreen> {
   late int my_id;
   String? token = '';
 
+  final int _pollingIntervalSeconds = 3;
+  Timer? _pollingTimer;
+
 
   Future<String?> getAccessToken() async {
     return await _secureStorage.read(key: 'access');
@@ -58,7 +41,28 @@ class _ChatScreenState extends State<ChatScreen> {
     token = await getAccessToken();
     await _getMyInfo();
     await _fetchMessages();
+    _startPolling();
   }
+
+  void _startPolling() {
+    // Cancel any existing timer
+    _pollingTimer?.cancel();
+
+    _pollingTimer = Timer.periodic(
+        Duration(seconds: _pollingIntervalSeconds),
+            (timer) => _fetchMessages()
+    );
+  }
+
+  @override
+  void dispose() {
+    // Cancel the timer when the screen is disposed
+    _pollingTimer?.cancel();
+    _textController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
 
 
 
@@ -185,10 +189,17 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               );
             }
+            final reversedNewMessages = _messages.reversed.toList();
 
-            // Since the API appears to return newest messages first, we might need to reverse
-            // the list to show oldest messages at the top
-            _messages = _messages.reversed.toList();
+            if (_messages.length != reversedNewMessages.length) {
+              setState(() {
+                _messages = reversedNewMessages;
+              });
+
+              _scrollToBottom();
+            }
+
+
           });
 
           // Scroll to bottom after loading messages
