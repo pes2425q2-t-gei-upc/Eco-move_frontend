@@ -166,7 +166,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  // Update _fetchEstaciones to include multiple charger types in the query
   Future<void> _fetchEstaciones() async {
     setState(() {
       _isLoading = true;
