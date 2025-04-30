@@ -24,6 +24,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true; // Add this to control password visibility
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
@@ -145,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
       String label,
       TextEditingController controller,
       IconData icon,
-      {TextInputType keyboardType = TextInputType.text, int maxLines = 1}) {
+      {TextInputType keyboardType = TextInputType.text, int maxLines = 1, bool isPassword = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextField(
@@ -154,11 +155,24 @@ class _LoginScreenState extends State<LoginScreen> {
           hintText: label,
           hintStyle: const TextStyle(color: Colors.grey),
           prefixIcon: Icon(icon),
+          // Add suffix icon for password field
+          suffixIcon: isPassword
+              ? IconButton(
+            icon: Icon(
+              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+            ),
+            onPressed: () {
+              setState(() {
+                _obscurePassword = !_obscurePassword;
+              });
+            },
+          )
+              : null,
           border: const OutlineInputBorder(),
         ),
         keyboardType: keyboardType,
         maxLines: maxLines,
-        obscureText: label == 'Password', // Enable password hiding
+        obscureText: isPassword && _obscurePassword, // Use the visibility state for password field
       ),
     );
   }
@@ -193,6 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Contraseña',
                   _passwordController,
                   Icons.lock,
+                  isPassword: true, // Set this field as a password field
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -208,7 +223,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
+                const SizedBox(height: 12),
                 const Row(
                   children: [
                     Expanded(child: Divider()),
@@ -252,6 +268,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 40,),
+                Center(
+                  child: Text('No tienes cuenta?', style: TextStyle(color: Colors.grey, fontSize: 12),),
+
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    
+                  },
+                  child: const Text(
+                    'Crear cuenta',
+                    style: TextStyle(fontSize: 16, color: Colors.black),
+                  ),
+                ),
               ],
             ),
           ),
@@ -260,4 +290,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
