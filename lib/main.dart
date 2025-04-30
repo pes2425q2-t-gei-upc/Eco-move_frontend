@@ -1,14 +1,30 @@
 import 'dart:convert';
+import 'package:eco_move_frontend/l10n/l10n.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:eco_move_frontend/page/settings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'gestio_reserva.dart';
 import 'package:geolocator/geolocator.dart';
 import 'get_bookings.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'l10n/locale_provider.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final langCode = prefs.getString('Language') ?? 'en';
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => LocaleProvider()..setLocale(Locale(langCode)),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -16,11 +32,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<LocaleProvider>(context);
+
     return MaterialApp(
       title: 'ECO-MOVE',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
+      locale: provider.locale,
+      supportedLocales: L10n.all,
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
       home: const MyHomePage(title: 'ECO-MOVE'),
     );
   }
@@ -156,11 +182,11 @@ class _MyHomePageState extends State<MyHomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Enviar alerta"),
+          title: Text(context.loc.alert_title),
           content: TextField(
             controller: mensajeController,
-            decoration: const InputDecoration(
-              hintText: "Mensaje opcional",
+            decoration: InputDecoration(
+              hintText: context.loc.alert_optional_message,
               border: OutlineInputBorder(),
             ),
             maxLines: 3,
@@ -170,14 +196,14 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text("Cancelar"),
+              child: Text(context.loc.common_cancel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text("Enviar"),
+              child: Text(context.loc.common_confirm),
             ),
           ],
         );
@@ -365,7 +391,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Icon(Icons.calendar_month, color: Colors.white, size: 30),
                   SizedBox(width: 10),
                   Text(
-                    'Mis Reservas',
+                    context.loc.home_my_reservations,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -388,6 +414,14 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.settings),
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => SettingsPage(userId: 1)),
+            );
+          },
+        ),
       ),
       body:
           _selectedIndex == 2
@@ -410,12 +444,18 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Mapa'),
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: context.loc.nav_home,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: context.loc.nav_map,
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.ev_station),
-            label: 'Estaciones',
+            label: context.loc.nav_stations,
           ),
         ],
         currentIndex: _selectedIndex,

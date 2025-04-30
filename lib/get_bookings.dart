@@ -2,6 +2,8 @@ import 'package:eco_move_frontend/edit_booking.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 class Booking {
   final String estacion;
@@ -29,19 +31,6 @@ class Booking {
   }
 }
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: BookingsScreen(),
-    );
-  }
-}
-
 class BookingsScreen extends StatefulWidget {
   @override
   _BookingsScreenState createState() => _BookingsScreenState();
@@ -57,7 +46,9 @@ class _BookingsScreenState extends State<BookingsScreen> {
   }
 
   Future<List<Booking>> fetchBookings() async {
-    final url = Uri.parse('https://eco-move-backend.onrender.com/api_punts_carrega/reservas/');
+    final url = Uri.parse(
+      'https://eco-move-backend.onrender.com/api_punts_carrega/reservas/',
+    );
     try {
       final response = await http.get(url);
 
@@ -77,7 +68,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
     final ScrollController scrollController = ScrollController();
 
     return Scaffold(
-      appBar: AppBar(title: Text("Mis reservas")),
+      appBar: AppBar(title: Text(context.loc.home_my_reservations)),
       body: FutureBuilder<List<Booking>>(
         future: futureBookings,
         builder: (context, snapshot) {
@@ -86,7 +77,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No hay reservas'));
+            return Center(child: Text(context.loc.reservations_none));
           } else {
             final bookings = snapshot.data!;
             return Scrollbar(
@@ -110,8 +101,12 @@ class _BookingsScreenState extends State<BookingsScreen> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Fecha: ${booking.fecha}'),
-                              Text('Hora: ${booking.hora}'),
+                              Text(
+                                '${context.loc.common_date}: ${booking.fecha}',
+                              ),
+                              Text(
+                                '${context.loc.common_hour}: ${booking.hora}',
+                              ),
                             ],
                           ),
                         ),
@@ -121,13 +116,14 @@ class _BookingsScreenState extends State<BookingsScreen> {
                               onPressed: () async {
                                 final result = await Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) => EditChargerScreen(
-                                      date: booking.fecha,
-                                      hour: booking.hora,
-                                      duration: booking.duracion,
-                                      id: booking.id,
-                                      estacion: booking.estacion,
-                                    ),
+                                    builder:
+                                        (context) => EditChargerScreen(
+                                          date: booking.fecha,
+                                          hour: booking.hora,
+                                          duration: booking.duracion,
+                                          id: booking.id,
+                                          estacion: booking.estacion,
+                                        ),
                                   ),
                                 );
 
@@ -136,13 +132,13 @@ class _BookingsScreenState extends State<BookingsScreen> {
                                   futureBookings = fetchBookings();
                                 });
                               },
-                              child: Text("Editar"),
+                              child: Text(context.loc.reservations_edit),
                             ),
                             TextButton(
                               onPressed: () {
                                 deleteBooking(booking.id);
                               },
-                              child: Text("Eliminar"),
+                              child: Text(context.loc.reservations_delete),
                             ),
                           ],
                         ),
@@ -159,25 +155,34 @@ class _BookingsScreenState extends State<BookingsScreen> {
   }
 
   Future<void> deleteBooking(int id) async {
-    final url = Uri.parse('https://eco-move-backend.onrender.com/api_punts_carrega/reservas/$id/eliminar/');
+    final url = Uri.parse(
+      'https://eco-move-backend.onrender.com/api_punts_carrega/reservas/$id/eliminar/',
+    );
     bool? confirmDelete = await _showConfirmationDialog();
     if (confirmDelete == true) {
       try {
         final response = await http.delete(
           url,
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: {'Content-Type': 'application/json'},
         );
         if (response.statusCode == 200) {
-          _showDialog('Reserva eliminada con éxito', isSuccess: true);
+          _showDialog(
+            context.loc.dialog_success_delete_reseervation,
+            isSuccess: true,
+          );
           setState(() {
             futureBookings = fetchBookings(); // Refrescar la lista
           });
         } else if (response.statusCode == 404) {
-          _showDialog('La reserva no existe.', isSuccess: false);
+          _showDialog(
+            context.loc.dialog_reservation_not_found,
+            isSuccess: false,
+          );
         } else {
-          _showDialog('Error al eliminar la reserva.', isSuccess: false);
+          _showDialog(
+            context.loc.dialog_error_delete_reservation,
+            isSuccess: false,
+          );
         }
       } catch (e) {
         _showDialog('Error: $e', isSuccess: false);
@@ -190,20 +195,20 @@ class _BookingsScreenState extends State<BookingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirmación'),
-          content: Text('¿Está seguro de que quiere eliminar la reserva?'),
+          title: Text(context.loc.common_confirmation),
+          content: Text(context.loc.dialog_confirm_delete_reservation),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(false);
               },
-              child: Text('Cancelar'),
+              child: Text(context.loc.common_cancel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
-              child: Text('Eliminar'),
+              child: Text(context.loc.reservations_delete),
             ),
           ],
         );
@@ -216,14 +221,14 @@ class _BookingsScreenState extends State<BookingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(isSuccess ? 'Éxito' : 'Error'),
+          title: Text(isSuccess ? context.loc.common_success : 'Error'),
           content: Text(message),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Aceptar'),
+              child: Text(context.loc.common_accept),
             ),
           ],
         );
