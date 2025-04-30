@@ -3,16 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-
-
-
-void main() {
-  runApp(const MaterialApp(
-    home: LoginScreen(),
-    debugShowCheckedModeBanner: false,
-  ));
-}
+import 'sign-in.dart';
+import 'main.dart'; // Import main.dart to access MyHomePage
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -26,12 +18,59 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true; // Add this to control password visibility
 
-  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
-  Future<void> saveAccessToken(String access, String refresh) async {
-    await _secureStorage.write(key: 'access', value: access);
-    await _secureStorage.write(key: 'refresh', value: refresh);
+  // Modify the initState() method in the _LoginScreenState class (paste-3.txt)
+
+  @override
+  void initState() {
+    super.initState();
+    // Check for existing token when the login screen initializes
+    checkExistingToken();
   }
+
+// Add this new method to _LoginScreenState class
+
+  Future<void> checkExistingToken() async {
+    // Get the access token from secure storage
+    String? accessToken = await getAccessToken();
+
+    if (accessToken != null && accessToken.isNotEmpty) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => MyHomePage(title: 'ECO-MOVE'),
+            ),
+          );
+        }
+  }
+
+// Add this method to verify token validity (recommended)
+
+  Future<bool> validateToken(String token) async {
+    try {
+      // You can make a request to your backend to verify the token
+      final url = Uri.parse('http://10.0.2.2:8000/me/');
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      // If response is successful, token is valid
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Token validation error: $e');
+      return false;
+    }
+  }
+
+    final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+
+    Future<void> saveAccessToken(String access, String refresh) async {
+      await _secureStorage.write(key: 'access', value: access);
+      await _secureStorage.write(key: 'refresh', value: refresh);
+    }
 
   Future<String?> getAccessToken() async {
     return await _secureStorage.read(key: 'access');
@@ -41,14 +80,13 @@ class _LoginScreenState extends State<LoginScreen> {
     return await _secureStorage.read(key: 'refresh');
   }
 
-
-
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
+
   Future<void> getToken() async {
     final url = Uri.parse('http://10.0.2.2:8000/token/');
 
@@ -75,14 +113,29 @@ class _LoginScreenState extends State<LoginScreen> {
         print('retorna: ${response.body}');
         saveAccessToken(resp['access'], resp['refresh']);
         _getInfo(resp['access']);
+
+        // Navigate to MyHomePage after successful login
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => MyHomePage(title: 'ECO-MOVE'),
+          ),
+        );
       } else if (response.statusCode == 401) {
         String? r = await getRefreshToken();
         getTokenRefresh(r!);
       } else {
         print('Error al fer login: ${response.statusCode} - ${response.body}');
+        // Show error message to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error de inicio de sesión: ${response.body}')),
+        );
       }
     } catch (e) {
       print('Error: $e');
+      // Show error message to user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error de conexión: $e')),
+      );
     }
   }
 
@@ -106,6 +159,12 @@ class _LoginScreenState extends State<LoginScreen> {
         print('retorna refresh: ${response.body}');
         final Map<String, dynamic> resp = json.decode(response.body);
         _getInfo(resp['access']);
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => MyHomePage(title: 'ECO-MOVE'),
+          ),
+        );
       } else {
         print('Failed to create reservation: ${response.statusCode} - ${response.body}');
       }
@@ -139,8 +198,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
-
-
 
   Widget _buildTextField(
       String label,
@@ -275,7 +332,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => UserProfilePage()),
+                    );
                   },
                   child: const Text(
                     'Crear cuenta',

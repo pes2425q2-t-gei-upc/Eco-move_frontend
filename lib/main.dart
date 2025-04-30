@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'gestio_reserva.dart';
 import 'package:geolocator/geolocator.dart';
 import 'get_bookings.dart';
+import 'log_in.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +22,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
-      home: const MyHomePage(title: 'ECO-MOVE'),
+      // Start with LoginScreen as the home page
+      home: const LoginScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -83,11 +86,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (filtroSeleccionado == 'Todas') {
       endpoint =
-          'https://eco-move-backend.onrender.com/api_punts_carrega/estacions/';
+      'https://eco-move-backend.onrender.com/api_punts_carrega/estacions/';
     } else {
       if (myPosition != null) {
         endpoint =
-            'https://eco-move-backend.onrender.com/api_punts_carrega/punt_mes_proper/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}';
+        'https://eco-move-backend.onrender.com/api_punts_carrega/punt_mes_proper/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}';
       } else {
         print('Error: myPosition es null');
         setState(() {
@@ -104,24 +107,24 @@ class _MyHomePageState extends State<MyHomePage> {
         List<dynamic> data = json.decode(response.body);
 
         List<Map<String, dynamic>> filteredData =
-            data.map((estacion) {
-              // Si la respuesta es de "Más cercanas", accedemos a "estacio_carrega"
-              Map<String, dynamic> estacioCarrega =
-                  estacion.containsKey('estacio_carrega')
-                      ? estacion['estacio_carrega']
-                      : estacion;
+        data.map((estacion) {
+          // Si la respuesta es de "Más cercanas", accedemos a "estacio_carrega"
+          Map<String, dynamic> estacioCarrega =
+          estacion.containsKey('estacio_carrega')
+              ? estacion['estacio_carrega']
+              : estacion;
 
-              return {
-                "id_punt": estacioCarrega["id_punt"],
-                "lat": estacioCarrega["lat"],
-                "lng": estacioCarrega["lng"],
-                "direccio": estacioCarrega["direccio"],
-                "ciutat": estacioCarrega["ciutat"],
-                "nplaces_lliures": estacioCarrega["nplaces"],
-                "potencia": estacioCarrega["potencia"],
-                "tipus_velocitat": estacioCarrega["tipus_velocitat"],
-              };
-            }).toList();
+          return {
+            "id_punt": estacioCarrega["id_punt"],
+            "lat": estacioCarrega["lat"],
+            "lng": estacioCarrega["lng"],
+            "direccio": estacioCarrega["direccio"],
+            "ciutat": estacioCarrega["ciutat"],
+            "nplaces_lliures": estacioCarrega["nplaces"],
+            "potencia": estacioCarrega["potencia"],
+            "tipus_velocitat": estacioCarrega["tipus_velocitat"],
+          };
+        }).toList();
 
         setState(() {
           estaciones = filteredData;
@@ -201,29 +204,29 @@ class _MyHomePageState extends State<MyHomePage> {
               }
             },
             items:
-                ['Todas', 'Más cercanas'].map<DropdownMenuItem<String>>((
-                  String value,
+            ['Todas', 'Más cercanas'].map<DropdownMenuItem<String>>((
+                String value,
                 ) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
           ),
         ),
         Expanded(
           child:
-              _isLoading
-                  ? Center(
-                    child: CircularProgressIndicator(),
-                  ) // Indicador de carga
-                  : ListView(
-                    padding: const EdgeInsets.all(10),
-                    children:
-                        estaciones
-                            .map((estacion) => _buildEstacionCard(estacion))
-                            .toList(),
-                  ),
+          _isLoading
+              ? Center(
+            child: CircularProgressIndicator(),
+          ) // Indicador de carga
+              : ListView(
+            padding: const EdgeInsets.all(10),
+            children:
+            estaciones
+                .map((estacion) => _buildEstacionCard(estacion))
+                .toList(),
+          ),
         ),
       ],
     );
@@ -261,27 +264,27 @@ class _MyHomePageState extends State<MyHomePage> {
   MarkerLayer _buildMarkersLayer() {
     return MarkerLayer(
       markers:
-          estaciones.map((estacion) {
-            return Marker(
-              width: 40.0,
-              height: 40.0,
-              point: LatLng(estacion['lat'], estacion['lng']),
-              builder:
-                  (ctx) => Container(
-                    child: IconButton(
-                      icon: Icon(Icons.location_on),
-                      color: Colors.green,
-                      iconSize: 30,
-                      onPressed: () {
-                        _abrirEstacionScreen(
-                          context,
-                          estacion['id_punt'].toString(),
-                        );
-                      },
-                    ),
-                  ),
-            );
-          }).toList(),
+      estaciones.map((estacion) {
+        return Marker(
+          width: 40.0,
+          height: 40.0,
+          point: LatLng(estacion['lat'], estacion['lng']),
+          builder:
+              (ctx) => Container(
+            child: IconButton(
+              icon: Icon(Icons.location_on),
+              color: Colors.green,
+              iconSize: 30,
+              onPressed: () {
+                _abrirEstacionScreen(
+                  context,
+                  estacion['id_punt'].toString(),
+                );
+              },
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -308,10 +311,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 point: myPosition!,
                 builder:
                     (ctx) => Icon(
-                      Icons.person_pin_circle,
-                      color: Colors.blue,
-                      size: 30,
-                    ),
+                  Icons.person_pin_circle,
+                  color: Colors.blue,
+                  size: 30,
+                ),
               ),
             ],
           ),
@@ -390,9 +393,9 @@ class _MyHomePageState extends State<MyHomePage> {
         centerTitle: true,
       ),
       body:
-          _selectedIndex == 2
-              ? _buildEstacionesList()
-              : (_selectedIndex == 1 ? _showMap() : _buildHomePage()),
+      _selectedIndex == 2
+          ? _buildEstacionesList()
+          : (_selectedIndex == 1 ? _showMap() : _buildHomePage()),
       floatingActionButton: Align(
         alignment: Alignment.bottomRight,
         child: Padding(
