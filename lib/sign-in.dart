@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,18 +15,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Perfil usuario',
-      theme: ThemeData(
-        primarySwatch: Colors.lightGreen,
-        useMaterial3: true,
-      ),
+      title: context.loc.sign_in_user_profile,
+      theme: ThemeData(primarySwatch: Colors.lightGreen, useMaterial3: true),
       home: const UserProfilePage(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
-
-
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({Key? key}) : super(key: key);
@@ -35,8 +31,6 @@ class UserProfilePage extends StatefulWidget {
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
-
-
   // Controllers for edit form
   late TextEditingController firstNameController;
   late TextEditingController lastNameController;
@@ -51,7 +45,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   String? selectedLanguage;
   bool _isPass1Visible = false;
   bool _isPass2Visible = false;
-
 
   @override
   void initState() {
@@ -86,13 +79,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Registro usuario'),
-      ),
+      appBar: AppBar(title: Text(context.loc.sign_in_register_user)),
       body: _buildProfileView(),
     );
   }
@@ -104,58 +94,79 @@ class _UserProfilePageState extends State<UserProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // _buildProfileHeader(),
-          const SizedBox(height: 24),
-          _buildTextField('Nombre', firstNameController, Icons.person),
-          _buildTextField('Apellido', lastNameController, Icons.person),
-          _buildTextField('Usuario',  usernameController, Icons.person),
-          _buildTextField('Email', emailController, Icons.email),
-          _buildTextField('Teléfono (opcional)', telephoneController, Icons.phone),
-          _buildPasswordField('Contraseña', pass1Controller, isPass1Visible: _isPass1Visible, toggleVisibility: () {
-            setState(() {
-              _isPass1Visible = !_isPass1Visible;
-            });
-          }),
-          _buildPasswordField('Repita su contraseña', pass2Controller, isPass1Visible: _isPass2Visible, toggleVisibility: () {
-            setState(() {
-              _isPass2Visible = !_isPass2Visible;
-            });
-          }),
+          SizedBox(height: 24),
+          _buildTextField(
+            context.loc.sign_in_first_name,
+            firstNameController,
+            Icons.person,
+          ),
+          _buildTextField(
+            context.loc.sign_in_last_name,
+            lastNameController,
+            Icons.person,
+          ),
+          _buildTextField(
+            context.loc.sign_in_username,
+            usernameController,
+            Icons.person,
+          ),
+          _buildTextField(
+            context.loc.login_email,
+            emailController,
+            Icons.email,
+          ),
+          _buildTextField(
+            context.loc.sign_in_phone_optional,
+            telephoneController,
+            Icons.phone,
+          ),
+          _buildPasswordField(
+            context.loc.login_password,
+            pass1Controller,
+            isPass1Visible: _isPass1Visible,
+            toggleVisibility: () {
+              setState(() {
+                _isPass1Visible = !_isPass1Visible;
+              });
+            },
+          ),
+          _buildPasswordField(
+            context.loc.sign_in_repeat_password,
+            pass2Controller,
+            isPass1Visible: _isPass2Visible,
+            toggleVisibility: () {
+              setState(() {
+                _isPass2Visible = !_isPass2Visible;
+              });
+            },
+          ),
           _buildLanguageDropdown(),
           const SizedBox(height: 16),
           _registerButton(),
-
         ],
       ),
     );
   }
+
   Widget _buildLanguageDropdown() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: DropdownButtonFormField<String>(
-        decoration: const InputDecoration(
-          labelText: 'Idioma',
+        decoration: InputDecoration(
+          labelText: context.loc.sign_in_language,
           border: OutlineInputBorder(),
           prefixIcon: Icon(Icons.language),
         ),
         value: selectedLanguage,
         items: const [
-          DropdownMenuItem(
-            value: 'Català',
-            child: Text('Català'),
-          ),
-          DropdownMenuItem(
-            value: 'Castellano',
-            child: Text('Castellano'),
-          ),
-          DropdownMenuItem(
-            value: 'English',
-            child: Text('English'),
-          ),
+          DropdownMenuItem(value: 'Català', child: Text('Català')),
+          DropdownMenuItem(value: 'Castellano', child: Text('Castellano')),
+          DropdownMenuItem(value: 'English', child: Text('English')),
         ],
         onChanged: (value) {
           setState(() {
             selectedLanguage = value;
-            languageController.text = value!; 
+            languageController.text = value!;
           });
         },
       ),
@@ -163,11 +174,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Widget _buildTextField(
-      String label,
-      TextEditingController controller,
-      IconData icon,
-      {TextInputType keyboardType = TextInputType.text, int maxLines = 1}
-      ) {
+    String label,
+    TextEditingController controller,
+    IconData icon, {
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextField(
@@ -182,16 +194,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
         maxLines: maxLines,
         textCapitalization: TextCapitalization.none,
         autocorrect: false,
-
       ),
     );
   }
 
   Widget _buildPasswordField(
-      String label,
-      TextEditingController controller,
-      {required bool isPass1Visible, required Function toggleVisibility}
-      ) {
+    String label,
+    TextEditingController controller, {
+    required bool isPass1Visible,
+    required Function toggleVisibility,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextField(
@@ -227,15 +239,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
-              Text(
-                title,
-                style: const TextStyle(fontSize: 16),
-              ),
+              Text(title, style: const TextStyle(fontSize: 16)),
             ],
           ),
         ],
@@ -254,7 +260,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         ),
-        child: const Text('Registrarme'),
+        child: Text(context.loc.sign_in_register_button),
       ),
     );
   }
@@ -268,7 +274,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           content: Text(r),
           actions: <Widget>[
             TextButton(
-              child: const Text('OK'),
+              child: Text(context.loc.sign_in_ok),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -279,7 +285,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-
   void _validatePasswords() {
     if (pass1Controller.text.length < 8) {
       showDialog(
@@ -287,10 +292,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Error'),
-            content: const Text('La contraseña debe tener al menos 8 caracteres.'),
+            content: Text(context.loc.sign_in_password_too_short),
             actions: <Widget>[
               TextButton(
-                child: const Text('OK'),
+                child: Text(context.loc.sign_in_ok),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -299,17 +304,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
           );
         },
       );
-    }
-    else if (pass1Controller.text != pass2Controller.text) {
+    } else if (pass1Controller.text != pass2Controller.text) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Error'),
-            content: const Text('Las contraseñas no coinciden. Por favor, inténtelo de nuevo.'),
+            content: Text(context.loc.sign_in_passwords_do_not_match),
             actions: <Widget>[
               TextButton(
-                child: const Text('OK'),
+                child: Text(context.loc.sign_in_ok),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -332,8 +336,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
       'email': emailController.text.toLowerCase(),
       'username': usernameController.text,
       'idioma': languageController.text,
-      'telefon':telephoneController.text,
-      'descripcio':descriptionController.text,
+      'telefon': telephoneController.text,
+      'descripcio': descriptionController.text,
       'password': pass1Controller.text,
       'password2': pass2Controller.text,
     };
@@ -343,9 +347,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     try {
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: json.encode(data),
       );
 

@@ -78,6 +78,25 @@
   "calc_target_label": "Target Charge Percentage (%)",
   "calc_button": "Calculate Price",
 
+  "sign_in_user_profile": "User profile",
+  "sign_in_register_user": "User registration",
+  "sign_in_register_button": "Register",
+  "sign_in_first_name": "First name",
+  "sign_in_last_name": "Last name",
+  "sign_in_username": "Username",
+  "sign_in_phone_optional": "Phone (optional)",
+  "sign_in_repeat_password": "Repeat your password",
+  "sign_in_language": "Language",
+  "sign_in_password_too_short": "Password must be at least 8 characters.",
+  "sign_in_passwords_do_not_match": "Passwords do not match. Please try again.",
+  "sign_in_ok": "OK",
+
+  "login_title": "Login",
+  "login_email": "Email",
+  "login_password": "Password",
+  "login_button": "Login",
+  "login_or": "OR",
+
   "common_hello": "Hello",
   "common_cancel": "Cancel",
   "@common_cancel": {

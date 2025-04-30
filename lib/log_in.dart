@@ -3,15 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-
-
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 void main() {
-  runApp(const MaterialApp(
-    home: LoginScreen(),
-    debugShowCheckedModeBanner: false,
-  ));
+  runApp(
+    const MaterialApp(home: LoginScreen(), debugShowCheckedModeBanner: false),
+  );
 }
 
 class LoginScreen extends StatefulWidget {
@@ -40,14 +37,13 @@ class _LoginScreenState extends State<LoginScreen> {
     return await _secureStorage.read(key: 'refresh');
   }
 
-
-
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
+
   Future<void> getToken() async {
     final url = Uri.parse('http://10.0.2.2:8000/token/');
 
@@ -61,9 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: json.encode(data),
       );
 
@@ -88,16 +82,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> getTokenRefresh(String refresh) async {
     final url = Uri.parse('http://10.0.2.2:8000/token/refresh/');
 
-    final Map<String, dynamic> data = {
-      'refresh': refresh,
-    };
+    final Map<String, dynamic> data = {'refresh': refresh};
 
     try {
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: json.encode(data),
       );
 
@@ -106,7 +96,9 @@ class _LoginScreenState extends State<LoginScreen> {
         final Map<String, dynamic> resp = json.decode(response.body);
         _getInfo(resp['access']);
       } else {
-        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
+        print(
+          'Failed to create reservation: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       print('Error: $e');
@@ -119,13 +111,13 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final response = await http.get(
         url,
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        final Map<String, dynamic> data = json.decode(
+          utf8.decode(response.bodyBytes),
+        );
         print('Les dades són: $data');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -133,19 +125,19 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
 
-
-
   Widget _buildTextField(
-      String label,
-      TextEditingController controller,
-      IconData icon,
-      {TextInputType keyboardType = TextInputType.text, int maxLines = 1}) {
+    String label,
+    TextEditingController controller,
+    IconData icon, {
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextField(
@@ -175,22 +167,19 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 40),
-                const Text(
-                  'Iniciar sesión',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Text(
+                  context.loc.login_title,
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 _buildTextField(
-                  'Email',
+                  context.loc.login_email,
                   _emailController,
                   Icons.person,
                 ),
                 _buildTextField(
-                  'Contraseña',
+                  context.loc.login_password,
                   _passwordController,
                   Icons.lock,
                 ),
@@ -203,18 +192,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     foregroundColor: Colors.black,
                   ),
-                  child: const Text(
-                    'Iniciar sesión',
+                  child: Text(
+                    context.loc.login_title,
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Row(
+                Row(
                   children: [
                     Expanded(child: Divider()),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('O'),
+                      child: Text(context.loc.login_or),
                     ),
                     Expanded(child: Divider()),
                   ],
@@ -228,12 +217,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         // Implement Google sign in
                       },
-                      icon: const FaIcon(FontAwesomeIcons.google, size: 24, color: Colors.black,),
+                      icon: const FaIcon(
+                        FontAwesomeIcons.google,
+                        size: 24,
+                        color: Colors.black,
+                      ),
                       label: const Text('Google'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -242,12 +238,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         // Implement GitHub sign in
                       },
-                      icon: const FaIcon(FontAwesomeIcons.github, size: 24, color: Colors.white,),
+                      icon: const FaIcon(
+                        FontAwesomeIcons.github,
+                        size: 24,
+                        color: Colors.white,
+                      ),
                       label: const Text('GitHub'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -260,4 +263,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
