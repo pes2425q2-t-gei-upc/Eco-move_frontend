@@ -1,5 +1,8 @@
 {
   "language": "Español",
+  "language_en": "Inglés",
+  "language_es": "Castellano",
+  "language_ca": "Catalàn",
 
   "nav_home": "Inicio",
   "nav_map": "Mapa",
@@ -21,8 +24,8 @@
   "reservation_fill_all_fields": "Por favor, selecciona fecha, hora y duración estimada",
 
   "settings_language": "Cambiar idioma",
-  "settings_language_change_successfull": "El idioma se cambió correctamente!",
-  "settings_language_change_failed": "No se pudo cambiar el idioma!",
+  "settings_language_change_successfull": "¡Idioma cambiado correctamente!",
+  "settings_language_change_failed": "¡Error al cambiar el idioma!",
 
   "alert_title": "Enviar alerta",
   "alert_optional_message": "Mensaje opcional",

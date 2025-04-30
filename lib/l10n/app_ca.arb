@@ -1,5 +1,8 @@
 {
   "language": "Catalá",
+  "language_en": "Anglès",
+  "language_es": "Castellano",
+  "language_ca": "Catalan",
 
   "nav_home": "Inici",
   "nav_map": "Mapa",
@@ -21,7 +24,7 @@
   "reservation_fill_all_fields": "Si us plau, selecciona data, hora i durada estimada",
 
   "settings_language": "Canvia l'idioma",
-  "settings_language_change_successfull": "L'idioma ha canviat correctament!",
+  "settings_language_change_successfull": "Idioma canviat correctament!",
   "settings_language_change_failed": "No s'ha pogut canviar l'idioma!",
 
   "alert_title": "Envia un alerta",
