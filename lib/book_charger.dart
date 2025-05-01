@@ -4,32 +4,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'dart:convert';
-void main() {
-  runApp(const MyApp());
-}
-
-// Main App widget
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'EcoMove App',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-      ),
-      home: const BookChargerScreen(idStation: '46617617'),
-    );
-  }
-}
-
 
 
 class BookChargerScreen extends StatelessWidget {
   final String idStation;
   const BookChargerScreen({super.key, required this.idStation});
-
 
   @override
   Widget build(BuildContext context) {
@@ -149,9 +128,9 @@ class _DateTimePickerWithDropdownState
 
         // Dropdown Menu
         TextField(
-            controller: _durationController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: 'Duración estimada (hh:mm)'),
+          controller: _durationController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(labelText: 'Duración estimada (hh:mm)'),
         ),
         SizedBox(height: 8),
 
@@ -163,86 +142,99 @@ class _DateTimePickerWithDropdownState
                   _timeController.text.isNotEmpty &&
                   _durationController.text.isNotEmpty) {
                 showDialog(
-                    context: context,
-                    builder: (BuildContext conext)
-                {
-                  return AlertDialog(
-                    title: Text('Confirmar reserva'),
-                    content: Text(
-                        '¿Estás seguro de que deseas reservar?\n\nFecha: ${_dateController
-                            .text}\nHora: ${_timeController
-                            .text}\nDuración: ${_durationController.text}'),
-                    actions: <Widget>[
-                      TextButton(
+                  context: context,
+                  builder: (BuildContext conext) {
+                    return AlertDialog(
+                      title: Text('Confirmar reserva'),
+                      content: Text(
+                        '¿Estás seguro de que deseas reservar?\n\nFecha: ${_dateController.text}\nHora: ${_timeController.text}\nDuración: ${_durationController.text}',
+                      ),
+                      actions: <Widget>[
+                        TextButton(
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: Text('Cancelar')
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // Parse the selected date
-                          DateTime selectedDate = DateTime.parse(
-                            _dateController.text.isEmpty
-                                ? DateTime.now().toString()
-                                : _dateController.text.split('/').reversed.join('-'), // Convert to DateTime
-                          );
-
-                          // Parse the selected time
-                          List<String> timeParts = _timeController.text.split(':');
-                          TimeOfDay selectedTime = TimeOfDay(
-                            hour: int.parse(timeParts[0]),
-                            minute: int.parse(timeParts[1]),
-                          );
-
-                          DateTime selectedDateTime = DateTime(
-                            selectedDate.year,
-                            selectedDate.month,
-                            selectedDate.day,
-                            selectedTime.hour,
-                            selectedTime.minute,
-                          );
-
-                          // Check if the selected date and time are valid
-                          if (selectedDateTime.isBefore(DateTime.now())) {
-                            // Show the dialog if the selected date and time are invalid
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text('Fecha y hora no válidas'),
-                                  content: Text('Por favor, selecciona una fecha y hora válida.'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text('Cerrar'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          } else {
-                            // Proceed with reservation creation if valid
-                            createReservation(widget.idStation, _dateController.text,
-                                _timeController.text, _durationController.text);
-
-                            Navigator.of(context).pop(); // Close the dialog
-                            Navigator.pop(context); // Go back to the previous screen
-                          }
-                        },
-                        style: TextButton.styleFrom(
-                          backgroundColor: Color(0xffa610ad),
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          child: Text('Cancelar'),
                         ),
-                        child: Text('Confirmar reserva'),
-                      ),
+                        TextButton(
+                          onPressed: () {
+                            // Parse the selected date
+                            DateTime selectedDate = DateTime.parse(
+                              _dateController.text.isEmpty
+                                  ? DateTime.now().toString()
+                                  : _dateController.text
+                                      .split('/')
+                                      .reversed
+                                      .join('-'), // Convert to DateTime
+                            );
 
-                    ],
-                  );
-                }
+                            // Parse the selected time
+                            List<String> timeParts = _timeController.text.split(
+                              ':',
+                            );
+                            TimeOfDay selectedTime = TimeOfDay(
+                              hour: int.parse(timeParts[0]),
+                              minute: int.parse(timeParts[1]),
+                            );
+
+                            DateTime selectedDateTime = DateTime(
+                              selectedDate.year,
+                              selectedDate.month,
+                              selectedDate.day,
+                              selectedTime.hour,
+                              selectedTime.minute,
+                            );
+
+                            // Check if the selected date and time are valid
+                            if (selectedDateTime.isBefore(DateTime.now())) {
+                              // Show the dialog if the selected date and time are invalid
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text('Fecha y hora no válidas'),
+                                    content: Text(
+                                      'Por favor, selecciona una fecha y hora válida.',
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text('Cerrar'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            } else {
+                              // Proceed with reservation creation if valid
+                              createReservation(
+                                widget.idStation,
+                                _dateController.text,
+                                _timeController.text,
+                                _durationController.text,
+                              );
+
+                              Navigator.of(context).pop(); // Close the dialog
+                              Navigator.pop(
+                                context,
+                              ); // Go back to the previous screen
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: Color(0xffa610ad),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                          ),
+                          child: Text('Confirmar reserva'),
+                        ),
+                      ],
+                    );
+                  },
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
