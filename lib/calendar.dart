@@ -71,9 +71,11 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
 
     try {
       final formattedDate = "${day.day.toString().padLeft(2, '0')}/${day.month.toString().padLeft(2, '0')}/${day.year}";
-      // Replace this URL with your actual API endpoint
       final response = await http.get(
         Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/?dia=$formattedDate'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
       );
 
 
