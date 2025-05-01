@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:http/http.dart' as http;
+import 'config.dart';
 
 class EditChargerScreen extends StatelessWidget {
   final String date;
@@ -281,7 +282,7 @@ class _DateTimePickerWithDropdownState extends State<DateTimePickerWithDropdown>
   }
 
   Future<bool> editBooking(int id, String date, String hour, String? duration, String estacion) async {
-    final url = Uri.parse('https://eco-move-backend.onrender.com/api_punts_carrega/reservas/$id/modificar/');
+    final url = Uri.parse('$baseUrl/api_punts_carrega/reservas/$id/modificar/');
 
     final Map<String, dynamic> data = {
       'estacion': estacion,

@@ -9,6 +9,7 @@ import 'get_bookings.dart';
 import 'log_in.dart';
 import 'refugio_screen.dart';
 import 'alert_dialog_page.dart';
+import 'config.dart';
 
 void main() {
   runApp(const MyApp());
@@ -83,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final url = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/refugios_mas_cercanos/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
+      '$baseUrl/api_punts_carrega/refugios_mas_cercanos/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
     try {
       final response = await http.get(url);
@@ -114,9 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Modify _fetchFiltros to dynamically fetch charger types
   Future<void> _fetchFiltros() async {
-    final url = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/opcions_filtres/',
-    );
+    final url = Uri.parse('$baseUrl/api_punts_carrega/opcions_filtres/');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -196,7 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final uri = Uri.http(
-      '127.0.0.1:8000',
+      baseUrl.replaceFirst('http://', '').replaceFirst(':8000', ''),
       '/api_punts_carrega/filtrar_estacions/',
       queryParameters,
     );
@@ -248,7 +247,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     final uri = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/punt_mes_proper/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
+      '$baseUrl/api_punts_carrega/punt_mes_proper/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
 
     try {

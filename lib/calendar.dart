@@ -3,6 +3,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'config.dart';
 
 
 void main() {
@@ -76,7 +77,7 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
     try {
       final formattedDate = "${day.day.toString().padLeft(2, '0')}/${day.month.toString().padLeft(2, '0')}/${day.year}";
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/?dia=$formattedDate'),
+        Uri.parse('$baseUrl/api_punts_carrega/reservas/?dia=$formattedDate'),
         headers: {
           'Authorization': 'Bearer $token',
         },
@@ -208,7 +209,7 @@ class Booking {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api_punts_carrega/estacions/${station}/'),
+        Uri.parse('$baseUrl/api_punts_carrega/estacions/${station}/'),
       );
       if (response.statusCode == 200) {
 

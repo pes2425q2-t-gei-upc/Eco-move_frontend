@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'main.dart';
+import 'config.dart';
 
 
 void main() {
@@ -73,7 +74,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> getToken() async {
-    final url = Uri.parse('http://10.0.2.2:8000/token/');
+    final url = Uri.parse('$baseUrl/token/');
 
     final Map<String, dynamic> data = {
       'email': emailController.text,
@@ -384,7 +385,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> createUser() async {
-    final url = Uri.parse('http://10.0.2.2:8000/register/');
+    final url = Uri.parse('$baseUrl/register/');
 
     final Map<String, dynamic> data = {
       'first_name': firstNameController.text,
