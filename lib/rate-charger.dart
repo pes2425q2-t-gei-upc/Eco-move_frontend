@@ -1,7 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'config.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +21,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const RatingScreen(idStation: '46391170'),
+      home: const RatingScreen(idStation: '49008952'),
     );
   }
 }
@@ -36,16 +39,59 @@ class _RatingScreenState extends State<RatingScreen> {
   Map<String, dynamic> stationData = {};
   Map<String, dynamic> userData = {};
   final TextEditingController _commentController = TextEditingController();
+  int my_id = -1;
+  String? token = '';
 
   @override
   void initState() {
     super.initState();
     _fetchStation(); // Fetch data when the widget is initialized
+    _initialize();
   }
+
+  Future<void> _initialize() async {
+    token = await getAccessToken();
+    print('Token: $token');
+    _getInfo();
+  }
+
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: 'access');
+  }
+  Future<void> _getInfo() async {
+    final url = Uri.parse('$baseUrl/me/');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(
+            utf8.decode(response.bodyBytes));
+        print('Les dades són: $data');
+        my_id = data['id'];
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load user info')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
 
   Future<void> _fetchStation() async {
     final url = Uri.parse(
-      'http://10.0.2.2:8000/api_punts_carrega/estacions/${widget.idStation}/', // Ensure this URL is correct
+      '$baseUrl/api_punts_carrega/estacions/${widget.idStation}/', // Ensure this URL is correct
     );
     try {
       final response = await http.get(url);
@@ -57,16 +103,16 @@ class _RatingScreenState extends State<RatingScreen> {
           stationData = data;
         });
       } else {
-        print('Error: Received status code ${response.statusCode}');  // Print error if status code isn't 200
+        print('Error: Received status code ${response.statusCode}');
       }
     } catch (e) {
-      print('Error during HTTP request: $e');  // Catch any errors during the request
+      print('Error during HTTP request: $e');
     }
   }
 
   Future<void> _fetchUser() async {
     final url = Uri.parse(
-      'http://10.0.2.2:8000/api_punts_carrega/usuari/1/', // Ensure this URL is correct
+      '$baseUrl/api_punts_carrega/usuari/$my_id/',
     );
     try {
       final response = await http.get(url);
@@ -78,10 +124,10 @@ class _RatingScreenState extends State<RatingScreen> {
           userData = data;
         });
       } else {
-        print('Error: Received status code ${response.statusCode}');  // Print error if status code isn't 200
+        print('Error: Received status code ${response.statusCode}');
       }
     } catch (e) {
-      print('Error during HTTP request: $e');  // Catch any errors during the request
+      print('Error during HTTP request: $e');
     }
   }
 
@@ -89,11 +135,11 @@ class _RatingScreenState extends State<RatingScreen> {
 
 
   Future<void> sendRating() async {
-    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/valoraciones_estaciones/');
+    final url = Uri.parse('$baseUrl/api_punts_carrega/valoraciones_estaciones/');
 
     final Map<String, dynamic> data = {
       'estacion': widget.idStation,
-      'usuario': 1,
+      'usuario': my_id,
       'puntuacion': _rating,
       'comentario': _commentController.text,
     };
