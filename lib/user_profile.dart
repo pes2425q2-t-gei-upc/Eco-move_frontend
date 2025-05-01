@@ -58,6 +58,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   late UserProfile userProfile;
+  bool isLoading = true;
+  int id = -1;
+
 
   // Controllers for edit form
   late TextEditingController firstNameController;
@@ -72,7 +75,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   void initState() {
     super.initState();
     _initialize();
-    _initControllers();
   }
 
   Future<String?> getAccessToken() async {
@@ -80,7 +82,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void _initControllers() {
-    _getMyInfo();
     firstNameController = TextEditingController(text: userProfile.firstName);
     lastNameController = TextEditingController(text: userProfile.lastName);
     emailController = TextEditingController(text: userProfile.email);
@@ -130,8 +131,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
 
   Future<void> _initialize() async {
+
     token = await getAccessToken();
-    _getMyInfo();
+    print(token);
+    await _getMyInfo();
+    _initControllers();
+    setState(() {
+      isLoading = false;
+    });
   }
 
 
@@ -149,15 +156,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
       if (response.statusCode == 200) {
         final bodyJson = json.decode(response.body);
+        print(bodyJson);
+        id = bodyJson['id'];
         userProfile = UserProfile(
           firstName: bodyJson['first_name'],
-          lastName: bodyJson['first_name'],
-          email: bodyJson['first_name'],
-          description: bodyJson['first_name'],
-          language: bodyJson['first_name'],
-          telephone: bodyJson['first_name'],
-          username: bodyJson['first_name'],
+          lastName: bodyJson['last_name'],
+          email: bodyJson['email'],
+          description: bodyJson['descripcio'],
+          language: bodyJson['idioma'],
+          telephone: bodyJson['telefon'],
+          username: bodyJson['username'],
         );
+
       } else {
         print('Failed to send message: ${response.statusCode} - ${response.body}');
       }
@@ -170,6 +180,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mi perfil'),
@@ -343,7 +359,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<void> editUser() async {
     print('Starting editUser function...');
-    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/usuari/1/');
+    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/usuari/$id/');
 
     final Map<String, dynamic> data = {
       'first_name': userProfile.firstName,
@@ -360,9 +376,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final response = await http.put(
         url,
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer ${token}',
         },
-        body: json.encode(data),
+        body: utf8.encode(json.encode(data)),
       );
 
       if (response.statusCode == 200) {

@@ -16,22 +16,27 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _obscurePassword = true; // Add this to control password visibility
+  bool _obscurePassword = true;
 
 
-  // Modify the initState() method in the _LoginScreenState class (paste-3.txt)
 
   @override
   void initState() {
     super.initState();
-    // Check for existing token when the login screen initializes
     checkExistingToken();
   }
-
-// Add this new method to _LoginScreenState class
+  Future<void> deleteTokens() async {
+    try {
+      await _secureStorage.delete(key: 'access');
+      await _secureStorage.delete(key: 'refresh');
+      print('Tokens deleted successfully');
+    } catch (e) {
+      print('Error deleting tokens: $e');
+    }
+  }
 
   Future<void> checkExistingToken() async {
-    // Get the access token from secure storage
+    await deleteTokens();
     String? accessToken = await getAccessToken();
 
     if (accessToken != null && accessToken.isNotEmpty) {
@@ -43,11 +48,9 @@ class _LoginScreenState extends State<LoginScreen> {
         }
   }
 
-// Add this method to verify token validity (recommended)
 
   Future<bool> validateToken(String token) async {
     try {
-      // You can make a request to your backend to verify the token
       final url = Uri.parse('http://10.0.2.2:8000/me/');
 
       final response = await http.get(
@@ -57,7 +60,6 @@ class _LoginScreenState extends State<LoginScreen> {
         },
       );
 
-      // If response is successful, token is valid
       return response.statusCode == 200;
     } catch (e) {
       print('Token validation error: $e');

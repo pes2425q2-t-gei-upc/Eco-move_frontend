@@ -54,12 +54,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
   String? selectedLanguage;
   bool _isPass1Visible = false;
   bool _isPass2Visible = false;
+  String? token = '';
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   Future<void> saveAccessToken(String access, String refresh) async {
     await _secureStorage.write(key: 'access', value: access);
     await _secureStorage.write(key: 'refresh', value: refresh);
+    token = access;
   }
 
 
@@ -404,13 +406,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final response = await http.post(
         url,
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=UTF-8',
         },
-        body: json.encode(data),
+        body: utf8.encode(json.encode(data)),
       );
 
       if (response.statusCode == 201) {
         print('Reservation created successfully');
+        await getToken();
+        print(token);
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => MyHomePage(title: 'ECO-MOVE'),
