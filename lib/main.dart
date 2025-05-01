@@ -22,7 +22,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
-      // Start with LoginScreen as the home page
       home: const LoginScreen(),
       debugShowCheckedModeBanner: false,
     );
