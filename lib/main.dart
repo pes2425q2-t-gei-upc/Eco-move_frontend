@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'gestio_reserva.dart';
 import 'package:geolocator/geolocator.dart';
 import 'get_bookings.dart';
+import 'log_in.dart';
 import 'refugio_screen.dart';
 
 void main() {
@@ -22,7 +23,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
-      home: const MyHomePage(title: 'ECO-MOVE'),
+      home: const LoginScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
