@@ -8,7 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'get_bookings.dart';
 import 'log_in.dart';
 import 'refugio_screen.dart';
-import 'alert_dialog_page.dart';
+import 'punt_emergencia_screen.dart';
 import 'config.dart';
 
 void main() {
@@ -970,7 +970,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
-                      return AlertDialogPage(
+                      return PuntEmergenciaScreen(
                         position: myPosition, // Pasar la posición actual
                       );
                     },
