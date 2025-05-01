@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'dart:convert';
+
 
 class BookChargerScreen extends StatelessWidget {
   final String idStation;
@@ -37,9 +39,12 @@ class _DateTimePickerWithDropdownState
     extends State<DateTimePickerWithDropdown> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
-  final MaskedTextController _durationController = MaskedTextController(
-    mask: '00:00',
-  );
+  final MaskedTextController _durationController = MaskedTextController(mask: '00:00');
+
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  String? token = '';
+
+
 
   @override
   void dispose() {
@@ -104,6 +109,7 @@ class _DateTimePickerWithDropdownState
           onTap: _selectDate,
         ),
         SizedBox(height: 16), // Space between fields
+
         // Time Picker Field
         Text('Hora'),
         SizedBox(height: 8),
@@ -119,6 +125,7 @@ class _DateTimePickerWithDropdownState
           onTap: _selectTime,
         ),
         SizedBox(height: 16), // Space between fields
+
         // Dropdown Menu
         TextField(
           controller: _durationController,
@@ -232,9 +239,7 @@ class _DateTimePickerWithDropdownState
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(
-                      'Por favor, selecciona fecha, hora y duración estimada',
-                    ),
+                    content: Text('Por favor, selecciona fecha, hora y duración estimada'),
                   ),
                 );
               }
@@ -251,15 +256,26 @@ class _DateTimePickerWithDropdownState
     );
   }
 
-  Future<void> createReservation(
-    String id,
-    String date,
-    String hour,
-    String? duration,
-  ) async {
-    final url = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/reservas/crear/',
-    );
+
+
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: 'access');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize(); // just call the async function
+  }
+
+  Future<void> _initialize() async {
+    token = await getAccessToken();
+    print('Token: $token');
+    }
+
+
+  Future<void> createReservation(String id, String date, String hour, String? duration) async {
+    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/crear/');
 
     final Map<String, dynamic> data = {
       'estacion': id,
@@ -271,19 +287,22 @@ class _DateTimePickerWithDropdownState
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: json.encode(data),
       );
 
       if (response.statusCode == 201) {
         print('Reservation created successfully');
       } else {
-        print(
-          'Failed to create reservation: ${response.statusCode} - ${response.body}',
-        );
+        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('Error: $e');
     }
   }
+
+
 }
