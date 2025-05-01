@@ -8,6 +8,8 @@ import 'package:geolocator/geolocator.dart';
 import 'get_bookings.dart';
 import 'log_in.dart';
 import 'refugio_screen.dart';
+import 'alert_dialog_page.dart';
+import 'config.dart';
 
 void main() {
   runApp(const MyApp());
@@ -82,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final url = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/refugios_mas_cercanos/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
+      '$baseUrl/api_punts_carrega/refugios_mas_cercanos/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
     try {
       final response = await http.get(url);
@@ -113,9 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Modify _fetchFiltros to dynamically fetch charger types
   Future<void> _fetchFiltros() async {
-    final url = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/opcions_filtres/',
-    );
+    final url = Uri.parse('$baseUrl/api_punts_carrega/opcions_filtres/');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -195,7 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final uri = Uri.http(
-      '127.0.0.1:8000',
+      baseUrl.replaceFirst('http://', '').replaceFirst(':8000', ''),
       '/api_punts_carrega/filtrar_estacions/',
       queryParameters,
     );
@@ -247,7 +247,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     final uri = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/punt_mes_proper/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
+      '$baseUrl/api_punts_carrega/punt_mes_proper/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
 
     try {
@@ -301,42 +301,6 @@ class _MyHomePageState extends State<MyHomePage> {
       MaterialPageRoute(
         builder: (context) => RefugioScreen(idRefugio: idRefugio),
       ),
-    );
-  }
-
-  void _showAlert() {
-    TextEditingController mensajeController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Enviar alerta"),
-          content: TextField(
-            controller: mensajeController,
-            decoration: const InputDecoration(
-              hintText: "Mensaje opcional",
-              border: OutlineInputBorder(),
-            ),
-            maxLines: 3,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Cancelar"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text("Enviar"),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -956,7 +920,7 @@ class _MyHomePageState extends State<MyHomePage> {
           const SizedBox(height: 10),
           Row(
             children: [
-              const Text('Refugios', style: TextStyle(color: Colors.green)),
+              const Text('Refugios', style: TextStyle(color: Colors.black)),
               Switch(
                 value: mostrarRefugios,
                 onChanged: (value) {
@@ -986,28 +950,37 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         centerTitle: true,
       ),
-      body:
+      body: Stack(
+        children: [
           _selectedIndex == 2
               ? _buildEstacionesList()
               : (_selectedIndex == 1
                   ? Stack(children: [_showMap(), _buildFiltro()])
                   : _buildHomePage()),
-      /*floatingActionButton: Align(
-        alignment: Alignment.bottomRight,
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: CircleAvatar(
-            backgroundColor: Colors.red,
-            radius: 20,
-            child: IconButton(
-              icon: const Icon(Icons.warning, color: Colors.white),
-              onPressed: () {
-                _showAlert();
-              },
+          Positioned(
+            top: 20.0,
+            right: 10.0,
+            child: CircleAvatar(
+              backgroundColor: Colors.red,
+              radius: 20,
+              child: IconButton(
+                icon: const Icon(Icons.warning, color: Colors.white),
+                onPressed: () async {
+                  _getPosition(); // Actualizar la posición actual
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialogPage(
+                        position: myPosition, // Pasar la posición actual
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ),
-        ),
-      ), */
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),

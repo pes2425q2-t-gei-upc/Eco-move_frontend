@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
+import 'config.dart';
 
 class RefugioScreen extends StatefulWidget {
   final String idRefugio;
@@ -23,9 +24,7 @@ class _RefugioScreenState extends State<RefugioScreen> {
   }
 
   Future<void> _fetchRefugio() async {
-    final url = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/refugios/${widget.idRefugio}/',
-    );
+    final url = Uri.parse('$baseUrl/api_punts_carrega/refugios/${widget.idRefugio}/');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {

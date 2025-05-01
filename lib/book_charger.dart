@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
-import 'dart:convert';
-
+import 'config.dart';
 
 class BookChargerScreen extends StatelessWidget {
   final String idStation;
@@ -275,7 +274,7 @@ class _DateTimePickerWithDropdownState
 
 
   Future<void> createReservation(String id, String date, String hour, String? duration) async {
-    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/crear/');
+    final url = Uri.parse('$baseUrl/api_punts_carrega/reservas/crear/');
 
     final Map<String, dynamic> data = {
       'estacion': id,

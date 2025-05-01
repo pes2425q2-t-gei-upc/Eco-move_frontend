@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'sign-in.dart';
 import 'main.dart'; // Import main.dart to access MyHomePage
+import 'config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -48,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<bool> validateToken(String token) async {
     try {
       // You can make a request to your backend to verify the token
-      final url = Uri.parse('http://10.0.2.2:8000/me/');
+      final url = Uri.parse('$baseUrl/me/');
 
       final response = await http.get(
         url,
@@ -88,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> getToken() async {
-    final url = Uri.parse('http://10.0.2.2:8000/token/');
+    final url = Uri.parse('$baseUrl/token/');
 
     final Map<String, dynamic> data = {
       'email': _emailController.text,
@@ -140,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> getTokenRefresh(String refresh) async {
-    final url = Uri.parse('http://10.0.2.2:8000/token/refresh/');
+    final url = Uri.parse('$baseUrl/token/refresh/');
 
     final Map<String, dynamic> data = {
       'refresh': refresh,
@@ -174,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _getInfo(String token) async {
-    final url = Uri.parse('http://10.0.2.2:8000/me/');
+    final url = Uri.parse('$baseUrl/me/');
 
     try {
       final response = await http.get(
