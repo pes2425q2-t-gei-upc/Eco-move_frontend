@@ -52,15 +52,19 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
   @override
   void initState() {
     super.initState();
-    _selectedDay = _focusedDay;
-    _fetchBookings(_selectedDay!);
-    _initialize();
-    print(token);
+    _initialize(); // just call the async function
   }
-
 
   Future<void> _initialize() async {
     token = await getAccessToken();
+    print('Token: $token'); // token should now be available
+    if (token != null && token!.isNotEmpty) {
+      _selectedDay = _focusedDay;
+      _fetchBookings(_selectedDay!); // move this here, after token is ready
+    } else {
+      // handle token being null or empty
+      print('Token is null or empty');
+    }
   }
 
 

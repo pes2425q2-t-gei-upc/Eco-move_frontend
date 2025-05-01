@@ -1,13 +1,35 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'dart:convert';
+void main() {
+  runApp(const MyApp());
+}
+
+// Main App widget
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'EcoMove App',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+      ),
+      home: const BookChargerScreen(idStation: '46617617'),
+    );
+  }
+}
+
 
 
 class BookChargerScreen extends StatelessWidget {
   final String idStation;
   const BookChargerScreen({super.key, required this.idStation});
+
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +61,10 @@ class _DateTimePickerWithDropdownState
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
   final MaskedTextController _durationController = MaskedTextController(mask: '00:00');
+
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  String? token = '';
+
 
 
   @override
@@ -238,8 +264,26 @@ class _DateTimePickerWithDropdownState
     );
   }
 
+
+
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: 'access');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize(); // just call the async function
+  }
+
+  Future<void> _initialize() async {
+    token = await getAccessToken();
+    print('Token: $token');
+    }
+
+
   Future<void> createReservation(String id, String date, String hour, String? duration) async {
-    final url = Uri.parse('https://eco-move-backend.onrender.com/api_punts_carrega/reservas/crear/');
+    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/reservas/crear/');
 
     final Map<String, dynamic> data = {
       'estacion': id,
@@ -253,6 +297,7 @@ class _DateTimePickerWithDropdownState
         url,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
         },
         body: json.encode(data),
       );
