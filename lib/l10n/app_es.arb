@@ -12,6 +12,7 @@
   "home_my_reservations": "Mis reservas",
 
   "reservations_none": "No hay reservas",
+  "reservations_none_for_this_day": "No hay reservas para este día",
   "reservations_edit": "Editar",
   "reservations_delete": "Eliminar",
   "reservations_book_charger": "Reservar cargador",
@@ -27,10 +28,11 @@
   "settings_language_change_successfull": "¡Idioma cambiado correctamente!",
   "settings_language_change_failed": "¡Error al cambiar el idioma!",
 
-  "alert_title": "Enviar alerta",
+  "alert_send_alert": "Enviar alerta",
   "alert_optional_message": "Mensaje opcional",
 
   "station_address": "Dirección",
+  "station_address_unknown": "Dirección desconocida",
   "station_city": "Ciudad",
   "station_free_spots": "Plazas libres",
   "station_power": "Potencia",
@@ -46,8 +48,17 @@
   "station_reserve": "Reservar",
   "station_loading": "Cargando...",
   "station_navigate": "Cómo llegar",
+  "station_distance": "Distancia",
+  "station_enter_the_name_of_the_city": "Introduce el nombre de la ciudad",
   
   "filter_closest": "Más cercanas",
+  "filter_by_proximity": "Filtrar por cercanía",
+  "filter_show_only_nearest_stations": "Mostrar solo estaciones más cercanas",
+  "filter_by_speed": "Filtrar por velocidad",
+  "filter_by_charger_type": "Filtrar por tipo de cargador",
+  "filter_by_power": "Filtrar por potencia",
+  "filter_by_city": "Filtrar por ciudad",
+  "filter_apply_filter": "Aplicar Filtros",
 
   "edit_booking_title": "Editar reserva del cargador",
   "edit_booking_confirm_title": "Confirmar modificación",
@@ -94,6 +105,11 @@
   "login_button": "Iniciar sesión",
   "login_or": "O",
 
+  "shelter_shelter_details": "Detalles del Refugio",
+  "shelter_shelter_could_not_be_loaded": "No se pudo cargar el refugio",
+  "shelter_shelter_unknown_name": "Nombre desconocido",
+  "shelter_view_in_map": "Ver en el mapa",
+
   "common_hello": "Hola",
   "common_cancel": "Cancelar",
   "common_confirm": "Confirmar",
@@ -104,5 +120,11 @@
   "common_date": "Fecha",
   "common_hour": "Hora",
   "common_success": "Éxito",
-  "common_duration": "Duración"
+  "common_duration": "Duración",
+  "common_shelters": "Refugios",
+  "common_latitude": "Latitud",
+  "common_longitude": "Longitud",
+  "common_title": "Título",
+  "common_description": "Descripción",
+  "common_send": "Enviar"
 }

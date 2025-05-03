@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:http/http.dart' as http;
 import 'package:eco_move_frontend/l10n/context_ext.dart';
-import 'package:eco_move_frontend/config.dart';
 
 class EditChargerScreen extends StatelessWidget {
   final String date;

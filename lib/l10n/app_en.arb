@@ -15,6 +15,7 @@
   "home_my_reservations": "My Reservations",
 
   "reservations_none": "There are no reservations",
+  "reservations_none_for_this_day": "There are no reservations for this day",
   "reservations_edit": "Edit",
   "reservations_delete": "Delete",
   "reservations_book_charger": "Book Charger",
@@ -30,10 +31,11 @@
   "settings_language_change_successfull": "Language Changed Successfully!",
   "settings_language_change_failed": "Failed to change Language!",
 
-  "alert_title": "Send Alert",
+  "alert_send_alert": "Send Alert",
   "alert_optional_message": "Optional message",
 
   "station_address": "Address",
+  "station_address_unknown": "Unknown address",
   "station_city": "City",
   "station_free_spots": "Free spots",
   "station_power": "Power",
@@ -49,8 +51,17 @@
   "station_reserve": "Reserve",
   "station_loading": "Loading...",
   "station_navigate": "Navigate",
+  "station_distance": "Distance",
+  "station_enter_the_name_of_the_city": "Enter the name of the city",
   
   "filter_closest": "Closest",
+  "filter_by_proximity": "Filter by proximity",
+  "filter_show_only_nearest_stations": "Show only nearest stations",
+  "filter_by_speed": "Filter by speed",
+  "filter_by_charger_type": "Filter by charger type",
+  "filter_by_power": "Filter by power",
+  "filter_by_city": "Filter by city",
+  "filter_apply_filter": "Apply filters",
 
   "edit_booking_title": "Edit Charger Reservation",
   "edit_booking_confirm_title": "Confirm Modification",
@@ -97,6 +108,11 @@
   "login_button": "Login",
   "login_or": "OR",
 
+  "shelter_shelter_details": "Shelter details",
+  "shelter_shelter_could_not_be_loaded": "The shelter could not be loaded",
+  "shelter_shelter_unknown_name": "Unknown name",
+  "shelter_view_in_map": "View in map",
+
   "common_hello": "Hello",
   "common_cancel": "Cancel",
   "@common_cancel": {
@@ -113,5 +129,11 @@
   "common_date": "Date",
   "common_hour": "Hour",
   "common_success": "Success",
-  "common_duration": "Duration"
+  "common_duration": "Duration",
+  "common_shelters": "Shelters",
+  "common_latitude": "Latitude",
+  "common_longitude": "Longitude",
+  "common_title": "Title",
+  "common_description": "Description",
+  "common_send": "Send"
 }

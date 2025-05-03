@@ -3,13 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'sign-in.dart';
+import 'main.dart'; // Import main.dart to access MyHomePage
 import 'package:eco_move_frontend/l10n/context_ext.dart';
-
-void main() {
-  runApp(
-    const MaterialApp(home: LoginScreen(), debugShowCheckedModeBanner: false),
-  );
-}
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -21,6 +18,49 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true; // Add this to control password visibility
+
+  // Modify the initState() method in the _LoginScreenState class (paste-3.txt)
+
+  @override
+  void initState() {
+    super.initState();
+    // Check for existing token when the login screen initializes
+    checkExistingToken();
+  }
+
+  // Add this new method to _LoginScreenState class
+
+  Future<void> checkExistingToken() async {
+    // Get the access token from secure storage
+    String? accessToken = await getAccessToken();
+
+    if (accessToken != null && accessToken.isNotEmpty) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => MyHomePage(title: 'ECO-MOVE')),
+      );
+    }
+  }
+
+  // Add this method to verify token validity (recommended)
+
+  Future<bool> validateToken(String token) async {
+    try {
+      // You can make a request to your backend to verify the token
+      final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
+
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      // If response is successful, token is valid
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Token validation error: $e');
+      return false;
+    }
+  }
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
@@ -45,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> getToken() async {
-    final url = Uri.parse('http://10.0.2.2:8000/token/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.login));
 
     final Map<String, dynamic> data = {
       'email': _emailController.text,
@@ -68,19 +108,36 @@ class _LoginScreenState extends State<LoginScreen> {
         print('retorna: ${response.body}');
         saveAccessToken(resp['access'], resp['refresh']);
         _getInfo(resp['access']);
+
+        // Navigate to MyHomePage after successful login
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => MyHomePage(title: 'ECO-MOVE'),
+          ),
+        );
       } else if (response.statusCode == 401) {
         String? r = await getRefreshToken();
         getTokenRefresh(r!);
       } else {
         print('Error al fer login: ${response.statusCode} - ${response.body}');
+        // Show error message to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error de inicio de sesión: ${response.body}'),
+          ),
+        );
       }
     } catch (e) {
       print('Error: $e');
+      // Show error message to user
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error de conexión: $e')));
     }
   }
 
   Future<void> getTokenRefresh(String refresh) async {
-    final url = Uri.parse('http://10.0.2.2:8000/token/refresh/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.refreshToken));
 
     final Map<String, dynamic> data = {'refresh': refresh};
 
@@ -95,6 +152,12 @@ class _LoginScreenState extends State<LoginScreen> {
         print('retorna refresh: ${response.body}');
         final Map<String, dynamic> resp = json.decode(response.body);
         _getInfo(resp['access']);
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => MyHomePage(title: 'ECO-MOVE'),
+          ),
+        );
       } else {
         print(
           'Failed to create reservation: ${response.statusCode} - ${response.body}',
@@ -106,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _getInfo(String token) async {
-    final url = Uri.parse('http://10.0.2.2:8000/me/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
 
     try {
       final response = await http.get(
@@ -137,6 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
     IconData icon, {
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
+    bool isPassword = false,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -146,11 +210,29 @@ class _LoginScreenState extends State<LoginScreen> {
           hintText: label,
           hintStyle: const TextStyle(color: Colors.grey),
           prefixIcon: Icon(icon),
+          // Add suffix icon for password field
+          suffixIcon:
+              isPassword
+                  ? IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  )
+                  : null,
           border: const OutlineInputBorder(),
         ),
         keyboardType: keyboardType,
         maxLines: maxLines,
-        obscureText: label == 'Password', // Enable password hiding
+        obscureText:
+            isPassword &&
+            _obscurePassword, // Use the visibility state for password field
       ),
     );
   }
@@ -172,16 +254,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
+                _buildTextField('Email', _emailController, Icons.person),
                 _buildTextField(
-                  context.loc.login_email,
-                  _emailController,
-                  Icons.person,
-                ),
-                _buildTextField(
-                  context.loc.login_password,
+                  'Contraseña',
                   _passwordController,
                   Icons.lock,
+                  isPassword: true, // Set this field as a password field
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -197,7 +276,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(child: Divider()),
@@ -254,6 +334,27 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 40),
+                Center(
+                  child: Text(
+                    'No tienes cuenta?',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserProfilePage(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Crear cuenta',
+                    style: TextStyle(fontSize: 16, color: Colors.black),
+                  ),
                 ),
               ],
             ),

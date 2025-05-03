@@ -17,11 +17,12 @@ class FrontendRoutes {
   static const String nearestStation = 'api_punts_carrega/punt_mes_proper/';
   static const String chargingStationDetail =
       'api_punts_carrega/estacions/'; // + id
+  static const String filterOptions = 'api_punts_carrega/opcions_filtres/';
 
   // Language
   static const String updateLanguage = 'api_punts_carrega/update_language/';
   static String updateUserLanguage(int userId) =>
-      'api_punts_carrega/usuari/$userId/update_language/';
+      'api_punts_carrega/usuari/$userId/update-language/';
 
   // Reservations
   static const String listReservations = 'api_punts_carrega/reservas/';
@@ -33,4 +34,8 @@ class FrontendRoutes {
 
   // Dynamic route builder for charging station detail
   static String stationById(String id) => 'api_punts_carrega/estacions/$id/';
+
+  static const String nearestShelters =
+      'api_punts_carrega/refugios_mas_cercanos/';
+  static String shelterById(String id) => 'api_punts_carrega/refugios/$id/';
 }

@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -7,7 +6,6 @@ import 'calculate_price.dart';
 import 'book_charger.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
-import 'package:eco_move_frontend/config.dart';
 
 void main() {
   runApp(const MyApp());
@@ -77,9 +75,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          '${context.loc.station_title} ${stationData['direccio'] ?? context.loc.station_loading}',
-        ),
+        title: Text('Estación ${stationData['direccio'] ?? 'Cargando...'}'),
       ),
       body:
           isLoading
@@ -167,8 +163,8 @@ class _EstacionScreenState extends State<EstacionScreen> {
                         Text(
                           stationData['nplaces'] != null &&
                                   int.tryParse(stationData['nplaces'])! > 0
-                              ? context.loc.station_available
-                              : context.loc.station_occupied,
+                              ? 'Disponible'
+                              : 'Ocupat',
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 18,
@@ -189,8 +185,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
                         ),
                         Expanded(
                           child: Text(
-                            stationData['ciutat'] ??
-                                context.loc.station_not_available,
+                            stationData['ciutat'] ?? 'No disponible',
                             style: const TextStyle(
                               color: Colors.black,
                               fontSize: 18,

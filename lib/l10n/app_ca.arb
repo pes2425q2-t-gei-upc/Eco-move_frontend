@@ -12,6 +12,7 @@
   "home_my_reservations": "Les meves reserves",
 
   "reservations_none": "No hi ha reserves",
+  "reservations_none_for_this_day": "No hi ha reserves per a aquest dia",
   "reservations_edit": "Editar",
   "reservations_delete": "Eliminar",
   "reservations_book_charger": "Reservar carregador",
@@ -27,10 +28,11 @@
   "settings_language_change_successfull": "Idioma canviat correctament!",
   "settings_language_change_failed": "No s'ha pogut canviar l'idioma!",
 
-  "alert_title": "Envia un alerta",
+  "alert_send_alert": "Envia un alerta",
   "alert_optional_message": "Missatge opcional",
 
-  "station_address": "Adreça",
+  "station_address": "Direcció",
+  "station_address_unknown": "Direcció desconeguda",
   "station_city": "Ciutat",
   "station_free_spots": "Places lliures",
   "station_power": "Potència",
@@ -46,8 +48,17 @@
   "station_reserve": "Reservar",
   "station_loading": "Carregant...",
   "station_navigate": "Navegar",
+  "station_distance": "Distància",
+  "station_enter_the_name_of_the_city": "Introdueix el nom de la ciutat",
 
   "filter_closest": "Més properes",
+  "filter_by_proximity": "Filtrar per proximitat",
+  "filter_show_only_nearest_stations": "Mostrar només estacions més properes",
+  "filter_by_speed": "Filtrar per velocitat",
+  "filter_by_charger_type": "Filtrar per tipus de carregador",
+  "filter_by_power": "Filtrar per potència",
+  "filter_by_city": "Filtrar per ciutat",
+  "filter_apply_filter": "Aplicar Filtres",
 
   "edit_booking_title": "Editar reserva del carregador",
   "edit_booking_confirm_title": "Confirmar modificació",
@@ -94,6 +105,11 @@
   "login_button": "Iniciar sessió",
   "login_or": "O",
 
+  "shelter_shelter_details": "Detalls del Refugi",
+  "shelter_shelter_could_not_be_loaded": "No es va poder carregar el refugi",
+  "shelter_shelter_unknown_name": "Nom desconegut",
+  "shelter_view_in_map": "Veure al mapa",
+
   "common_hello": "Hola",
   "common_cancel": "Cancel·la",
   "common_confirm": "Confirma",
@@ -104,5 +120,11 @@
   "common_date": "Date",
   "common_hour": "Hora",
   "common_success": "Éxit",
-  "common_duration": "Durada"
+  "common_duration": "Durada",
+  "common_shelters": "Refugis",
+  "common_latitude": "Latitud",
+  "common_longitude": "Longitud",
+  "common_title": "Títol",
+  "common_description": "Descripció",
+  "common_send": "enviar"
 }

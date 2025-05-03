@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
@@ -41,6 +42,9 @@ class _DateTimePickerWithDropdownState
   final MaskedTextController _durationController = MaskedTextController(
     mask: '00:00',
   );
+
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  String? token = '';
 
   @override
   void dispose() {
@@ -150,7 +154,7 @@ class _DateTimePickerWithDropdownState
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: Text(conext.loc.common_cancel),
+                          child: Text(context.loc.common_cancel),
                         ),
                         TextButton(
                           onPressed: () {
@@ -260,6 +264,21 @@ class _DateTimePickerWithDropdownState
     );
   }
 
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: 'access');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize(); // just call the async function
+  }
+
+  Future<void> _initialize() async {
+    token = await getAccessToken();
+    print('Token: $token');
+  }
+
   Future<void> createReservation(
     String id,
     String date,
@@ -280,7 +299,10 @@ class _DateTimePickerWithDropdownState
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: json.encode(data),
       );
 

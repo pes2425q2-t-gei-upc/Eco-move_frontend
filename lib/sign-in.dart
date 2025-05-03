@@ -3,6 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'main.dart';
+import 'config.dart';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
+
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 void main() {
@@ -46,11 +51,64 @@ class _UserProfilePageState extends State<UserProfilePage> {
   bool _isPass1Visible = false;
   bool _isPass2Visible = false;
 
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+
+  Future<void> saveAccessToken(String access, String refresh) async {
+    await _secureStorage.write(key: 'access', value: access);
+    await _secureStorage.write(key: 'refresh', value: refresh);
+  }
+
   @override
   void initState() {
     super.initState();
     _initControllers();
     //iniUser();
+  }
+
+  Future<void> getToken() async {
+    final url = Uri.parse('${FrontendRoutes.apiBase}/token/');
+
+    final Map<String, dynamic> data = {
+      'email': emailController.text,
+      'password': pass1Controller.text,
+    };
+
+    print(data);
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(data),
+      );
+
+      final Map<String, dynamic> resp = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        print('Log in correcte');
+        print('retorna: ${response.body}');
+        saveAccessToken(resp['access'], resp['refresh']);
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => MyHomePage(title: 'ECO-MOVE'),
+          ),
+        );
+      } else {
+        print('Error al fer login: ${response.statusCode} - ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error de inicio de sesión: ${response.body}'),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error: $e');
+      // Show error message to user
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error de conexión: $e')));
+    }
   }
 
   void _initControllers() {
@@ -328,7 +386,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> createUser() async {
-    final url = Uri.parse('http://10.0.2.2:8000/register/');
+    final url = Uri.parse('${FrontendRoutes.apiBase}/register/');
 
     final Map<String, dynamic> data = {
       'first_name': firstNameController.text,
@@ -353,6 +411,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
       if (response.statusCode == 201) {
         print('Reservation created successfully');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => MyHomePage(title: 'ECO-MOVE'),
+          ),
+        );
       } else {
         _alert(response.body);
       }

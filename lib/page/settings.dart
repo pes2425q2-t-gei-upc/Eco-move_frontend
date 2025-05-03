@@ -1,17 +1,14 @@
+import 'dart:convert';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
-import 'package:eco_move_frontend/l10n/l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../l10n/locale_provider.dart';
 import 'package:http/http.dart' as http;
-import 'package:eco_move_frontend/config.dart';
 
 class SettingsPage extends StatefulWidget {
-  final int userId;
-  const SettingsPage({super.key, required this.userId});
+  const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -19,6 +16,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   String _selectedLanguage = 'en';
+  int? _userId;
 
   @override
   void initState() {
@@ -28,9 +26,27 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadSavedLanguage() async {
     final prefs = await SharedPreferences.getInstance();
+    final savedLang = prefs.getString('language') ?? 'en';
+    final token = prefs.getString('accessToken');
+
     setState(() {
-      _selectedLanguage = prefs.getString('language') ?? 'en';
+      _selectedLanguage = savedLang;
     });
+
+    if (token != null) {
+      final response = await http.get(
+        Uri.parse(FrontendRoutes.build(FrontendRoutes.me)),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _userId = data['id'];
+        });
+      } else {
+        print("Failed to fetch user ID from /me/: ${response.statusCode}");
+      }
+    }
   }
 
   Future<void> _changeLanguage(String languageCode) async {
@@ -46,13 +62,22 @@ class _SettingsPageState extends State<SettingsPage> {
       _selectedLanguage = languageCode;
     });
 
+    if (_userId == null) {
+      print("User ID not loaded yet.");
+      return;
+    }
+
+    final token = prefs.getString('accessToken');
     // Sync to backend
     final response = await http.put(
       Uri.parse(
-        FrontendRoutes.build(FrontendRoutes.updateUserLanguage(widget.userId)),
+        FrontendRoutes.build(FrontendRoutes.updateUserLanguage(_userId!)),
       ),
-      headers: {'Content-Type': 'application/json'},
-      body: '{"idioma": "${_mapToBackendLang(languageCode)}"}',
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'idioma': _mapToBackendLang(languageCode)}),
     );
 
     if (response.statusCode == 200) {
