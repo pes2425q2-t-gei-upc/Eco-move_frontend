@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:eco_move_frontend/calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -11,6 +12,7 @@ import 'log_in.dart';
 import 'refugio_screen.dart';
 import 'alert_dialog_page.dart';
 import 'config.dart';
+import 'calendar.dart';
 
 void main() {
   runApp(const MyApp());
@@ -604,7 +606,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _navigateToBookingsScreen() {
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (context) => BookingsScreen()));
+    ).push(MaterialPageRoute(builder: (context) => BookingCalendarPage()));
   }
 
   Widget _buildHomePage() {
