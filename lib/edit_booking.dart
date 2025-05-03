@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:http/http.dart' as http;
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:eco_move_frontend/config.dart';
 
 class EditChargerScreen extends StatelessWidget {
   final String date;
@@ -312,7 +314,7 @@ class _DateTimePickerWithDropdownState
     String estacion,
   ) async {
     final url = Uri.parse(
-      'https://eco-move-backend.onrender.com/api_punts_carrega/reservas/$id/modificar/',
+      FrontendRoutes.build(FrontendRoutes.editReservation(id)),
     );
 
     final Map<String, dynamic> data = {

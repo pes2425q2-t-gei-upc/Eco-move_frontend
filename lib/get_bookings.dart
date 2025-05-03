@@ -1,9 +1,11 @@
 import 'package:eco_move_frontend/edit_booking.dart';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:eco_move_frontend/config.dart';
 
 class Booking {
   final String estacion;
@@ -47,7 +49,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
   Future<List<Booking>> fetchBookings() async {
     final url = Uri.parse(
-      'https://eco-move-backend.onrender.com/api_punts_carrega/reservas/',
+      FrontendRoutes.build(FrontendRoutes.listReservations),
     );
     try {
       final response = await http.get(url);
@@ -156,7 +158,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
   Future<void> deleteBooking(int id) async {
     final url = Uri.parse(
-      'https://eco-move-backend.onrender.com/api_punts_carrega/reservas/$id/eliminar/',
+      FrontendRoutes.build(FrontendRoutes.deleteReservation(id)),
     );
     bool? confirmDelete = await _showConfirmationDialog();
     if (confirmDelete == true) {

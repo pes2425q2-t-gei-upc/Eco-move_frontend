@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:eco_move_frontend/l10n/l10n.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'package:eco_move_frontend/page/settings.dart';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:http/http.dart' as http;
@@ -14,6 +15,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'l10n/locale_provider.dart';
+import 'package:eco_move_frontend/config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   List<Map<String, dynamic>> estaciones = [];
   LatLng? myPosition;
-  String filtroSeleccionado = 'Todas';
+  String filtroSeleccionado = 'all';
   bool _isLoading = false;
 
   @override
@@ -107,13 +109,12 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     String endpoint;
 
-    if (filtroSeleccionado == 'Todas') {
-      endpoint =
-          'https://eco-move-backend.onrender.com/api_punts_carrega/estacions/';
+    if (filtroSeleccionado == 'all') {
+      endpoint = FrontendRoutes.build(FrontendRoutes.chargingStations);
     } else {
       if (myPosition != null) {
         endpoint =
-            'https://eco-move-backend.onrender.com/api_punts_carrega/punt_mes_proper/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}';
+            '${FrontendRoutes.build(FrontendRoutes.nearestStation)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}';
       } else {
         print('Error: myPosition es null');
         setState(() {
@@ -212,6 +213,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildEstacionesList() {
+    final dropdownItems = {
+      'all': context.loc.common_all,
+      'nearest': context.loc.filter_closest,
+    };
     return Column(
       children: [
         Padding(
@@ -227,14 +232,20 @@ class _MyHomePageState extends State<MyHomePage> {
               }
             },
             items:
-                ['Todas', 'Más cercanas'].map<DropdownMenuItem<String>>((
-                  String value,
-                ) {
+                dropdownItems.entries.map<DropdownMenuItem<String>>((entry) {
                   return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
+                    value: entry.key,
+                    child: Text(entry.value),
                   );
                 }).toList(),
+            // ['Todas', 'Más cercanas'].map<DropdownMenuItem<String>>((
+            //   String value,
+            // ) {
+            //   return DropdownMenuItem<String>(
+            //     value: value,
+            //     child: Text(value),
+            //   );
+            // }).toList(),
           ),
         ),
         Expanded(
@@ -272,11 +283,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 'ID Punto: ${estacion['id_punt']}',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              Text('Dirección: ${estacion['direccio']}'),
-              Text('Ciudad: ${estacion['ciutat']}'),
-              Text('Plazas libres: ${estacion['nplaces_lliures']}'),
-              Text('Potencia: ${estacion['potencia']} kW'),
-              Text('Tipo de velocidad: ${estacion['tipus_velocitat']}'),
+              Text('${context.loc.station_address}: ${estacion['direccio']}'),
+              Text('${context.loc.station_city}: ${estacion['ciutat']}'),
+              Text(
+                '${context.loc.station_free_spots}: ${estacion['nplaces_lliures']}',
+              ),
+              Text('${context.loc.station_power}: ${estacion['potencia']} kW'),
+              Text(
+                '${context.loc.station_speed_type}: ${estacion['tipus_velocitat']}',
+              ),
             ],
           ),
         ),

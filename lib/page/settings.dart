@@ -1,3 +1,4 @@
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../l10n/locale_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:eco_move_frontend/config.dart';
 
 class SettingsPage extends StatefulWidget {
   final int userId;
@@ -47,7 +49,7 @@ class _SettingsPageState extends State<SettingsPage> {
     // Sync to backend
     final response = await http.put(
       Uri.parse(
-        'https://eco-move-backend.onrender.com/api_punts_carrega/usuari/${widget.userId}/update_language/',
+        FrontendRoutes.build(FrontendRoutes.updateUserLanguage(widget.userId)),
       ),
       headers: {'Content-Type': 'application/json'},
       body: '{"idioma": "${_mapToBackendLang(languageCode)}"}',

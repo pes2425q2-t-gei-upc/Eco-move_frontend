@@ -1,11 +1,13 @@
 import 'dart:convert';
 
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'calculate_price.dart';
 import 'book_charger.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:eco_move_frontend/config.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,7 +41,9 @@ class _EstacionScreenState extends State<EstacionScreen> {
 
   Future<void> _fetchStations() async {
     final url = Uri.parse(
-      'https://eco-move-backend.onrender.com/api_punts_carrega/estacions/$idStation/', // Ensure this URL is correct
+      FrontendRoutes.build(
+        FrontendRoutes.stationById(idStation),
+      ), // Ensure this URL is correct
     );
     try {
       final response = await http.get(url);

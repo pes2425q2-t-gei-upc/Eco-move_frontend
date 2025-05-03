@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 
 class BookChargerScreen extends StatelessWidget {
   final String idStation;
@@ -266,7 +267,7 @@ class _DateTimePickerWithDropdownState
     String? duration,
   ) async {
     final url = Uri.parse(
-      'https://eco-move-backend.onrender.com/api_punts_carrega/reservas/crear/',
+      FrontendRoutes.build(FrontendRoutes.createReservation),
     );
 
     final Map<String, dynamic> data = {
