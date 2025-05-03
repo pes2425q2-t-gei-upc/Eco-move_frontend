@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'config.dart';
 
 import 'package:table_calendar/table_calendar.dart';
 
@@ -66,7 +67,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
   }
 
   Future<List<Booking>> fetchBookings() async {
-    final url = Uri.parse('http://127.0.0.1:8000/api_punts_carrega/reservas/');
+    final url = Uri.parse('$baseUrl/api_punts_carrega/reservas/');
     try {
       final response = await http.get(url);
 

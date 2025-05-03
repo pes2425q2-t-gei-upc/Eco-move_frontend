@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:eco_move_frontend/calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -10,6 +12,7 @@ import 'log_in.dart';
 import 'refugio_screen.dart';
 import 'punt_emergencia_screen.dart';
 import 'config.dart';
+import 'calendar.dart';
 
 void main() {
   runApp(const MyApp());
@@ -40,6 +43,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+
   int _selectedIndex = 0;
   List<Map<String, dynamic>> estaciones = [];
   LatLng? myPosition;
@@ -84,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final url = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/refugios_mas_cercanos/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
+      '$baseUrl/api_punts_carrega/refugios_mas_cercanos/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
     try {
       final response = await http.get(url);
@@ -115,9 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Modify _fetchFiltros to dynamically fetch charger types
   Future<void> _fetchFiltros() async {
-    final url = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/opcions_filtres/',
-    );
+    final url = Uri.parse('$baseUrl/api_punts_carrega/opcions_filtres/');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -196,7 +199,7 @@ class _MyHomePageState extends State<MyHomePage> {
       queryParameters['ciutat'] = ciudadSeleccionada;
     }
 
-    final uri = Uri.http(
+     final uri = Uri.http(
       '127.0.0.1:8000',
       '/api_punts_carrega/filtrar_estacions/',
       queryParameters,
@@ -249,7 +252,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     final uri = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/punt_mes_proper/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
+      '$baseUrl/api_punts_carrega/punt_mes_proper/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
 
     try {
@@ -603,7 +606,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _navigateToBookingsScreen() {
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (context) => BookingsScreen()));
+    ).push(MaterialPageRoute(builder: (context) => BookingCalendarPage()));
   }
 
   Widget _buildHomePage() {
@@ -943,6 +946,15 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+  Future<void> deleteTokens() async {
+    try {
+      await _secureStorage.delete(key: 'access');
+      await _secureStorage.delete(key: 'refresh');
+      print('Tokens deleted successfully');
+    } catch (e) {
+      print('Error deleting tokens: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -951,6 +963,42 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar sesión',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Cerrar sesión'),
+                    content: const Text('¿Estás seguro que quieres cerrar sesión?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                        },
+                        child: const Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          deleteTokens();
+                          Navigator.of(context).pop(); // Close the dialog
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                (Route<dynamic> route) => false,
+                          );
+                        },
+                        child: const Text('Cerrar sesión'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [

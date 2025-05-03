@@ -1,10 +1,10 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'calculate_price.dart';
 import 'book_charger.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'config.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,9 +37,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
   _EstacionScreenState({required this.idStation});
 
   Future<void> _fetchStations() async {
-    final url = Uri.parse(
-      'http://127.0.0.1:8000/api_punts_carrega/estacions/$idStation/', // Ensure this URL is correct
-    );
+    final url = Uri.parse('$baseUrl/api_punts_carrega/estacions/$idStation/');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
