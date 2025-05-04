@@ -148,6 +148,11 @@
   "profile_telf": "Telephone",
   "profile_language": "Language",
   "profile_about": "About",
-  "profile_title": "My profile"
-
+  "profile_title": "My profile",
+  "profile_select_photo_source": "Select a photo source",
+  "profile_gallery": "Galery",
+  "profile_camera": "Camera",
+  "profile_delete_photo": "Delete photo",
+  "profile_cancel": "Cancel",
+  "profile_save_changes": "Save changes"
 }
