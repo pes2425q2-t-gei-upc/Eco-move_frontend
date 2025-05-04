@@ -7,35 +7,35 @@ class FrontendRoutes {
   static String build(String path) => '$apiBase$path';
 
   // Auth
-  static const String login = 'token/';
-  static const String refreshToken = 'token/refresh/';
-  static const String register = 'register/';
-  static const String me = 'me/';
+  static const String login = '/token/';
+  static const String refreshToken = '/token/refresh/';
+  static const String register = '/register/';
+  static const String me = '/me/';
 
   // Charging Stations
-  static const String chargingStations = 'api_punts_carrega/estacions/';
-  static const String nearestStation = 'api_punts_carrega/punt_mes_proper/';
+  static const String chargingStations = '/api_punts_carrega/estacions/';
+  static const String nearestStation = '/api_punts_carrega/punt_mes_proper/';
   static const String chargingStationDetail =
-      'api_punts_carrega/estacions/'; // + id
-  static const String filterOptions = 'api_punts_carrega/opcions_filtres/';
+      '/api_punts_carrega/estacions/'; // + id
+  static const String filterOptions = '/api_punts_carrega/opcions_filtres/';
 
   // Language
-  static const String updateLanguage = 'api_punts_carrega/update_language/';
+  static const String updateLanguage = '/api_punts_carrega/update_language/';
   static String updateUserLanguage(int userId) =>
-      'api_punts_carrega/usuari/$userId/update-language/';
+      '/api_punts_carrega/usuari/$userId/update-language/';
 
   // Reservations
-  static const String listReservations = 'api_punts_carrega/reservas/';
-  static const String createReservation = 'api_punts_carrega/reservas/crear/';
+  static const String listReservations = '/api_punts_carrega/reservas/';
+  static const String createReservation = '/api_punts_carrega/reservas/crear/';
   static String editReservation(int id) =>
-      'api_punts_carrega/reservas/$id/modificar/';
+      '/api_punts_carrega/reservas/$id/modificar/';
   static String deleteReservation(int id) =>
-      'api_punts_carrega/reservas/$id/eliminar/';
+      '/api_punts_carrega/reservas/$id/eliminar/';
 
   // Dynamic route builder for charging station detail
-  static String stationById(String id) => 'api_punts_carrega/estacions/$id/';
+  static String stationById(String id) => '/api_punts_carrega/estacions/$id/';
 
   static const String nearestShelters =
-      'api_punts_carrega/refugios_mas_cercanos/';
-  static String shelterById(String id) => 'api_punts_carrega/refugios/$id/';
+      '7api_punts_carrega/refugios_mas_cercanos/';
+  static String shelterById(String id) => '/api_punts_carrega/refugios/$id/';
 }

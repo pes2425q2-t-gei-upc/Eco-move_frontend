@@ -126,5 +126,19 @@
   "common_longitude": "Longitud",
   "common_title": "Título",
   "common_description": "Descripción",
-  "common_send": "Enviar"
+  "common_send": "Enviar",
+
+
+  "settings_title": "Configuración",
+  "settings_change_language" : "Cambiar idioma",
+  "settings_my_profile": "Mi perfil",
+
+  "profile_name" : "Nombre",
+  "profile_surname": "Apellido",
+  "profile_username": "Usuario",
+  "profile_telf": "Teléfono",
+  "profile_language": "Idioma",
+  "profile_about": "Descripción",
+  "profile_title": "Mi perfil"
+
 }
