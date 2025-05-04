@@ -22,6 +22,8 @@ import 'package:provider/provider.dart';
 import 'l10n/locale_provider.dart';
 import 'calendar.dart';
 import 'settings-menu.dart';
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();

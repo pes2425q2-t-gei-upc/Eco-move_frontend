@@ -139,6 +139,9 @@
   "profile_telf": "Teléfono",
   "profile_language": "Idioma",
   "profile_about": "Descripción",
-  "profile_title": "Mi perfil"
+  "profile_title": "Mi perfil",
+  "profile_delete": "Eliminar mi usuario",
+  "profile_confirmation_delelte_text" : "Está seguro de que quiere eliminar su usuario?",
+  "profile_confirmation_delete": "Eliminar usuario"
 
 }

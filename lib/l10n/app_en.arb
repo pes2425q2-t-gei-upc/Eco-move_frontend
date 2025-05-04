@@ -148,6 +148,10 @@
   "profile_telf": "Telephone",
   "profile_language": "Language",
   "profile_about": "About",
-  "profile_title": "My profile"
+  "profile_title": "My profile",
+  "profile_delete": "Delete my profile",
+  "profile_confirmation_delelte_text" : "Are you sure you want to delete your user?",
+  "profile_confirmation_delete": "Delete user"
+
 
 }
