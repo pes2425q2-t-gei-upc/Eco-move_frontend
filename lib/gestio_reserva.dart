@@ -1,10 +1,11 @@
 import 'dart:convert';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'calculate_price.dart';
 import 'book_charger.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'config.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,7 +38,11 @@ class _EstacionScreenState extends State<EstacionScreen> {
   _EstacionScreenState({required this.idStation});
 
   Future<void> _fetchStations() async {
-    final url = Uri.parse('$baseUrl/api_punts_carrega/estacions/$idStation/');
+    final url = Uri.parse(
+      FrontendRoutes.build(
+        FrontendRoutes.stationById(idStation),
+      ), // Ensure this URL is correct
+    );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -85,8 +90,8 @@ class _EstacionScreenState extends State<EstacionScreen> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
-                          'Tipo de enchufe: ',
+                        Text(
+                          '${context.loc.station_plug_type}: ',
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 18,
@@ -125,8 +130,8 @@ class _EstacionScreenState extends State<EstacionScreen> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        const Text(
-                          'Potencia: ',
+                        Text(
+                          '${context.loc.station_power}: ',
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 18,
@@ -147,8 +152,8 @@ class _EstacionScreenState extends State<EstacionScreen> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        const Text(
-                          'Estado: ',
+                        Text(
+                          '${context.loc.station_status}: ',
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 18,
@@ -170,8 +175,8 @@ class _EstacionScreenState extends State<EstacionScreen> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        const Text(
-                          'Ciudad: ',
+                        Text(
+                          '${context.loc.station_city}: ',
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 18,
@@ -209,12 +214,12 @@ class _EstacionScreenState extends State<EstacionScreen> {
                           ), // Rounded corners
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.location_on, color: Colors.white),
                           SizedBox(width: 8),
-                          Text('Cómo llegar'),
+                          Text(context.loc.station_how_to_arrive),
                         ],
                       ),
                     ),
@@ -240,12 +245,12 @@ class _EstacionScreenState extends State<EstacionScreen> {
                           ), // Rounded corners
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.money, color: Colors.white),
                           SizedBox(width: 8),
-                          Text('Calcular precio'),
+                          Text(context.loc.station_calculate_price),
                         ],
                       ),
                     ),
@@ -269,12 +274,12 @@ class _EstacionScreenState extends State<EstacionScreen> {
                           ), // Rounded corners
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.calendar_month, color: Colors.white),
                           SizedBox(width: 8),
-                          Text('Reservar'),
+                          Text(context.loc.station_reserve),
                         ],
                       ),
                     ),

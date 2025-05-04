@@ -3,8 +3,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'config.dart';
-
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 
 void main() {
   runApp(const MyApp());
@@ -40,15 +39,12 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
   List<Booking> _bookings = [];
   bool _isLoading = false;
 
-
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? token = '';
 
   Future<String?> getAccessToken() async {
     return await _secureStorage.read(key: 'access');
   }
-
-
 
   @override
   void initState() {
@@ -68,31 +64,30 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
     }
   }
 
-
   Future<void> _fetchBookings(DateTime day) async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final formattedDate = "${day.day.toString().padLeft(2, '0')}/${day.month.toString().padLeft(2, '0')}/${day.year}";
+      final formattedDate =
+          "${day.day.toString().padLeft(2, '0')}/${day.month.toString().padLeft(2, '0')}/${day.year}";
       final response = await http.get(
-        Uri.parse('$baseUrl/api_punts_carrega/reservas/?dia=$formattedDate'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+        Uri.parse(
+          '${FrontendRoutes.apiBase}}/api_punts_carrega/reservas/?dia=$formattedDate',
+        ),
+        headers: {'Authorization': 'Bearer $token'},
       );
-
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        final bookings = await Future.wait(data.map((item) => Booking.fromJson(item)));
+        final bookings = await Future.wait(
+          data.map((item) => Booking.fromJson(item)),
+        );
         setState(() {
           _bookings = bookings;
           _isLoading = false;
-
         });
-
       } else {
         setState(() {
           _bookings = [];
@@ -114,9 +109,7 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Calendario'),
-      ),
+      appBar: AppBar(title: const Text('Calendario')),
       body: Column(
         children: [
           TableCalendar(
@@ -142,13 +135,10 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
             onPageChanged: (focusedDay) {
               _focusedDay = focusedDay;
             },
-            calendarStyle:  CalendarStyle(
+            calendarStyle: CalendarStyle(
               todayDecoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: Color(0xE278A879),
-                  width: 3,
-                ),
+                border: Border.all(color: Color(0xE278A879), width: 3),
                 color: Colors.transparent,
               ),
               todayTextStyle: const TextStyle(
@@ -162,27 +152,30 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
           ),
           const Divider(),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _bookings.isEmpty
-                ? const Center(child: Text('No hay reservas para este dia'))
-                : ListView.builder(
-              itemCount: _bookings.length,
-              itemBuilder: (context, index) {
-                final booking = _bookings[index];
-                return Card(
-                  color: Color(0xFFF0FFF0),
-                margin: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 4.0,
-                  ),
-                  child: ListTile(
-                    title: Text(booking.station),
-                    subtitle: Text('${booking.date}\n${booking.startTime}'),
-                  ),
-                );
-              },
-            ),
+            child:
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _bookings.isEmpty
+                    ? const Center(child: Text('No hay reservas para este dia'))
+                    : ListView.builder(
+                      itemCount: _bookings.length,
+                      itemBuilder: (context, index) {
+                        final booking = _bookings[index];
+                        return Card(
+                          color: Color(0xFFF0FFF0),
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                            vertical: 4.0,
+                          ),
+                          child: ListTile(
+                            title: Text(booking.station),
+                            subtitle: Text(
+                              '${booking.date}\n${booking.startTime}',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
           ),
         ],
       ),
@@ -206,13 +199,13 @@ class Booking {
   });
 
   static Future<String?> _fetchStation(String station) async {
-
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api_punts_carrega/estacions/${station}/'),
+        Uri.parse(
+          '${FrontendRoutes.apiBase}}/api_punts_carrega/estacions/${station}/',
+        ),
       );
       if (response.statusCode == 200) {
-
         final utf8Decoded = utf8.decode(response.bodyBytes);
         Map<String, dynamic> jsonList = jsonDecode(utf8Decoded);
         return jsonList['direccio'];
@@ -226,7 +219,6 @@ class Booking {
   static Future<Booking> fromJson(Map<String, dynamic> json) async {
     String stationId = json['estacion'];
     String? dir = await _fetchStation(stationId);
-
 
     return Booking(
       id: json['id'],
