@@ -34,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> checkExistingToken() async {
     // Get the access token from secure storage
     String? accessToken = await getAccessToken();
-
+    print(accessToken);
     if (accessToken != null && accessToken.isNotEmpty) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => MyHomePage(title: 'ECO-MOVE')),

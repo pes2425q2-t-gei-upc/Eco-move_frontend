@@ -3,6 +3,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -61,15 +64,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
   bool isLoading = true;
   int id = -1;
 
+  // List of available languages
+  final List<String> languages = ['Catala', 'Castellano', 'English'];
 
   // Controllers for edit form
   late TextEditingController firstNameController;
   late TextEditingController lastNameController;
   late TextEditingController emailController;
   late TextEditingController descriptionController;
-  late TextEditingController languageController;
   late TextEditingController telephoneController;
   late TextEditingController usernameController;
+
+  // Selected language in dropdown
+  late String selectedLanguage;
 
   @override
   void initState() {
@@ -86,9 +93,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
     lastNameController = TextEditingController(text: userProfile.lastName);
     emailController = TextEditingController(text: userProfile.email);
     descriptionController = TextEditingController(text: userProfile.description);
-    languageController = TextEditingController(text: userProfile.language);
     telephoneController = TextEditingController(text: userProfile.telephone);
     usernameController = TextEditingController(text: userProfile.username);
+
+    // Initialize selected language
+    selectedLanguage = userProfile.language;
+
+    // Default to 'Catala' if the current language is not in our list
+    if (!languages.contains(selectedLanguage)) {
+      selectedLanguage = 'Catala';
+    }
   }
 
   @override
@@ -97,7 +111,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     lastNameController.dispose();
     emailController.dispose();
     descriptionController.dispose();
-    languageController.dispose();
     telephoneController.dispose();
     usernameController.dispose();
     super.dispose();
@@ -111,7 +124,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         userProfile.lastName = lastNameController.text;
         userProfile.email = emailController.text;
         userProfile.description = descriptionController.text;
-        userProfile.language = languageController.text;
+        userProfile.language = selectedLanguage;
         userProfile.telephone = telephoneController.text;
         userProfile.username = usernameController.text;
         isEditing = false;
@@ -129,9 +142,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
 
-
   Future<void> _initialize() async {
-
     token = await getAccessToken();
     print(token);
     await _getMyInfo();
@@ -140,7 +151,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
       isLoading = false;
     });
   }
-
 
   Future<void> _getMyInfo() async {
     final url = Uri.parse('http://10.0.2.2:8000/me/');
@@ -167,7 +177,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
           telephone: bodyJson['telefon'],
           username: bodyJson['username'],
         );
-
       } else {
         print('Failed to send message: ${response.statusCode} - ${response.body}');
       }
@@ -175,8 +184,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
       print('Error: $e');
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -188,7 +195,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi perfil'),
+        title: Text(context.loc.profile_title),
         actions: [
           IconButton(
             icon: Icon(isEditing ? Icons.save : Icons.edit),
@@ -215,12 +222,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
         children: [
           _buildProfileHeader(),
           const SizedBox(height: 24),
-          _buildInfoSection('Nombre', userProfile.firstName, Icons.person),
-          _buildInfoSection('Apellido', userProfile.lastName, Icons.person),
-          _buildInfoSection('Usuario', userProfile.username, Icons.person),
+          _buildInfoSection(context.loc.profile_name, userProfile.firstName, Icons.person),
+          _buildInfoSection(context.loc.profile_surname, userProfile.lastName, Icons.person),
+          _buildInfoSection(context.loc.profile_username, userProfile.username, Icons.person),
           _buildInfoSection('Email', userProfile.email, Icons.email),
-          _buildInfoSection('Teléfono', userProfile.telephone, Icons.phone),
-          _buildInfoSection('Idioma', userProfile.language, Icons.language),
+          _buildInfoSection(context.loc.profile_telf, userProfile.telephone, Icons.phone),
+          _buildInfoSection(context.loc.profile_language, userProfile.language, Icons.language),
           const SizedBox(height: 16),
           _buildDescriptionSection(),
         ],
@@ -282,8 +289,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'About',
+        Text(
+          '${context.loc.profile_about}',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -303,21 +310,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          /*const Center(
-            child: CircleAvatar(
-              radius: 60,
-              backgroundColor: Colors.blue,
-              child: Icon(Icons.person, size: 80, color: Colors.white),
-            ),
-          ),*/
           const SizedBox(height: 24),
-          _buildTextField('Nombre', firstNameController, Icons.person),
-          _buildTextField('Apellido', lastNameController, Icons.person),
-          _buildTextField('Usuario', usernameController, Icons.person),
+          _buildTextField(context.loc.profile_name, firstNameController, Icons.person),
+          _buildTextField(context.loc.profile_surname, lastNameController, Icons.person),
+          _buildTextField(context.loc.profile_username, usernameController, Icons.person),
           _buildTextField('Email', emailController, Icons.email, keyboardType: TextInputType.emailAddress),
-          _buildTextField('Telefono', telephoneController, Icons.phone, keyboardType: TextInputType.phone),
-          _buildTextField('Idioma', languageController, Icons.language),
-          _buildTextField('Descripcion', descriptionController, Icons.description, maxLines: 4),
+          _buildTextField(context.loc.profile_telf, telephoneController, Icons.phone, keyboardType: TextInputType.phone),
+          _buildLanguageDropdown(),
+          _buildTextField(context.loc.profile_about, descriptionController, Icons.description, maxLines: 4),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
@@ -332,6 +332,38 @@ class _UserProfilePageState extends State<UserProfilePage> {
             child: const Text('Guardar cambios'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageDropdown() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: InputDecorator(
+        decoration: const InputDecoration(
+          labelText: 'Idioma',
+          prefixIcon: Icon(Icons.language),
+          border: OutlineInputBorder(),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: selectedLanguage,
+            isDense: true,
+            isExpanded: true,
+            onChanged: (String? newValue) {
+              setState(() {
+                selectedLanguage = newValue!;
+              });
+            },
+            items: languages.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+        ),
       ),
     );
   }
@@ -365,10 +397,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
       'first_name': userProfile.firstName,
       'last_name': userProfile.lastName,
       'email': userProfile.email,
-      'username':userProfile.username,
-      'idioma':userProfile.language,
-      'telefon':userProfile.telephone,
-      'descripcio':userProfile.description,
+      'username': userProfile.username,
+      'idioma': userProfile.language,
+      'telefon': userProfile.telephone,
+      'descripcio': userProfile.description,
       'is_admin': false,
     };
 
@@ -391,5 +423,4 @@ class _UserProfilePageState extends State<UserProfilePage> {
       print('Error: $e');
     }
   }
-
 }

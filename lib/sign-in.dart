@@ -7,7 +7,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'main.dart';
 import 'config.dart';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
-
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 void main() {
@@ -56,6 +55,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Future<void> saveAccessToken(String access, String refresh) async {
     await _secureStorage.write(key: 'access', value: access);
     await _secureStorage.write(key: 'refresh', value: refresh);
+    print(access);
   }
 
   @override
@@ -217,7 +217,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
         value: selectedLanguage,
         items: const [
-          DropdownMenuItem(value: 'Català', child: Text('Català')),
+          DropdownMenuItem(value: 'Catala', child: Text('Catala')),
           DropdownMenuItem(value: 'Castellano', child: Text('Castellano')),
           DropdownMenuItem(value: 'English', child: Text('English')),
         ],
@@ -382,6 +382,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       );
     } else {
       createUser();
+      getToken();
     }
   }
 
