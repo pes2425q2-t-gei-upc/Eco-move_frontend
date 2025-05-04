@@ -1,3 +1,4 @@
+import 'package:eco_move_frontend/noti_service.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
@@ -149,6 +150,8 @@ class PuntEmergenciaScreen extends StatelessWidget {
               context,
               tituloController.text,
               descripcionController.text,
+            );
+            NotiService().showNotification(
             );
           },
           style: TextButton.styleFrom(foregroundColor: Colors.red),

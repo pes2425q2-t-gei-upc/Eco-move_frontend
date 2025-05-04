@@ -13,8 +13,11 @@ import 'refugio_screen.dart';
 import 'punt_emergencia_screen.dart';
 import 'config.dart';
 import 'calendar.dart';
+import 'noti_service.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  NotiService().iniNotification();
   runApp(const MyApp());
 }
 
