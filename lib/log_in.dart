@@ -5,6 +5,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'sign-in.dart';
 import 'main.dart'; // Import main.dart to access MyHomePage
+import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -16,50 +18,43 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _obscurePassword = true;
+  bool _obscurePassword = true; // Add this to control password visibility
 
-
+  // Modify the initState() method in the _LoginScreenState class (paste-3.txt)
 
   @override
   void initState() {
     super.initState();
+    // Check for existing token when the login screen initializes
     checkExistingToken();
   }
-  Future<void> deleteTokens() async {
-    try {
-      await _secureStorage.delete(key: 'access');
-      await _secureStorage.delete(key: 'refresh');
-      print('Tokens deleted successfully');
-    } catch (e) {
-      print('Error deleting tokens: $e');
-    }
-  }
+
+  // Add this new method to _LoginScreenState class
 
   Future<void> checkExistingToken() async {
-    await deleteTokens();
+    // Get the access token from secure storage
     String? accessToken = await getAccessToken();
 
     if (accessToken != null && accessToken.isNotEmpty) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => MyHomePage(title: 'ECO-MOVE'),
-            ),
-          );
-        }
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => MyHomePage(title: 'ECO-MOVE')),
+      );
+    }
   }
 
+  // Add this method to verify token validity (recommended)
 
   Future<bool> validateToken(String token) async {
     try {
-      final url = Uri.parse('http://10.0.2.2:8000/me/');
+      // You can make a request to your backend to verify the token
+      final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
 
       final response = await http.get(
         url,
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Authorization': 'Bearer $token'},
       );
 
+      // If response is successful, token is valid
       return response.statusCode == 200;
     } catch (e) {
       print('Token validation error: $e');
@@ -67,12 +62,12 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-    final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
-    Future<void> saveAccessToken(String access, String refresh) async {
-      await _secureStorage.write(key: 'access', value: access);
-      await _secureStorage.write(key: 'refresh', value: refresh);
-    }
+  Future<void> saveAccessToken(String access, String refresh) async {
+    await _secureStorage.write(key: 'access', value: access);
+    await _secureStorage.write(key: 'refresh', value: refresh);
+  }
 
   Future<String?> getAccessToken() async {
     return await _secureStorage.read(key: 'access');
@@ -90,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> getToken() async {
-    final url = Uri.parse('http://10.0.2.2:8000/token/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.login));
 
     final Map<String, dynamic> data = {
       'email': _emailController.text,
@@ -102,9 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: json.encode(data),
       );
 
@@ -129,31 +122,29 @@ class _LoginScreenState extends State<LoginScreen> {
         print('Error al fer login: ${response.statusCode} - ${response.body}');
         // Show error message to user
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error de inicio de sesión: ${response.body}')),
+          SnackBar(
+            content: Text('Error de inicio de sesión: ${response.body}'),
+          ),
         );
       }
     } catch (e) {
       print('Error: $e');
       // Show error message to user
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error de conexión: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error de conexión: $e')));
     }
   }
 
   Future<void> getTokenRefresh(String refresh) async {
-    final url = Uri.parse('http://10.0.2.2:8000/token/refresh/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.refreshToken));
 
-    final Map<String, dynamic> data = {
-      'refresh': refresh,
-    };
+    final Map<String, dynamic> data = {'refresh': refresh};
 
     try {
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: json.encode(data),
       );
 
@@ -168,7 +159,9 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else {
-        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
+        print(
+          'Failed to create reservation: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       print('Error: $e');
@@ -176,18 +169,18 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _getInfo(String token) async {
-    final url = Uri.parse('http://10.0.2.2:8000/me/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
 
     try {
       final response = await http.get(
         url,
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        final Map<String, dynamic> data = json.decode(
+          utf8.decode(response.bodyBytes),
+        );
         print('Les dades són: $data');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -195,17 +188,20 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
 
   Widget _buildTextField(
-      String label,
-      TextEditingController controller,
-      IconData icon,
-      {TextInputType keyboardType = TextInputType.text, int maxLines = 1, bool isPassword = false}) {
+    String label,
+    TextEditingController controller,
+    IconData icon, {
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    bool isPassword = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextField(
@@ -215,23 +211,28 @@ class _LoginScreenState extends State<LoginScreen> {
           hintStyle: const TextStyle(color: Colors.grey),
           prefixIcon: Icon(icon),
           // Add suffix icon for password field
-          suffixIcon: isPassword
-              ? IconButton(
-            icon: Icon(
-              _obscurePassword ? Icons.visibility_off : Icons.visibility,
-            ),
-            onPressed: () {
-              setState(() {
-                _obscurePassword = !_obscurePassword;
-              });
-            },
-          )
-              : null,
+          suffixIcon:
+              isPassword
+                  ? IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  )
+                  : null,
           border: const OutlineInputBorder(),
         ),
         keyboardType: keyboardType,
         maxLines: maxLines,
-        obscureText: isPassword && _obscurePassword, // Use the visibility state for password field
+        obscureText:
+            isPassword &&
+            _obscurePassword, // Use the visibility state for password field
       ),
     );
   }
@@ -248,20 +249,13 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 40),
-                const Text(
-                  'Iniciar sesión',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Text(
+                  context.loc.login_title,
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
-                _buildTextField(
-                  'Email',
-                  _emailController,
-                  Icons.person,
-                ),
+                _buildTextField('Email', _emailController, Icons.person),
                 _buildTextField(
                   'Contraseña',
                   _passwordController,
@@ -277,19 +271,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     foregroundColor: Colors.black,
                   ),
-                  child: const Text(
-                    'Iniciar sesión',
+                  child: Text(
+                    context.loc.login_title,
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
                 const SizedBox(height: 12),
                 const SizedBox(height: 12),
-                const Row(
+                Row(
                   children: [
                     Expanded(child: Divider()),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('O'),
+                      child: Text(context.loc.login_or),
                     ),
                     Expanded(child: Divider()),
                   ],
@@ -303,12 +297,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         // Implement Google sign in
                       },
-                      icon: const FaIcon(FontAwesomeIcons.google, size: 24, color: Colors.black,),
+                      icon: const FaIcon(
+                        FontAwesomeIcons.google,
+                        size: 24,
+                        color: Colors.black,
+                      ),
                       label: const Text('Google'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -317,26 +318,37 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         // Implement GitHub sign in
                       },
-                      icon: const FaIcon(FontAwesomeIcons.github, size: 24, color: Colors.white,),
+                      icon: const FaIcon(
+                        FontAwesomeIcons.github,
+                        size: 24,
+                        color: Colors.white,
+                      ),
                       label: const Text('GitHub'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 40,),
+                const SizedBox(height: 40),
                 Center(
-                  child: Text('No tienes cuenta?', style: TextStyle(color: Colors.grey, fontSize: 12),),
-
+                  child: Text(
+                    'No tienes cuenta?',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => UserProfilePage()),
+                      MaterialPageRoute(
+                        builder: (context) => UserProfilePage(),
+                      ),
                     );
                   },
                   child: const Text(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 class ChargeCalculatorScreen extends StatefulWidget {
   final String tipoCarga;
@@ -17,20 +16,24 @@ class ChargeCalculatorScreen extends StatefulWidget {
 }
 
 class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
-  final TextEditingController batteryCapacityController = TextEditingController();
-  final TextEditingController currentPercentageController = TextEditingController();
-  final TextEditingController desiredPercentageController = TextEditingController();
+  final TextEditingController batteryCapacityController =
+      TextEditingController();
+  final TextEditingController currentPercentageController =
+      TextEditingController();
+  final TextEditingController desiredPercentageController =
+      TextEditingController();
 
   double? pricePerKWh = 0.0697;
-
 
   void _showPriceDialog(double price) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Precio de carga'),
-          content: Text('El precio total es: €${price.toStringAsFixed(2)}'),
+          title: Text(context.loc.calc_price_title),
+          content: Text(
+            '${context.loc.calc_price_total_is}: €${price.toStringAsFixed(2)}',
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -46,35 +49,41 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
   }
 
   void _calculatePrice() {
-    double batteryCapacity = double.tryParse(batteryCapacityController.text) ?? 0;
-    double currentPercentage = double.tryParse(currentPercentageController.text) ?? 0;
-    double desiredPercentage = double.tryParse(desiredPercentageController.text) ?? 0;
+    double batteryCapacity =
+        double.tryParse(batteryCapacityController.text) ?? 0;
+    double currentPercentage =
+        double.tryParse(currentPercentageController.text) ?? 0;
+    double desiredPercentage =
+        double.tryParse(desiredPercentageController.text) ?? 0;
 
     if (batteryCapacity <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('La capacidad de la batería debe ser mayor que 0')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.loc.calc_error_capacity)));
       return;
     }
 
-    if (currentPercentage < 0 || currentPercentage > 100 ||
-        desiredPercentage < 0 || desiredPercentage > 100 ||
+    if (currentPercentage < 0 ||
+        currentPercentage > 100 ||
+        desiredPercentage < 0 ||
+        desiredPercentage > 100 ||
         desiredPercentage <= currentPercentage) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Introduce valores de porcentaje válidos')),
+        SnackBar(content: Text(context.loc.calc_error_percentages)),
       );
       return;
     }
 
     if (pricePerKWh != null) {
-      double energyRequired = (desiredPercentage - currentPercentage) / 100 * batteryCapacity;
+      double energyRequired =
+          (desiredPercentage - currentPercentage) / 100 * batteryCapacity;
       double price = energyRequired * pricePerKWh!;
 
       _showPriceDialog(price);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se ha obtenido el precio por kWh')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.loc.calc_error_no_price)));
     }
   }
 
@@ -89,7 +98,7 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Calcular precio de carga')),
+      appBar: AppBar(title: Text(context.loc.calc_price_title)),
       body: Padding(
         padding: const EdgeInsets.all(30.0),
         child: Column(
@@ -104,28 +113,48 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
                 children: [
                   Row(
                     children: [
-                      const Text('Tipo de carga: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        '${context.loc.calc_type}: ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       Text(widget.tipoCarga),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      const Text('Precio: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text(pricePerKWh != null
-                          ? '€${pricePerKWh!.toStringAsFixed(2)} / kWh'
-                          : 'Cargando...'),
+                      Text(
+                        '${context.loc.calc_price}: ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        pricePerKWh != null
+                            ? '€${pricePerKWh!.toStringAsFixed(2)} / kWh'
+                            : context.loc.station_loading,
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            _buildInputField('Capacidad de la batería (kWh)', batteryCapacityController, 'Ej: 60'),
+            _buildInputField(
+              context.loc.calc_capacity_label,
+              batteryCapacityController,
+              'Ej: 60',
+            ),
             const SizedBox(height: 25),
-            _buildInputField('Porcentaje actual de la batería (%)', currentPercentageController, 'Ej: 20'),
+            _buildInputField(
+              context.loc.calc_current_label,
+              currentPercentageController,
+              'Ej: 20',
+            ),
             const SizedBox(height: 25),
-            _buildInputField('Porcentaje deseado de carga (%)', desiredPercentageController, 'Ej: 80'),
+            _buildInputField(
+              context.loc.calc_target_label,
+              desiredPercentageController,
+              'Ej: 80',
+            ),
             const SizedBox(height: 20),
             TextButton(
               onPressed: _calculatePrice,
@@ -133,7 +162,7 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
                 backgroundColor: const Color(0xff6d89d6),
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Calcular precio'),
+              child: Text(context.loc.calc_button),
             ),
           ],
         ),
@@ -142,7 +171,10 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
   }
 
   Widget _buildInputField(
-      String label, TextEditingController controller, String hintText) {
+    String label,
+    TextEditingController controller,
+    String hintText,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
