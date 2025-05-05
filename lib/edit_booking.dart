@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:http/http.dart' as http;
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 class EditChargerScreen extends StatelessWidget {
   final String date;
@@ -24,7 +26,7 @@ class EditChargerScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Editar reserva del cargador $estacion',
+          '${context.loc.edit_booking_title} $estacion',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -63,10 +65,13 @@ class DateTimePickerWithDropdown extends StatefulWidget {
       _DateTimePickerWithDropdownState();
 }
 
-class _DateTimePickerWithDropdownState extends State<DateTimePickerWithDropdown> {
+class _DateTimePickerWithDropdownState
+    extends State<DateTimePickerWithDropdown> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
-  final MaskedTextController _durationController = MaskedTextController(mask: '00:00');
+  final MaskedTextController _durationController = MaskedTextController(
+    mask: '00:00',
+  );
 
   DateTime? _initialDate;
   TimeOfDay? _initialTime;
@@ -148,7 +153,7 @@ class _DateTimePickerWithDropdownState extends State<DateTimePickerWithDropdown>
         ),
         SizedBox(height: 16),
 
-        Text('Hora'),
+        Text(context.loc.common_hour),
         SizedBox(height: 8),
         TextField(
           controller: _timeController,
@@ -180,18 +185,19 @@ class _DateTimePickerWithDropdownState extends State<DateTimePickerWithDropdown>
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: Text('Confirmar modificación'),
+                      title: Text(context.loc.edit_booking_confirm_title),
                       content: Text(
-                          '¿Estás seguro de que deseas modificar la reserva?\n\nFecha: ${_dateController.text}\nHora: ${_timeController.text}\nDuración: ${_durationController.text}'),
+                        '${context.loc.edit_booking_confirm_question}\n\n${context.loc.common_date}: ${_dateController.text}\n${context.loc.common_hour}: ${_timeController.text}\n${context.loc.common_duration}: ${_durationController.text}',
+                      ),
                       actions: <Widget>[
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: Text('Cancelar'),
+                          child: Text(context.loc.common_cancel),
                         ),
                         TextButton(
-                          onPressed: () async{
+                          onPressed: () async {
                             String selectedDate = _dateController.text;
 
                             List<String> dateParts = selectedDate.split('/');
@@ -199,7 +205,9 @@ class _DateTimePickerWithDropdownState extends State<DateTimePickerWithDropdown>
                             int month = int.parse(dateParts[1]);
                             int year = int.parse(dateParts[2]);
 
-                            List<String> timeParts = _timeController.text.split(':');
+                            List<String> timeParts = _timeController.text.split(
+                              ':',
+                            );
                             int hour = int.parse(timeParts[0]);
                             int minute = int.parse(timeParts[1]);
 
@@ -216,14 +224,22 @@ class _DateTimePickerWithDropdownState extends State<DateTimePickerWithDropdown>
                                 context: context,
                                 builder: (BuildContext context) {
                                   return AlertDialog(
-                                    title: Text('Fecha y hora no válidas'),
-                                    content: Text('Por favor, selecciona una fecha y hora en el futuro.'),
+                                    title: Text(
+                                      context
+                                          .loc
+                                          .reservation_invalid_datetime_title,
+                                    ),
+                                    content: Text(
+                                      context
+                                          .loc
+                                          .edit_booking_invalid_datetime_message,
+                                    ),
                                     actions: <Widget>[
                                       TextButton(
                                         onPressed: () {
                                           Navigator.of(context).pop();
                                         },
-                                        child: Text('Cerrar'),
+                                        child: Text(context.loc.common_close),
                                       ),
                                     ],
                                   );
@@ -243,7 +259,11 @@ class _DateTimePickerWithDropdownState extends State<DateTimePickerWithDropdown>
                                 Navigator.pop(context, true);
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error al modificar la reserva')),
+                                  SnackBar(
+                                    content: Text(
+                                      context.loc.edit_booking_error,
+                                    ),
+                                  ),
                                 );
                                 Navigator.of(context).pop();
                               }
@@ -252,9 +272,14 @@ class _DateTimePickerWithDropdownState extends State<DateTimePickerWithDropdown>
                           style: TextButton.styleFrom(
                             backgroundColor: Color(0xffa610ad),
                             foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
                           ),
-                          child: Text('Confirmar reserva'),
+                          child: Text(
+                            context.loc.edit_booking_confirm_reservation,
+                          ),
                         ),
                       ],
                     );
@@ -263,7 +288,7 @@ class _DateTimePickerWithDropdownState extends State<DateTimePickerWithDropdown>
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Por favor, selecciona fecha, hora y duración estimada'),
+                    content: Text(context.loc.edit_booking_missing_field),
                   ),
                 );
               }
@@ -273,15 +298,23 @@ class _DateTimePickerWithDropdownState extends State<DateTimePickerWithDropdown>
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
-            child: Text('Confirmar modificación'),
+            child: Text(context.loc.edit_booking_confirm_title),
           ),
         ),
       ],
     );
   }
 
-  Future<bool> editBooking(int id, String date, String hour, String? duration, String estacion) async {
-    final url = Uri.parse('https://eco-move-backend.onrender.com/api_punts_carrega/reservas/$id/modificar/');
+  Future<bool> editBooking(
+    int id,
+    String date,
+    String hour,
+    String? duration,
+    String estacion,
+  ) async {
+    final url = Uri.parse(
+      FrontendRoutes.build(FrontendRoutes.editReservation(id)),
+    );
 
     final Map<String, dynamic> data = {
       'estacion': estacion,
@@ -301,7 +334,9 @@ class _DateTimePickerWithDropdownState extends State<DateTimePickerWithDropdown>
         print('Reservation modified successfully');
         return true;
       } else {
-        print('Failed to modify reservation: ${response.statusCode} - ${response.body}');
+        print(
+          'Failed to modify reservation: ${response.statusCode} - ${response.body}',
+        );
         return false;
       }
     } catch (e) {
