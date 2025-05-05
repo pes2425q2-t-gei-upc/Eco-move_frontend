@@ -45,7 +45,7 @@ class EmergencyService {
   }
 
   Future<void> _refreshToken(String refreshToken) async {
-    final url = Uri.parse('$baseUrl/token/refresh/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/token/refresh/');
     final Map<String, dynamic> data = {'refresh': refreshToken};
 
     final response = await http.post(
@@ -74,7 +74,8 @@ class EmergencyService {
       'lng': lng.toString(),
     };
 
-    final uri = Uri.parse(baseUrl + endpoint).replace(queryParameters: queryParams);
+     // Construye correctamente la URI usando AppConfig.prodBaseUrl
+  final uri = Uri.parse('${AppConfig.prodBaseUrl}$endpoint').replace(queryParameters: queryParams);
 
     try {
       final response = await http.get(

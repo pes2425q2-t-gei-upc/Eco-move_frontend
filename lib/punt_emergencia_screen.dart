@@ -26,7 +26,7 @@ class PuntEmergenciaScreen extends StatelessWidget {
       return;
     }
 
-    final url = Uri.parse('$baseUrl/social/alerts/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/social/alerts/');
     final token = await getAccessToken();
 
     if (token == null) {
@@ -80,7 +80,7 @@ class PuntEmergenciaScreen extends StatelessWidget {
   }
 
   Future<void> _refreshToken(String refreshToken, BuildContext context) async {
-    final url = Uri.parse('$baseUrl/token/refresh/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/token/refresh/');
     final Map<String, dynamic> data = {'refresh': refreshToken};
 
     try {

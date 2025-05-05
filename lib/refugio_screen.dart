@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
-import 'config.dart';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 class RefugioScreen extends StatefulWidget {
   final String idRefugio;
@@ -24,7 +25,9 @@ class _RefugioScreenState extends State<RefugioScreen> {
   }
 
   Future<void> _fetchRefugio() async {
-    final url = Uri.parse('$baseUrl/api_punts_carrega/refugios/${widget.idRefugio}/');
+    final url = Uri.parse(
+      FrontendRoutes.build(FrontendRoutes.shelterById(widget.idRefugio)),
+    );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -61,14 +64,16 @@ class _RefugioScreenState extends State<RefugioScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalles del Refugio'),
+        title: Text(context.loc.shelter_shelter_details),
         backgroundColor: Colors.green,
       ),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : refugio == null
-              ? const Center(child: Text('No se pudo cargar el refugio'))
+              ? Center(
+                child: Text(context.loc.shelter_shelter_could_not_be_loaded),
+              )
               : SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Card(
@@ -83,7 +88,8 @@ class _RefugioScreenState extends State<RefugioScreen> {
                       children: [
                         Center(
                           child: Text(
-                            refugio!['nombre'] ?? 'Nombre desconocido',
+                            refugio!['nombre'] ??
+                                context.loc.shelter_shelter_unknown_name,
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -99,7 +105,7 @@ class _RefugioScreenState extends State<RefugioScreen> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Dirección: ${refugio!['direccio'] ?? 'N/A'}, ${refugio!['numero_calle'] ?? ''}',
+                                '${context.loc.station_address}: ${refugio!['direccio'] ?? 'N/A'}, ${refugio!['numero_calle'] ?? ''}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.black87,
@@ -114,7 +120,7 @@ class _RefugioScreenState extends State<RefugioScreen> {
                             const Icon(Icons.map, color: Colors.green),
                             const SizedBox(width: 10),
                             Text(
-                              'Latitud: ${refugio!['lat'] ?? 'N/A'}',
+                              '${context.loc.common_latitude}: ${refugio!['lat'] ?? 'N/A'}',
                               style: const TextStyle(
                                 fontSize: 16,
                                 color: Colors.black87,
@@ -128,7 +134,7 @@ class _RefugioScreenState extends State<RefugioScreen> {
                             const Icon(Icons.map_outlined, color: Colors.green),
                             const SizedBox(width: 10),
                             Text(
-                              'Longitud: ${refugio!['lng'] ?? 'N/A'}',
+                              '${context.loc.common_longitude}: ${refugio!['lng'] ?? 'N/A'}',
                               style: const TextStyle(
                                 fontSize: 16,
                                 color: Colors.black87,
@@ -153,8 +159,8 @@ class _RefugioScreenState extends State<RefugioScreen> {
                               Icons.directions,
                               color: Colors.white,
                             ),
-                            label: const Text(
-                              'Ver en el mapa',
+                            label: Text(
+                              context.loc.shelter_view_in_map,
                               style: TextStyle(fontSize: 16),
                             ),
                             style: ElevatedButton.styleFrom(
