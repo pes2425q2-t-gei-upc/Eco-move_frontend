@@ -537,7 +537,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget _alertDeleteUser() {
     return AlertDialog(
       title: Text(context.loc.profile_delete),
-      content: Text(context.loc.profile_confirmation_delelte_text),
+      content: Text(context.loc.profile_confirmation_delete_text),
       actions: [
         TextButton(
           onPressed: () {
