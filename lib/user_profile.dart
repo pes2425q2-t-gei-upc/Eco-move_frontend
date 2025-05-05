@@ -1,11 +1,13 @@
 import 'dart:convert';
+import 'package:eco_move_frontend/log_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
-
+import 'config.dart';
+import 'main.dart';
 
 void main() {
   runApp(const MyApp());
@@ -230,6 +232,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
           _buildInfoSection(context.loc.profile_language, userProfile.language, Icons.language),
           const SizedBox(height: 16),
           _buildDescriptionSection(),
+          const SizedBox(height: 25),
+          _deleteUserButton(),
         ],
       ),
     );
@@ -305,6 +309,26 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
+  Widget _alertDeleteUser() {
+    return AlertDialog(
+      title: Text(context.loc.profile_delete),
+      content: Text(context.loc.profile_confirmation_delelte_text),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(); // Close the dialog
+          },
+          child: Text(context.loc.common_cancel),
+        ),
+        TextButton(
+          onPressed: () {
+            _deleteUser();
+          },
+          child: Text(context.loc.profile_confirmation_delete),
+        ),
+      ],
+    );
+  }
   Widget _buildEditForm() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -389,8 +413,26 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
+  Widget _deleteUserButton() {
+    return Center(
+      child: ElevatedButton(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return _alertDeleteUser();
+              },
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white
+          ),
+          child: Text(context.loc.profile_delete)),
+    );
+  }
+
   Future<void> editUser() async {
-    print('Starting editUser function...');
     final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/usuari/$id/');
 
     final Map<String, dynamic> data = {
@@ -423,4 +465,40 @@ class _UserProfilePageState extends State<UserProfilePage> {
       print('Error: $e');
     }
   }
+  Future<void> _deleteUser() async {
+    final url = Uri.parse('${AppConfig.localBaseUrl}/api_punts_carrega/usuari/$id/');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${token}',
+        },
+      );
+
+      if (response.statusCode == 204) {
+        print('Usuari eliminat correctament');
+        await deleteTokens();
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+
+      } else {
+        print('Error al eliminar el usuari: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  Future<void> deleteTokens() async {
+    try {
+      await _secureStorage.delete(key: 'access');
+      await _secureStorage.delete(key: 'refresh');
+      print('Tokens deleted successfully');
+    } catch (e) {
+      print('Error deleting tokens: $e');
+    }
+  }
+
 }
