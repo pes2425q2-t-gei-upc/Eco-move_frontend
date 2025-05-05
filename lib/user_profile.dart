@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:eco_move_frontend/config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -160,7 +161,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _getMyInfo() async {
-    final url = Uri.parse('http://10.0.2.2:8000/me/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
     print('el token es ${token}');
     try {
       final response = await http.get(
@@ -173,6 +174,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
       if (response.statusCode == 200) {
         final bodyJson = json.decode(response.body);
+        print('jo soc');
         print(bodyJson);
         id = bodyJson['id'];
         userProfile = UserProfile(
@@ -194,7 +196,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Get profile photo
   Future<void> _getProfilePhoto() async {
-    final url = Uri.parse('http://10.0.2.2:8000/profile/foto/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
     try {
       final response = await http.get(
         url,
@@ -205,6 +207,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
       if (response.statusCode == 200) {
         final bodyJson = json.decode(response.body);
+        print('el get profile foto retorna ${bodyJson}');
         setState(() {
           userProfile.photoUrl = bodyJson['foto'];
         });
@@ -221,10 +224,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Upload profile photo
   Future<void> _uploadProfilePhoto(File imageFile) async {
-    final url = Uri.parse('http://10.0.2.2:8000/profile/foto/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
     try {
       // Create a multipart request
-      var request = http.MultipartRequest('GET', url);
+      var request = http.MultipartRequest('POST', url);
 
       print('request ${request}');
 
@@ -232,11 +235,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
       request.headers['Authorization'] = 'Bearer ${token}';
 
       // Add the file
-      /*request.files.add(
+      request.files.add(
         await http.MultipartFile.fromPath('foto', imageFile.path),
-      );*/
+      );
 
-      print('request ${request}');
+      print('request ${request.files}');
 
       // Send the request
       var streamedResponse = await request.send();
@@ -244,6 +247,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final bodyJson = json.decode(response.body);
+        print('upload foto retorna ${bodyJson}' );
         setState(() {
           userProfile.photoUrl = bodyJson['foto'];
           _selectedImage = null;
@@ -267,7 +271,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Delete profile photo
   Future<void> _deleteProfilePhoto() async {
-    final url = Uri.parse('http://10.0.2.2:8000/profile/foto/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
     try {
       final response = await http.delete(
         url,
@@ -276,7 +280,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         },
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 204) {
         setState(() {
           userProfile.photoUrl = null;
         });
@@ -612,7 +616,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<void> editUser() async {
     print('Starting editUser function...');
-    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/usuari/$id/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/api_punts_carrega/usuari/$id/');
 
     final Map<String, dynamic> data = {
       'first_name': userProfile.firstName,
