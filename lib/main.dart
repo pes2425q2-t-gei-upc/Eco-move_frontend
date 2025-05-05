@@ -1,5 +1,12 @@
 import 'dart:convert';
+import 'package:eco_move_frontend/calendar.dart';
+import 'package:eco_move_frontend/l10n/l10n.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:eco_move_frontend/page/settings.dart';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -9,10 +16,24 @@ import 'get_bookings.dart';
 import 'log_in.dart';
 import 'refugio_screen.dart';
 import 'alert_dialog_page.dart';
-import 'config.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'l10n/locale_provider.dart';
+import 'calendar.dart';
+import 'settings-menu.dart';
 
-void main() {
-  runApp(const MyApp());
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final langCode = prefs.getString('Language') ?? 'en';
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => LocaleProvider()..setLocale(Locale(langCode)),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -20,11 +41,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<LocaleProvider>(context);
+
     return MaterialApp(
       title: 'ECO-MOVE',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
+      locale: provider.locale,
+      supportedLocales: L10n.all,
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
       home: const LoginScreen(),
       debugShowCheckedModeBanner: false,
     );
@@ -40,10 +71,12 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+
   int _selectedIndex = 0;
   List<Map<String, dynamic>> estaciones = [];
   LatLng? myPosition;
-  String filtroSeleccionado = 'Todas';
+  String filtroSeleccionado = 'all';
   bool _isLoading = false;
 
   // Filtros
@@ -84,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final url = Uri.parse(
-      '$baseUrl/api_punts_carrega/refugios_mas_cercanos/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
+      '${FrontendRoutes.build(FrontendRoutes.nearestShelters)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
     try {
       final response = await http.get(url);
@@ -115,7 +148,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Modify _fetchFiltros to dynamically fetch charger types
   Future<void> _fetchFiltros() async {
-    final url = Uri.parse('$baseUrl/api_punts_carrega/opcions_filtres/');
+    final url = Uri.parse(
+      '${FrontendRoutes.apiBase}/api_punts_carrega/opcions_filtres/',
+    );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -194,11 +229,7 @@ class _MyHomePageState extends State<MyHomePage> {
       queryParameters['ciutat'] = ciudadSeleccionada;
     }
 
-    final uri = Uri.http(
-      baseUrl.replaceFirst('http://', '').replaceFirst(':8000', ''),
-      '/api_punts_carrega/filtrar_estacions/',
-      queryParameters,
-    );
+    final uri = Uri.parse(FrontendRoutes.build(FrontendRoutes.filterOptions));
 
     try {
       final response = await http.get(uri);
@@ -247,7 +278,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     final uri = Uri.parse(
-      '$baseUrl/api_punts_carrega/punt_mes_proper/?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
+      '${FrontendRoutes.build(FrontendRoutes.nearestStation)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
 
     try {
@@ -305,6 +336,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildEstacionesList() {
+    // final dropdownItems = {
+    //   'all': context.loc.common_all,
+    //   'nearest': context.loc.filter_closest,
+    // };
     return Stack(
       children: [
         Column(
@@ -371,7 +406,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      estacion['direccio'] ?? 'Dirección desconocida',
+                      estacion[context.loc.station_address] ??
+                          context.loc.station_address_unknown,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -380,7 +416,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Ciudad: ${estacion['ciutat'] ?? 'N/A'}',
+                      '${context.loc.station_city}: ${estacion['ciutat'] ?? 'N/A'}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -404,7 +440,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          'Plazas libres: ${estacion['nplaces'] ?? 'N/A'}',
+                          '${context.loc.station_free_spots}: ${estacion['nplaces'] ?? 'N/A'}',
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.black54,
@@ -414,7 +450,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Potencia: ${estacion['potencia'] ?? 'N/A'} kW',
+                      '${context.loc.station_power}: ${estacion['potencia'] ?? 'N/A'} kW',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -422,7 +458,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Velocidad: ${estacion['tipus_velocitat'] ?? 'N/A'}',
+                      '${context.loc.station_speed_type}: ${estacion['tipus_velocitat'] ?? 'N/A'}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -432,7 +468,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(height: 5),
                     if (estacion.containsKey('distancia_km'))
                       Text(
-                        'Distancia: ${estacion['distancia_km'].toStringAsFixed(2)} km',
+                        '${context.loc.station_distance}: ${estacion['distancia_km'].toStringAsFixed(2)} km',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.blueGrey,
@@ -601,7 +637,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _navigateToBookingsScreen() {
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (context) => BookingsScreen()));
+    ).push(MaterialPageRoute(builder: (context) => BookingCalendarPage()));
   }
 
   Widget _buildHomePage() {
@@ -634,7 +670,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Icon(Icons.calendar_month, color: Colors.white, size: 30),
                   SizedBox(width: 10),
                   Text(
-                    'Mis Reservas',
+                    context.loc.home_my_reservations,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -675,9 +711,9 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Wrap(
                 alignment: WrapAlignment.center, // Center the content
                 children: [
-                  const Center(
+                  Center(
                     child: Text(
-                      'Filtrar por cercanía',
+                      context.loc.filter_by_proximity,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
@@ -687,7 +723,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   const SizedBox(height: 10),
                   SwitchListTile(
-                    title: const Text('Mostrar solo estaciones más cercanas'),
+                    title: Text(context.loc.filter_show_only_nearest_stations),
                     value: filtrarPorCercanas,
                     onChanged: (bool value) {
                       setModalState(() {
@@ -706,9 +742,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   if (!filtrarPorCercanas) ...[
                     const SizedBox(height: 20),
-                    const Center(
+                    Center(
                       child: Text(
-                        'Filtrar por velocidad',
+                        context.loc.filter_by_speed,
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -749,9 +785,9 @@ class _MyHomePageState extends State<MyHomePage> {
                           }).toList(),
                     ),
                     const SizedBox(height: 20),
-                    const Center(
+                    Center(
                       child: Text(
-                        'Filtrar por tipo de cargador',
+                        context.loc.filter_by_charger_type,
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -792,9 +828,9 @@ class _MyHomePageState extends State<MyHomePage> {
                           }).toList(),
                     ),
                     const SizedBox(height: 20),
-                    const Center(
+                    Center(
                       child: Text(
-                        'Filtrar por potencia (kW)',
+                        '${context.loc.filter_by_power} (kW)',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -837,9 +873,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    const Center(
+                    Center(
                       child: Text(
-                        'Filtrar por ciudad',
+                        context.loc.filter_by_city,
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -850,8 +886,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     const SizedBox(height: 10),
                     TextField(
                       controller: ciudadController,
-                      decoration: const InputDecoration(
-                        hintText: 'Introduce el nombre de la ciudad',
+                      decoration: InputDecoration(
+                        hintText:
+                            context.loc.station_enter_the_name_of_the_city,
                         border: OutlineInputBorder(),
                       ),
                       onChanged: (value) {
@@ -889,8 +926,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        "Aplicar Filtros",
+                      child: Text(
+                        context.loc.filter_apply_filter,
                         style: TextStyle(fontSize: 18, color: Colors.white),
                       ),
                     ),
@@ -920,7 +957,10 @@ class _MyHomePageState extends State<MyHomePage> {
           const SizedBox(height: 10),
           Row(
             children: [
-              const Text('Refugios', style: TextStyle(color: Colors.black)),
+              Text(
+                context.loc.common_shelters,
+                style: TextStyle(color: Colors.black),
+              ),
               Switch(
                 value: mostrarRefugios,
                 onChanged: (value) {
@@ -942,6 +982,16 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Future<void> deleteTokens() async {
+    try {
+      await _secureStorage.delete(key: 'access');
+      await _secureStorage.delete(key: 'refresh');
+      print('Tokens deleted successfully');
+    } catch (e) {
+      print('Error deleting tokens: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -949,6 +999,54 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.settings),
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => NavigationPage()),
+            );
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar sesión',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Cerrar sesión'),
+                    content: const Text(
+                      '¿Estás seguro que quieres cerrar sesión?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                        },
+                        child: const Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          deleteTokens();
+                          Navigator.of(context).pop(); // Close the dialog
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                            (Route<dynamic> route) => false,
+                          );
+                        },
+                        child: const Text('Cerrar sesión'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -982,12 +1080,18 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Mapa'),
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: context.loc.nav_home,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: context.loc.nav_map,
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.ev_station),
-            label: 'Estaciones',
+            label: context.loc.nav_stations,
           ),
         ],
         currentIndex: _selectedIndex,

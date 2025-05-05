@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 class AlertDialogPage extends StatelessWidget {
   final LatLng? position; // Recibir la posición como parámetro
@@ -12,25 +13,30 @@ class AlertDialogPage extends StatelessWidget {
     TextEditingController descripcionController = TextEditingController();
 
     return AlertDialog(
-      title: const Text("Enviar alerta"),
+      title: Text(context.loc.alert_send_alert),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: tituloController,
-            decoration: const InputDecoration(
-              labelText: "Título",
-              hintText: "Título", // Ensure the placeholder remains constant
+            decoration: InputDecoration(
+              labelText: context.loc.common_title,
+              hintText:
+                  context
+                      .loc
+                      .common_title, // Ensure the placeholder remains constant
               border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: descripcionController,
-            decoration: const InputDecoration(
-              labelText: "Descripción",
+            decoration: InputDecoration(
+              labelText: context.loc.common_description,
               hintText:
-                  "Descripción", // Ensure the placeholder remains constant
+                  context
+                      .loc
+                      .common_description, // Ensure the placeholder remains constant
               border: OutlineInputBorder(),
             ),
             maxLines: 3,
@@ -42,7 +48,7 @@ class AlertDialogPage extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text("Cancelar"),
+          child: Text(context.loc.common_cancel),
         ),
         TextButton(
           onPressed: () {
@@ -58,7 +64,7 @@ class AlertDialogPage extends StatelessWidget {
             Navigator.of(context).pop();
           },
           style: TextButton.styleFrom(foregroundColor: Colors.red),
-          child: const Text("Enviar"),
+          child: Text(context.loc.common_send),
         ),
       ],
     );

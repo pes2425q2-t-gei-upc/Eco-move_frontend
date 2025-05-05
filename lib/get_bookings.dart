@@ -2,10 +2,9 @@ import 'package:eco_move_frontend/edit_booking.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import 'config.dart';
-
 import 'package:table_calendar/table_calendar.dart';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 class Booking {
   final String estacion;
@@ -67,7 +66,9 @@ class _BookingsScreenState extends State<BookingsScreen> {
   }
 
   Future<List<Booking>> fetchBookings() async {
-    final url = Uri.parse('$baseUrl/api_punts_carrega/reservas/');
+    final url = Uri.parse(
+      FrontendRoutes.build(FrontendRoutes.listReservations),
+    );
     try {
       final response = await http.get(url);
 
@@ -117,7 +118,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
     final ScrollController scrollController = ScrollController();
 
     return Scaffold(
-      appBar: AppBar(title: Text("Mis reservas")),
+      appBar: AppBar(title: Text(context.loc.home_my_reservations)),
       body: Column(
         children: [
           TableCalendar(
@@ -207,7 +208,9 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (reservasDelDia.isEmpty) {
-                  return Center(child: Text('No hay reservas para este día'));
+                  return Center(
+                    child: Text(context.loc.reservations_none_for_this_day),
+                  );
                 } else {
                   return Scrollbar(
                     controller: scrollController,
@@ -323,7 +326,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                                       color: Colors.white,
                                     ), // Ícono blanco
                                     label: Text(
-                                      "Editar",
+                                      context.loc.reservations_edit,
                                       style: TextStyle(
                                         color: Colors.white,
                                       ), // Texto blanco
@@ -346,7 +349,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                                       color: Colors.white,
                                     ), // Ícono blanco
                                     label: Text(
-                                      "Eliminar",
+                                      context.loc.reservations_delete,
                                       style: TextStyle(
                                         color: Colors.white,
                                       ), // Texto blanco
@@ -377,7 +380,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
   Future<void> deleteBooking(int id) async {
     final url = Uri.parse(
-      'https://eco-move-backend.onrender.com/api_punts_carrega/reservas/$id/eliminar/',
+      FrontendRoutes.build(FrontendRoutes.deleteReservation(id)),
     );
     bool? confirmDelete = await _showConfirmationDialog();
     if (confirmDelete == true) {
@@ -387,13 +390,22 @@ class _BookingsScreenState extends State<BookingsScreen> {
           headers: {'Content-Type': 'application/json'},
         );
         if (response.statusCode == 200) {
-          _showDialog('Reserva eliminada con éxito', isSuccess: true);
+          _showDialog(
+            context.loc.dialog_success_delete_reseervation,
+            isSuccess: true,
+          );
           final allBookings = await futureBookings;
           _updateReservasDelDia(selectedDay, allBookings); // Refresh list
         } else if (response.statusCode == 404) {
-          _showDialog('La reserva no existe.', isSuccess: false);
+          _showDialog(
+            context.loc.dialog_reservation_not_found,
+            isSuccess: false,
+          );
         } else {
-          _showDialog('Error al eliminar la reserva.', isSuccess: false);
+          _showDialog(
+            context.loc.dialog_error_delete_reservation,
+            isSuccess: false,
+          );
         }
       } catch (e) {
         _showDialog('Error: $e', isSuccess: false);
@@ -406,20 +418,20 @@ class _BookingsScreenState extends State<BookingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirmación'),
-          content: Text('¿Está seguro de que quiere eliminar la reserva?'),
+          title: Text(context.loc.common_confirmation),
+          content: Text(context.loc.dialog_confirm_delete_reservation),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(false);
               },
-              child: Text('Cancelar'),
+              child: Text(context.loc.common_cancel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
-              child: Text('Eliminar'),
+              child: Text(context.loc.reservations_delete),
             ),
           ],
         );
@@ -432,14 +444,14 @@ class _BookingsScreenState extends State<BookingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(isSuccess ? 'Éxito' : 'Error'),
+          title: Text(isSuccess ? context.loc.common_success : 'Error'),
           content: Text(message),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Aceptar'),
+              child: Text(context.loc.common_accept),
             ),
           ],
         );
