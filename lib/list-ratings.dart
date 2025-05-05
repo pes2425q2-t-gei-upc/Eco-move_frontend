@@ -50,7 +50,7 @@ class _RatingsScreenState extends State<ListRatingsScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api_punts_carrega/estacions/46414972/valoraciones/'),
+        Uri.parse('${AppConfig.prodBaseUrl}/api_punts_carrega/estacions/46414972/valoraciones/'),
       );
 
       if (response.statusCode == 200) {

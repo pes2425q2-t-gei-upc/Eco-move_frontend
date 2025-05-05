@@ -61,7 +61,7 @@ class _RatingScreenState extends State<RatingScreen> {
     return await _secureStorage.read(key: 'access');
   }
   Future<void> _getInfo() async {
-    final url = Uri.parse('$baseUrl/me/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
 
     try {
       final response = await http.get(
@@ -91,7 +91,7 @@ class _RatingScreenState extends State<RatingScreen> {
 
   Future<void> _fetchStation() async {
     final url = Uri.parse(
-      '$baseUrl/api_punts_carrega/estacions/${widget.idStation}/', // Ensure this URL is correct
+      '${AppConfig.prodBaseUrl}/api_punts_carrega/estacions/${widget.idStation}/', // Ensure this URL is correct
     );
     try {
       final response = await http.get(url);
@@ -112,7 +112,7 @@ class _RatingScreenState extends State<RatingScreen> {
 
   Future<void> _fetchUser() async {
     final url = Uri.parse(
-      '$baseUrl/api_punts_carrega/usuari/$my_id/',
+      '${AppConfig.prodBaseUrl}/api_punts_carrega/usuari/$my_id/',
     );
     try {
       final response = await http.get(url);
@@ -135,7 +135,7 @@ class _RatingScreenState extends State<RatingScreen> {
 
 
   Future<void> sendRating() async {
-    final url = Uri.parse('$baseUrl/api_punts_carrega/valoraciones_estaciones/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/api_punts_carrega/valoraciones_estaciones/');
 
     final Map<String, dynamic> data = {
       'estacion': widget.idStation,
