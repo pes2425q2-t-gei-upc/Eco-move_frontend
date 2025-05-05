@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:eco_move_frontend/config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -153,7 +154,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _getMyInfo() async {
-    final url = Uri.parse('http://10.0.2.2:8000/me/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
     print('el token es ${token}');
     try {
       final response = await http.get(
@@ -391,7 +392,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<void> editUser() async {
     print('Starting editUser function...');
-    final url = Uri.parse('http://10.0.2.2:8000/api_punts_carrega/usuari/$id/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/api_punts_carrega/usuari/$id/');
 
     final Map<String, dynamic> data = {
       'first_name': userProfile.firstName,
