@@ -139,6 +139,13 @@
   "profile_language": "Idioma",
   "profile_about": "Descripció",
   "profile_title": "El meu perfil",
+  "profile_select_photo_source": "Seleccionar la font de la imatge",
+  "profile_gallery": "Galeria",
+  "profile_camera": "Càmera",
+  "profile_delete_photo": "Eliminar foto",
+  "profile_cancel": "Cancelar",
+  "profile_save_changes": "Guardar canvis"
+
   "profile_delete": "Eliminar el meu usuari",
   "profile_confirmation_delelte_text" : "Està segur que vol eliminar el seu usuari?",
   "profile_confirmation_delete": "Eliminar usuari"
