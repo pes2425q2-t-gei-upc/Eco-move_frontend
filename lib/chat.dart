@@ -61,16 +61,20 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _startPolling() {
+
     _pollingTimer?.cancel();
 
     _pollingTimer = Timer.periodic(
         Duration(seconds: _pollingIntervalSeconds),
             (timer) {
           if (!_isSendingMessage) {
+            print('polling');
             _fetchMessages();
+            print('surt del polling');
           }
         }
     );
+
   }
 
   @override

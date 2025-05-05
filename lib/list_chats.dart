@@ -358,7 +358,6 @@ class ChatListItem extends StatelessWidget {
             _buildAvatar(),
             const SizedBox(width: 12),
 
-            // Chat details section (name, message)
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
