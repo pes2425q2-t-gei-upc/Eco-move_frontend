@@ -20,11 +20,17 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'l10n/locale_provider.dart';
+import 'alert_dialog_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'l10n/locale_provider.dart';
 import 'calendar.dart';
+import 'settings-menu.dart';
 import 'noti_service.dart';
 import 'package:provider/provider.dart';
 import 'AlertManager.dart'; // Importa AlertManager
-import 'AlertScreen.dart'; 
+import 'AlertScreen.dart';
 import 'EmergencyScreen.dart';
 import 'EmergencyService.dart';
 import 'settings-menu.dart';
