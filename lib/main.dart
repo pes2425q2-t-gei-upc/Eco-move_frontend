@@ -29,8 +29,8 @@ import 'calendar.dart';
 import 'settings-menu.dart';
 import 'noti_service.dart';
 import 'package:provider/provider.dart';
-import 'AlertManager.dart'; // Importa AlertManager
-import 'AlertScreen.dart';
+import 'alertManager.dart'; // Importa AlertManager
+import 'alertScreen.dart';
 import 'EmergencyScreen.dart';
 import 'EmergencyService.dart';
 import 'settings-menu.dart';
