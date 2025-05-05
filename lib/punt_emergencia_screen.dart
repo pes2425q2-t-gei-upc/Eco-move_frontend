@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'EmergenciaDetails.dart';
 
 class PuntEmergenciaScreen extends StatelessWidget {
   final LatLng? position; // Recibir la posición como parámetro
@@ -56,7 +57,7 @@ class PuntEmergenciaScreen extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Alerta enviada con éxito')),
         );
-        Navigator.of(context).pop();
+        //Navigator.of(context).pop();
       } else if (response.statusCode == 401) {
         String? refreshToken = await _secureStorage.read(key: 'refresh');
         if (refreshToken != null) {
@@ -79,7 +80,7 @@ class PuntEmergenciaScreen extends StatelessWidget {
   }
 
   Future<void> _refreshToken(String refreshToken, BuildContext context) async {
-    final url = Uri.parse('http://127.0.0.1:8000/token/refresh/');
+    final url = Uri.parse('$baseUrl/token/refresh/');
     final Map<String, dynamic> data = {'refresh': refreshToken};
 
     try {
@@ -151,8 +152,18 @@ class PuntEmergenciaScreen extends StatelessWidget {
               tituloController.text,
               descripcionController.text,
             );
-            NotiService().showNotification(
+
+             /*Navegar directamente a la nueva página
+             Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const EmergenciaDetails()),
+              );
+              */
+            /*NotiService().showNotification(
+               title: "Alerta enviada",
+               body: "Tu alerta ha sido enviada con éxito.",
+               payload: "navigate_to_screen",
             );
+            */
           },
           style: TextButton.styleFrom(foregroundColor: Colors.red),
           child: const Text("Enviar"),
