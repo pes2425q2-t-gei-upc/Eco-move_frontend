@@ -139,6 +139,15 @@
   "profile_telf": "Teléfono",
   "profile_language": "Idioma",
   "profile_about": "Descripción",
-  "profile_title": "Mi perfil"
+  "profile_title": "Mi perfil",
+  "profile_select_photo_source": "Seleccionar fuente de la foto",
+  "profile_gallery": "Galería",
+  "profile_camera": "Cámara",
+  "profile_delete_photo": "Eliminar foto",
+  "profile_cancel": "Cancelar",
+  "profile_save_changes": "Guardar cambios",
+  "profile_delete": "Eliminar mi usuario",
+  "profile_confirmation_delelte_text" : "Está seguro de que quiere eliminar su usuario?",
+  "profile_confirmation_delete": "Eliminar usuario"
 
 }

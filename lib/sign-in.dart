@@ -67,7 +67,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<void> getToken() async {
     final url = Uri.parse('${FrontendRoutes.apiBase}/token/');
-
+    print('la url del get token del login es ${url}');
     final Map<String, dynamic> data = {
       'email': emailController.text,
       'password': pass1Controller.text,
@@ -85,7 +85,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final Map<String, dynamic> resp = json.decode(response.body);
 
       if (response.statusCode == 200) {
-        print('Log in correcte');
+        print('Registre correcte');
         print('retorna: ${response.body}');
         saveAccessToken(resp['access'], resp['refresh']);
 
@@ -343,7 +343,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  void _validatePasswords() {
+  Future<void> _validatePasswords() async {
     if (pass1Controller.text.length < 8) {
       showDialog(
         context: context,
@@ -381,8 +381,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
         },
       );
     } else {
-      createUser();
-      getToken();
+      await createUser();
+      await getToken();
     }
   }
 

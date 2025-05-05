@@ -1,12 +1,18 @@
 import 'dart:convert';
 import 'package:eco_move_frontend/config.dart';
+import 'dart:io';
+import 'package:eco_move_frontend/config.dart';
+import 'package:eco_move_frontend/log_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
-
+import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'config.dart';
+import 'main.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,6 +43,7 @@ class UserProfile {
   String language;
   String telephone;
   String username;
+  String? photoUrl;  // Added photoUrl field
 
   UserProfile({
     required this.firstName,
@@ -46,6 +53,7 @@ class UserProfile {
     required this.language,
     required this.telephone,
     required this.username,
+    this.photoUrl,  // Optional photo URL
   });
 }
 
@@ -60,10 +68,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
   bool isEditing = false;
   String? token = '';
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final ImagePicker _imagePicker = ImagePicker();
 
   late UserProfile userProfile;
   bool isLoading = true;
   int id = -1;
+  File? _selectedImage;
 
   // List of available languages
   final List<String> languages = ['Catala', 'Castellano', 'English'];
@@ -147,6 +157,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     token = await getAccessToken();
     print(token);
     await _getMyInfo();
+    await _getProfilePhoto();
     _initControllers();
     setState(() {
       isLoading = false;
@@ -167,6 +178,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
       if (response.statusCode == 200) {
         final bodyJson = json.decode(response.body);
+        print('jo soc');
         print(bodyJson);
         id = bodyJson['id'];
         userProfile = UserProfile(
@@ -179,11 +191,179 @@ class _UserProfilePageState extends State<UserProfilePage> {
           username: bodyJson['username'],
         );
       } else {
-        print('Failed to send message: ${response.statusCode} - ${response.body}');
+        print('Failed to get user info: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('Error: $e');
     }
+  }
+
+  // Get profile photo
+  Future<void> _getProfilePhoto() async {
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final bodyJson = json.decode(response.body);
+        print('el get profile foto retorna ${bodyJson}');
+        setState(() {
+          userProfile.photoUrl = bodyJson['foto'];
+        });
+      } else if (response.statusCode == 404) {
+        // No photo found, that's fine
+        print('No profile photo found');
+      } else {
+        print('Failed to get profile photo: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error getting profile photo: $e');
+    }
+  }
+
+  // Upload profile photo
+  Future<void> _uploadProfilePhoto(File imageFile) async {
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
+    try {
+      // Create a multipart request
+      var request = http.MultipartRequest('POST', url);
+
+      print('request ${request}');
+
+      // Add authorization header
+      request.headers['Authorization'] = 'Bearer ${token}';
+
+      // Add the file
+      request.files.add(
+        await http.MultipartFile.fromPath('foto', imageFile.path),
+      );
+
+      print('request ${request.files}');
+
+      // Send the request
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final bodyJson = json.decode(response.body);
+        print('upload foto retorna ${bodyJson}' );
+        setState(() {
+          userProfile.photoUrl = bodyJson['foto'];
+          _selectedImage = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto de perfil actualizada correctamente')),
+        );
+      } else {
+        print('Failed to upload photo: ${response.statusCode} - ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al subir la foto de perfil')),
+        );
+      }
+    } catch (e) {
+      print('Error uploading profile photo: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al subir la foto de perfil')),
+      );
+    }
+  }
+
+  // Delete profile photo
+  Future<void> _deleteProfilePhoto() async {
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${token}',
+        },
+      );
+
+      if (response.statusCode == 204) {
+        setState(() {
+          userProfile.photoUrl = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto de perfil eliminada correctamente')),
+        );
+      } else {
+        print('Failed to delete photo: ${response.statusCode} - ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al eliminar la foto de perfil')),
+        );
+      }
+    } catch (e) {
+      print('Error deleting profile photo: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al eliminar la foto de perfil')),
+      );
+    }
+  }
+
+  // Select image from gallery or camera
+  Future<void> _pickImage(ImageSource source) async {
+    final XFile? pickedFile = await _imagePicker.pickImage(
+      source: source,
+      imageQuality: 80,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+      await _uploadProfilePhoto(_selectedImage!);
+    }
+  }
+
+  // Show image source selection dialog
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.loc.profile_select_photo_source),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: Text(context.loc.profile_gallery),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text(context.loc.profile_camera),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            if (userProfile.photoUrl != null)
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: Text(context.loc.profile_delete_photo, style: TextStyle(color: Colors.red)),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _deleteProfilePhoto();
+                },
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.loc.profile_cancel),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -231,6 +411,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
           _buildInfoSection(context.loc.profile_language, userProfile.language, Icons.language),
           const SizedBox(height: 16),
           _buildDescriptionSection(),
+          const SizedBox(height: 25),
+          _deleteUserButton(),
         ],
       ),
     );
@@ -240,10 +422,57 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Center(
       child: Column(
         children: [
-          const CircleAvatar(
-            radius: 60,
-            backgroundColor: Color(0xE278A879),
-            child: Icon(Icons.person, size: 80, color: Colors.white),
+          GestureDetector(
+            onTap: isEditing ? _showImageSourceDialog : null,
+            child: Stack(
+              children: [
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xE278A879),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(60),
+                    child: _selectedImage != null
+                        ? Image.file(
+                      _selectedImage!,
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.cover,
+                    )
+                        : userProfile.photoUrl != null
+                        ? CachedNetworkImage(
+                      imageUrl: userProfile.photoUrl!,
+                      placeholder: (context, url) => const CircularProgressIndicator(color: Colors.white),
+                      errorWidget: (context, url, error) => const Icon(Icons.person, size: 80, color: Colors.white),
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.cover,
+                    )
+                        : const Icon(Icons.person, size: 80, color: Colors.white),
+                  ),
+                ),
+                if (isEditing)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.lightGreen,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -291,7 +520,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${context.loc.profile_about}',
+          context.loc.profile_about,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -306,11 +535,32 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
+  Widget _alertDeleteUser() {
+    return AlertDialog(
+      title: Text(context.loc.profile_delete),
+      content: Text(context.loc.profile_confirmation_delete_text),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(); // Close the dialog
+          },
+          child: Text(context.loc.common_cancel),
+        ),
+        TextButton(
+          onPressed: () {
+            _deleteUser();
+          },
+          child: Text(context.loc.profile_confirmation_delete),
+        ),
+      ],
+    );
+  }
   Widget _buildEditForm() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
+          _buildProfileHeader(), // Reuse the profile header with photo
           const SizedBox(height: 24),
           _buildTextField(context.loc.profile_name, firstNameController, Icons.person),
           _buildTextField(context.loc.profile_surname, lastNameController, Icons.person),
@@ -330,7 +580,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             ),
-            child: const Text('Guardar cambios'),
+            child: Text(context.loc.profile_save_changes),
           ),
         ],
       ),
@@ -341,8 +591,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Idioma',
+        decoration: InputDecoration(
+          labelText: context.loc.profile_language,
           prefixIcon: Icon(Icons.language),
           border: OutlineInputBorder(),
           contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -390,6 +640,25 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
+  Widget _deleteUserButton() {
+    return Center(
+      child: ElevatedButton(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return _alertDeleteUser();
+              },
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white
+          ),
+          child: Text(context.loc.profile_delete)),
+    );
+  }
+
   Future<void> editUser() async {
     print('Starting editUser function...');
     final url = Uri.parse('${AppConfig.prodBaseUrl}/api_punts_carrega/usuari/$id/');
@@ -416,12 +685,48 @@ class _UserProfilePageState extends State<UserProfilePage> {
       );
 
       if (response.statusCode == 200) {
-        print('Reservation created successfully');
+        print('User profile updated successfully');
       } else {
-        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
+        print('Failed to update user profile: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('Error: $e');
     }
   }
+  Future<void> _deleteUser() async {
+    final url = Uri.parse('${AppConfig.localBaseUrl}/api_punts_carrega/usuari/$id/');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${token}',
+        },
+      );
+
+      if (response.statusCode == 204) {
+        print('Usuari eliminat correctament');
+        await deleteTokens();
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+
+      } else {
+        print('Error al eliminar el usuari: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  Future<void> deleteTokens() async {
+    try {
+      await _secureStorage.delete(key: 'access');
+      await _secureStorage.delete(key: 'refresh');
+      print('Tokens deleted successfully');
+    } catch (e) {
+      print('Error deleting tokens: $e');
+    }
+  }
+
 }
