@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'chat.dart';
-
+import 'config.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,33 +39,51 @@ class _ChatListScreenState extends State<ChatListScreen> {
   List<dynamic> chatsList = [];
   Map<int, Map<String, String>> lastMessages = {}; // Add this to store last messages
   late int my_id;
+  bool _isRefreshing = false;
 
   Future<String?> getAccessToken() async {
     return await _secureStorage.read(key: 'access');
-  }
-
-  Future<void> deleteAccessToken() async {
-    return await _secureStorage.deleteAll();
   }
 
   @override
   void initState() {
     super.initState();
     _initialize();
-
   }
 
   Future<void> _initialize() async {
+    print('entra');
     token = await getAccessToken();
-    await _fetchChats();
-    print('chat lists vallll ${chatsList}');
+    print('te el token');
     await _getMyInfo();
-    // Fetch last messages for all chats after getting the chat list
-    _fetchAllLastMessages();
-
+    print('te la meva info');
+    await _fetchChats();
+    print('te els chats');
+    await _fetchAllLastMessages();
+    print('surt');
   }
 
-  // Add this method to fetch last messages for all chats
+  // Method to refresh chats and messages
+  Future<void> _refreshChats() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    try {
+      await _fetchChats();
+      await _fetchAllLastMessages();
+    } catch (e) {
+      print('Error refreshing chats: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error refreshing chats: $e')),
+      );
+    } finally {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+  }
+
   Future<void> _fetchAllLastMessages() async {
     for (var chat in chatsList) {
       if (chat['id'] != null) {
@@ -73,7 +91,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
         if (lastMessage != null) {
           setState(() {
             lastMessages[chat['id']] = lastMessage;
-
           });
         }
       }
@@ -119,7 +136,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Future<void> _fetchChats() async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/social/chat/my_chats/'),
+        Uri.parse('${AppConfig.prodBaseUrl}/social/chat/my_chats/'),
         headers: {
           'Authorization': 'Bearer ${token}',
           'Content-Type': 'application/json',
@@ -142,7 +159,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Future<void> _newChat(String email) async {
     try {
       final response = await http.post(
-          Uri.parse('http://10.0.2.2:8000/social/chat/create_chat/'),
+          Uri.parse('${AppConfig.prodBaseUrl}/social/chat/create_chat/'),
           headers: {
             'Authorization': 'Bearer ${token}',
           },
@@ -164,7 +181,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Future<void> _getMyInfo() async {
-    final url = Uri.parse('http://10.0.2.2:8000/me/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
 
     try {
       final response = await http.get(
@@ -188,11 +205,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
-
   Future<Map<String, String>> _fetchLastMessage(int chatId) async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/social/chat/$chatId/messages/'),
+        Uri.parse('${AppConfig.prodBaseUrl}/social/chat/$chatId/messages/'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -237,7 +253,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -245,55 +260,63 @@ class _ChatListScreenState extends State<ChatListScreen> {
         title: const Text('Chats'),
         backgroundColor: Colors.lightGreen[100],
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              deleteAccessToken();
-              print('Search button pressed');
-            },
+          // Refresh button in app bar
+          _isRefreshing
+              ? Container(
+            margin: EdgeInsets.all(14),
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              color: Colors.green[800],
+              strokeWidth: 2,
+            ),
+          )
+              : IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshChats,
+            tooltip: 'Refresh chats',
           ),
         ],
       ),
       body: chatsList.isEmpty
           ? const Center(child: Text('No hay chats'))
-          : Column(
-        children: [
-          //const SizedBox(height: 20),
-          Expanded(
-            child: ListView.builder(
-              itemCount: chatsList.length,
-              itemBuilder: (context, index) {
-                final chat = chatsList[index];
-                final lastMessage = lastMessages[chat['id']] ?? 'Loading...';
+          : RefreshIndicator(
+        onRefresh: _refreshChats,
+        child: ListView.builder(
+          itemCount: chatsList.length,
+          itemBuilder: (context, index) {
+            final chat = chatsList[index];
+            final lastMessage = lastMessages[chat['id']] ?? 'Loading...';
 
-                return ChatListItem(
-                  userName: my_id == chat['receptor'] ? '${chat['creador_first_name']} ${chat['creador_last_name']}' : '${chat['receptor_first_name']} ${chat['receptor_last_name']}',
-                  lastMessage: lastMessages[chat['id']]?['content'] ?? 'No content',
-                  lastMessageTime: _parseDateTime(lastMessages[chat['id']]?['timestamp']),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatScreen(
-                          chatId: chat['id'],
-                          name: my_id == chat['receptor'] ? chat['creador_first_name'] : chat['receptor_first_name'] ,
-                          lastName: my_id == chat['receptor'] ? chat['creador_last_name'] : chat['receptor_last_name'],
-                        ),
-                      ),
-                    );
-                  },
-                );
+            return ChatListItem(
+              userName: my_id == chat['receptor'] ? '${chat['creador_first_name']} ${chat['creador_last_name']}' : '${chat['receptor_first_name']} ${chat['receptor_last_name']}',
+              lastMessage: lastMessages[chat['id']]?['content'] ?? 'No content',
+              lastMessageTime: _parseDateTime(lastMessages[chat['id']]?['timestamp']),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChatScreen(
+                      chatId: chat['id'],
+                      name: my_id == chat['receptor'] ? chat['creador_first_name'] : chat['receptor_first_name'] ,
+                      lastName: my_id == chat['receptor'] ? chat['creador_last_name'] : chat['receptor_last_name'],
+                    ),
+                  ),
+                ).then((_) {
+                  // When returning from chat screen, refresh data
+                  _refreshChats();
+                });
               },
-            ),
-          ),
-        ],
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           getEmail();
         },
-        foregroundColor: Colors.lightGreen[100],
-        backgroundColor: Colors.grey[200],
+        foregroundColor: Colors.green[100],
+        backgroundColor: Colors.grey[500],
         child: const Icon(Icons.chat),
       ),
     );
@@ -415,24 +438,5 @@ class ChatListItem extends StatelessWidget {
     } else {
       return DateFormat('MM/dd/yy').format(time);
     }
-  }
-}
-
-// Placeholder for chat detail screen
-class ChatDetailScreen extends StatelessWidget {
-  final int chatId;
-
-  const ChatDetailScreen({Key? key, required this.chatId}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chat Detail'),
-      ),
-      body: Center(
-        child: Text('Chat detail for chat ID: $chatId'),
-      ),
-    );
   }
 }

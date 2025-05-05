@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'config.dart';
 
 
 class ChatScreen extends StatefulWidget {
@@ -17,13 +18,15 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
-  late List<ChatMessage> _messages = [];
+  List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  late int my_id;
+  int? my_id;
   String? token = '';
+  bool _isLoading = true;
+  bool _isSendingMessage = false;
 
-  final int _pollingIntervalSeconds = 3;
+  final int _pollingIntervalSeconds = 10;
   Timer? _pollingTimer;
 
 
@@ -38,38 +41,51 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _initialize() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    print('entra');
     token = await getAccessToken();
+    print('agafa el token');
     await _getMyInfo();
+    print('agafa la meva info');
     await _fetchMessages();
+    print('afaga els missatges');
+
+    setState(() {
+      _isLoading = false;
+    });
+
     _startPolling();
   }
 
   void _startPolling() {
-    // Cancel any existing timer
     _pollingTimer?.cancel();
 
     _pollingTimer = Timer.periodic(
         Duration(seconds: _pollingIntervalSeconds),
-            (timer) => _fetchMessages()
+            (timer) {
+          if (!_isSendingMessage) {
+            _fetchMessages();
+          }
+        }
     );
   }
 
   @override
   void dispose() {
-    // Cancel the timer when the screen is disposed
     _pollingTimer?.cancel();
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-
-
-
   void _handleSubmitted(String text) {
+    if (text.trim().isEmpty) return;
+
     _textController.clear();
 
-    // Add the user's message
     setState(() {
       _messages.add(
         ChatMessage(
@@ -80,20 +96,6 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     _sendMessage(widget.chatId, text);
-
-    // Simulate a response from another user
-    Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        _messages.add(
-          ChatMessage(
-            text: "Aqui respon X",
-            isMe: false,
-          ),
-        );
-      });
-      _scrollToBottom();
-    });
-
     _scrollToBottom();
   }
 
@@ -108,8 +110,13 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     });
   }
+
   Future<void> _sendMessage(int chat, String text) async {
-    final url = Uri.parse('http://10.0.2.2:8000/social/messages/');
+    setState(() {
+      _isSendingMessage = true;
+    });
+
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/social/messages/');
 
     final Map<String, dynamic> data = {
       'chat': chat,
@@ -120,7 +127,7 @@ class _ChatScreenState extends State<ChatScreen> {
       final response = await http.post(
         url,
         headers: {
-          'Authorization': 'Bearer ${token}',
+          'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
         body: json.encode(data),
@@ -128,44 +135,68 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (response.statusCode == 201) {
         print('Message sent');
+
+        await Future.delayed(Duration(milliseconds: 300));
+
+        await _fetchMessages();
       } else {
         print('Failed to send message: ${response.statusCode} - ${response.body}');
+
+        setState(() {
+          _messages.removeWhere((msg) => msg.text == text && msg.isMe);
+        });
       }
     } catch (e) {
       print('Error: $e');
+
+      setState(() {
+        _messages.removeWhere((msg) => msg.text == text && msg.isMe);
+      });
+    } finally {
+      setState(() {
+        _isSendingMessage = false;
+      });
     }
   }
 
   Future<void> _getMyInfo() async {
-    final url = Uri.parse('http://10.0.2.2:8000/me/');
+    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
 
     try {
       final response = await http.get(
         url,
         headers: {
-          'Authorization': 'Bearer ${token}',
+          'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
 
       if (response.statusCode == 200) {
-        print('el body es ${response.body}');
-        final bodyJson = json.decode(response.body); // Convert String to Map
-        my_id = bodyJson['id'];
-        print(my_id);
+        final bodyJson = json.decode(response.body);
+        setState(() {
+          my_id = bodyJson['id'];
+        });
+        print('My ID: $my_id');
       } else {
-        print('Failed to send message: ${response.statusCode} - ${response.body}');
+        print('Failed to get user info: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error: $e');
+      print('Error getting user info: $e');
     }
   }
 
-
   Future<void> _fetchMessages() async {
+    if (my_id == null) {
+      await _getMyInfo();
+      if (my_id == null) {
+        print('Cannot fetch messages: user ID is not available');
+        return;
+      }
+    }
+
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/social/chat/${widget.chatId}/messages/'),
+        Uri.parse('${AppConfig.prodBaseUrl}/social/chat/${widget.chatId}/messages/'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -174,53 +205,60 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (response.statusCode == 200) {
         final messagesJson = json.decode(utf8.decode(response.bodyBytes));
-        print('els missatges sonnnnnnnnnnnn ${messagesJson}');
 
         if (messagesJson.containsKey('results') && messagesJson['results'] is List) {
-          setState(() {
-            _messages.clear(); // Clear previous messages
+          List<ChatMessage> newMessages = [];
 
-            // Convert each message in the results list to a ChatMessage
-            for (var message in messagesJson['results']) {
-              _messages.add(
-                ChatMessage(
-                  text: message['content'],
-                  isMe: message['sender'] == my_id,
-                ),
-              );
-            }
-            final reversedNewMessages = _messages.reversed.toList();
+          for (var message in messagesJson['results']) {
+            newMessages.add(
+              ChatMessage(
+                text: message['content'],
+                isMe: message['sender'] == my_id,
+              ),
+            );
+          }
 
-            if (_messages.length != reversedNewMessages.length) {
-              setState(() {
-                _messages = reversedNewMessages;
-              });
+          newMessages = newMessages.reversed.toList();
 
+          if (_messagesAreDifferent(newMessages, _messages)) {
+            setState(() {
+              _messages = newMessages;
+            });
+
+            if (!_isLoading && newMessages.length > _messages.length) {
               _scrollToBottom();
             }
-
-
-          });
-
-          // Scroll to bottom after loading messages
-          _scrollToBottom();
+          }
         }
       } else {
         print('Error ${response.statusCode}: ${response.body}');
       }
     } catch (e) {
-      print('Error en la petición: $e');
+      print('Error fetching messages: $e');
     }
   }
 
-//TO DO que s'actualitzi tot el rato !!!!! (polling)
+  bool _messagesAreDifferent(List<ChatMessage> list1, List<ChatMessage> list2) {
+    if (list1.length != list2.length) return true;
+
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i].text != list2[i].text || list1[i].isMe != list2[i].isMe) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat ${widget.name} ${widget.lastName}'),
+        title: Text('${widget.name} ${widget.lastName}'),
       ),
-      body: Column(
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Column(
         children: [
           Expanded(
             child: ListView.builder(
