@@ -146,4 +146,7 @@
   "profile_cancel": "Cancelar",
   "profile_save_changes": "Guardar canvis"
 
+  "profile_delete": "Eliminar el meu usuari",
+  "profile_confirmation_delelte_text" : "Està segur que vol eliminar el seu usuari?",
+  "profile_confirmation_delete": "Eliminar usuari"
 }
