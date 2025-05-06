@@ -15,6 +15,11 @@ import 'package:geolocator/geolocator.dart';
 import 'get_bookings.dart';
 import 'log_in.dart';
 import 'refugio_screen.dart';
+import 'punt_emergencia_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'l10n/locale_provider.dart';
 import 'alert_dialog_page.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,15 +27,31 @@ import 'package:provider/provider.dart';
 import 'l10n/locale_provider.dart';
 import 'calendar.dart';
 import 'settings-menu.dart';
+import 'noti_service.dart';
+import 'package:provider/provider.dart';
+import 'alertManager.dart'; // Importa AlertManager
+import 'alertScreen.dart';
+import 'EmergencyScreen.dart';
+import 'EmergencyService.dart';
+import 'settings-menu.dart';
 
-
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializa las notificaciones
+  NotiService().iniNotification();
+
+  // Obtiene las preferencias del idioma
   final prefs = await SharedPreferences.getInstance();
   final langCode = prefs.getString('Language') ?? 'en';
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => LocaleProvider()..setLocale(Locale(langCode)),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AlertManager()), // Inicializa AlertManager
+        ChangeNotifierProvider(create: (_) => LocaleProvider()..setLocale(Locale(langCode))), // Inicializa LocaleProvider
+      ],
       child: const MyApp(),
     ),
   );
@@ -44,6 +65,7 @@ class MyApp extends StatelessWidget {
     final provider = Provider.of<LocaleProvider>(context);
 
     return MaterialApp(
+      navigatorKey: navigatorKey, // Configura el GlobalKey aquí
       title: 'ECO-MOVE',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
@@ -72,6 +94,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final EmergencyService _emergencyService = EmergencyService();
+  final NotiService _notiService = NotiService();
 
   int _selectedIndex = 0;
   List<Map<String, dynamic>> estaciones = [];
@@ -101,6 +125,9 @@ class _MyHomePageState extends State<MyHomePage> {
   // Add a new variable to store the selected city
   String ciudadSeleccionada = '';
 
+  bool _isPollingStarted = false; // Variable de control para evitar múltiples inicios
+  LatLng? _pollingPosition; // Posición utilizada en el polling
+
   @override
   void initState() {
     super.initState();
@@ -108,6 +135,40 @@ class _MyHomePageState extends State<MyHomePage> {
     _fetchEstaciones();
     _fetchFiltros();
     _fetchRefugiosCercanos();
+  }
+
+  void _startPollingForEmergencies() {
+    if (_isPollingStarted) return; // Evita múltiples inicios
+    _isPollingStarted = true;
+
+    print("Iniciando polling para emergencias...");
+    _emergencyService
+        .pollForNewEmergencyPointsStream(() => _pollingPosition) // Usa una función para obtener la posición actualizada
+        .listen((newPoint) {
+      if (newPoint != null) {
+        print("Llamando a showNotification para: ${newPoint.title}");
+        _notiService.showNotification(
+          title: "Nuevo Punto de Emergencia",
+          body: "Se ha detectado un nuevo punto de emergencia: ${newPoint.title}",
+          payload: "navigate_to_screen|${newPoint.title}|${newPoint.description}|${newPoint.lat}|${newPoint.lng}|${newPoint.timestamp}",
+        );
+      }
+    });
+  }
+
+  void _getPosition() async {
+    Position? position = await _determinePosition();
+    if (position != null) {
+      print("Posición obtenida: ${position.latitude}, ${position.longitude}");
+      setState(() {
+        myPosition = LatLng(position.latitude, position.longitude);
+        _pollingPosition = myPosition; // Actualiza la posición utilizada en el polling
+      });
+
+      if (!_isPollingStarted) {
+        _startPollingForEmergencies(); // Inicia el polling solo una vez
+      }
+    }
   }
 
   Future<void> _fetchRefugiosCercanos() async {
@@ -192,15 +253,6 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
     return await Geolocator.getCurrentPosition();
-  }
-
-  void _getPosition() async {
-    Position? position = await _determinePosition();
-    if (position != null) {
-      setState(() {
-        myPosition = LatLng(position.latitude, position.longitude);
-      });
-    }
   }
 
   Future<void> _fetchEstaciones() async {
@@ -994,110 +1046,124 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.settings),
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      title: Text(widget.title),
+      centerTitle: true,
+      leading: IconButton(
+        icon: const Icon(Icons.settings),
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => NavigationPage()),
+          );
+        },
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.logout),
+          tooltip: 'Cerrar sesión',
           onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => NavigationPage()),
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Cerrar sesión'),
+                  content: const Text(
+                    '¿Estás seguro que quieres cerrar sesión?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                      },
+                      child: const Text('Cancelar'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        deleteTokens();
+                        Navigator.of(context).pop(); // Close the dialog
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
+                          (Route<dynamic> route) => false,
+                        );
+                      },
+                      child: const Text('Cerrar sesión'),
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Cerrar sesión',
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('Cerrar sesión'),
-                    content: const Text(
-                      '¿Estás seguro que quieres cerrar sesión?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // Close the dialog
-                        },
-                        child: const Text('Cancelar'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          deleteTokens();
-                          Navigator.of(context).pop(); // Close the dialog
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (context) => const LoginScreen(),
-                            ),
-                            (Route<dynamic> route) => false,
-                          );
-                        },
-                        child: const Text('Cerrar sesión'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          _selectedIndex == 2
-              ? _buildEstacionesList()
-              : (_selectedIndex == 1
-                  ? Stack(children: [_showMap(), _buildFiltro()])
-                  : _buildHomePage()),
-          Positioned(
-            top: 20.0,
-            right: 10.0,
-            child: CircleAvatar(
-              backgroundColor: Colors.red,
-              radius: 20,
-              child: IconButton(
-                icon: const Icon(Icons.warning, color: Colors.white),
-                onPressed: () async {
-                  _getPosition(); // Actualizar la posición actual
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialogPage(
-                        position: myPosition, // Pasar la posición actual
-                      );
-                    },
-                  );
-                },
-              ),
+      ],
+    ),
+    body: Stack(
+      children: [
+        _selectedIndex == 2
+            ? _buildEstacionesList()
+            : (_selectedIndex == 1
+                ? Stack(children: [_showMap(), _buildFiltro()])
+                : _buildHomePage()),
+        Positioned(
+          top: 20.0,
+          right: 10.0,
+          child: CircleAvatar(
+            backgroundColor: Colors.red,
+            radius: 20,
+            child: IconButton(
+              icon: const Icon(Icons.warning, color: Colors.white),
+              onPressed: () async {
+                _getPosition(); // Actualizar la posición actual
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return PuntEmergenciaScreen(
+                      position: myPosition, // Pasar la posición actual
+                    );
+                  },
+                );
+              },
             ),
           ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: context.loc.nav_home,
+        ),
+      ],
+    ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => EmergencyScreen(
+              userLat: myPosition?.latitude ?? 0.0,
+              userLng: myPosition?.longitude ?? 0.0,
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: context.loc.nav_map,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.ev_station),
-            label: context.loc.nav_stations,
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.green,
-        onTap: _onItemTapped,
-      ),
-    );
-  }
+        );
+      },
+      backgroundColor: Colors.green,
+      child: const Icon(Icons.notifications),
+    ),
+    bottomNavigationBar: BottomNavigationBar(
+      items: <BottomNavigationBarItem>[
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.home),
+          label: context.loc.nav_home,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.map),
+          label: context.loc.nav_map,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.ev_station),
+          label: context.loc.nav_stations,
+        ),
+      ],
+      currentIndex: _selectedIndex,
+      selectedItemColor: Colors.green,
+      onTap: _onItemTapped,
+    ),
+  );
+}
 }
