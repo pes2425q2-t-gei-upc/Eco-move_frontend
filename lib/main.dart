@@ -283,11 +283,11 @@ class _MyHomePageState extends State<MyHomePage> {
       queryParameters['ciutat'] = ciudadSeleccionada;
     }
 
-      final uri = Uri.http(
-      '127.0.0.1:8000',
-      '/api_punts_carrega/filtrar_estacions/',
-      queryParameters,
-    );
+final uri = Uri.https(
+  'eco-move-backend.onrender.com',
+  '/api_punts_carrega/filtrar_estacions/',
+  queryParameters, // Incluye los parámetros de consulta aquí
+);
 
     try {
       final response = await http.get(uri);
