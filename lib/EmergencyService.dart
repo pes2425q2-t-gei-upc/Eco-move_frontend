@@ -12,6 +12,7 @@ class EmergencyPoint {
   final double lat;
   final double lng;
   final String timestamp;
+  final int sender;
 
   EmergencyPoint({
     required this.id,
@@ -20,6 +21,7 @@ class EmergencyPoint {
     required this.lat,
     required this.lng,
     required this.timestamp,
+    required this.sender,
   });
 
   factory EmergencyPoint.fromJson(Map<String, dynamic> json) {
@@ -30,6 +32,7 @@ class EmergencyPoint {
       lat: json['lat'],
       lng: json['lng'],
       timestamp: json['timestamp'],
+      sender: json['sender'],
     );
   }
 }
@@ -88,7 +91,9 @@ class EmergencyService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print('data val ${data}');
         final List<dynamic> pointsData = data['alerts'];
+        print('points data val ${pointsData}');
         return pointsData.map((json) => EmergencyPoint.fromJson(json)).toList();
       } else if (response.statusCode == 401) {
         final refreshToken = await _secureStorage.read(key: 'refresh');
