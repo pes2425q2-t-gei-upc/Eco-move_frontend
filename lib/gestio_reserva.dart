@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
+import 'rate-charger.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'calculate_price.dart';
@@ -280,6 +281,64 @@ class _EstacionScreenState extends State<EstacionScreen> {
                           Icon(Icons.calendar_month, color: Colors.white),
                           SizedBox(width: 8),
                           Text(context.loc.station_reserve),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder:
+                                (context) =>
+                                BookChargerScreen(idStation: idStation),
+                          ),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.orangeAccent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            13,
+                          ), // Rounded corners
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.star, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text('Ver reseñas'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder:
+                                (context) =>
+                                RatingScreen(idStation: idStation),
+                          ),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            13,
+                          ), // Rounded corners
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.recommend_sharp, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text('Dar una reseña'),
                         ],
                       ),
                     ),
