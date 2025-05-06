@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:eco_move_frontend/calendar.dart';
 import 'package:eco_move_frontend/l10n/l10n.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:eco_move_frontend/list_chats.dart';
 import 'package:eco_move_frontend/page/settings.dart';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
@@ -29,8 +30,8 @@ import 'calendar.dart';
 import 'settings-menu.dart';
 import 'noti_service.dart';
 import 'package:provider/provider.dart';
-import 'AlertManager.dart'; // Importa AlertManager
-import 'AlertScreen.dart';
+import 'alertManager.dart'; // Importa AlertManager
+import 'alertScreen.dart';
 import 'EmergencyScreen.dart';
 import 'EmergencyService.dart';
 import 'settings-menu.dart';
@@ -146,11 +147,12 @@ class _MyHomePageState extends State<MyHomePage> {
         .pollForNewEmergencyPointsStream(() => _pollingPosition) // Usa una función para obtener la posición actualizada
         .listen((newPoint) {
       if (newPoint != null) {
+        print("Llamando a showNotification para IDDDDD: ${newPoint.id}");
         print("Llamando a showNotification para: ${newPoint.title}");
         _notiService.showNotification(
           title: "Nuevo Punto de Emergencia",
           body: "Se ha detectado un nuevo punto de emergencia: ${newPoint.title}",
-          payload: "navigate_to_screen|${newPoint.title}|${newPoint.description}|${newPoint.lat}|${newPoint.lng}|${newPoint.timestamp}",
+          payload: "navigate_to_screen|${newPoint.title}|${newPoint.description}|${newPoint.lat}|${newPoint.lng}|${newPoint.timestamp}|${newPoint.sender}",
         );
       }
     });
@@ -1046,102 +1048,121 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      title: Text(widget.title),
-      centerTitle: true,
-      leading: IconButton(
-        icon: const Icon(Icons.settings),
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => NavigationPage()),
-          );
-        },
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.logout),
-          tooltip: 'Cerrar sesión',
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.settings),
           onPressed: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: const Text('Cerrar sesión'),
-                  content: const Text(
-                    '¿Estás seguro que quieres cerrar sesión?',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close the dialog
-                      },
-                      child: const Text('Cancelar'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        deleteTokens();
-                        Navigator.of(context).pop(); // Close the dialog
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
-                          ),
-                          (Route<dynamic> route) => false,
-                        );
-                      },
-                      child: const Text('Cerrar sesión'),
-                    ),
-                  ],
-                );
-              },
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => NavigationPage()),
             );
           },
         ),
-      ],
-    ),
-    body: Stack(
-      children: [
-        _selectedIndex == 2
-            ? _buildEstacionesList()
-            : (_selectedIndex == 1
-                ? Stack(children: [_showMap(), _buildFiltro()])
-                : _buildHomePage()),
-        Positioned(
-          top: 20.0,
-          right: 10.0,
-          child: CircleAvatar(
-            backgroundColor: Colors.red,
-            radius: 20,
-            child: IconButton(
-              icon: const Icon(Icons.warning, color: Colors.white),
-              onPressed: () async {
-                _getPosition(); // Actualizar la posición actual
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return PuntEmergenciaScreen(
-                      position: myPosition, // Pasar la posición actual
-                    );
-                  },
-                );
-              },
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar sesión',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Cerrar sesión'),
+                    content: const Text(
+                      '¿Estás seguro que quieres cerrar sesión?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                        },
+                        child: const Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          deleteTokens();
+                          Navigator.of(context).pop(); // Close the dialog
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                                (Route<dynamic> route) => false,
+                          );
+                        },
+                        child: const Text('Cerrar sesión'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          _selectedIndex == 2
+              ? _buildEstacionesList()
+              : (_selectedIndex == 1
+              ? Stack(children: [_showMap(), _buildFiltro()])
+              : _buildHomePage()),
+          Positioned(
+            top: 20.0,
+            right: 10.0,
+            child: Column(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.red,
+                  radius: 20,
+                  child: IconButton(
+                    icon: const Icon(Icons.warning, color: Colors.white),
+                    onPressed: () async {
+                      _getPosition(); // Actualizar la posición actual
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return PuntEmergenciaScreen(
+                            position: myPosition, // Pasar la posición actual
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10), // Space between the buttons
+                CircleAvatar(
+                  backgroundColor: Colors.green,
+                  radius: 20,
+                  child: IconButton(
+                    icon: const Icon(Icons.chat, color: Colors.white),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => ChatListScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-      ],
-    ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => EmergencyScreen(
-              userLat: myPosition?.latitude ?? 0.0,
-              userLng: myPosition?.longitude ?? 0.0,
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => EmergencyScreen(
+                userLat: myPosition?.latitude ?? 0.0,
+                userLng: myPosition?.longitude ?? 0.0,
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
       backgroundColor: Colors.green,
       child: const Icon(Icons.notifications),
     ),
