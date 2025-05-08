@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:eco_move_frontend/calendar.dart';
+import 'package:eco_move_frontend/config.dart';
 import 'package:eco_move_frontend/l10n/l10n.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'package:eco_move_frontend/list_chats.dart';
@@ -283,11 +284,10 @@ class _MyHomePageState extends State<MyHomePage> {
       queryParameters['ciutat'] = ciudadSeleccionada;
     }
 
-final uri = Uri.https(
-  'eco-move-backend.onrender.com',
-  '/api_punts_carrega/filtrar_estacions/',
-  queryParameters, // Incluye los parámetros de consulta aquí
-);
+    final uri = Uri.parse('${AppConfig.apiBase}/api_punts_carrega/filtrar_estacions/')
+        .replace(queryParameters: queryParameters);
+
+    print(uri);
 
     try {
       final response = await http.get(uri);
@@ -338,6 +338,7 @@ final uri = Uri.https(
     final uri = Uri.parse(
       '${FrontendRoutes.build(FrontendRoutes.nearestStation)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
+    print(uri);
 
     try {
       final response = await http.get(uri);
