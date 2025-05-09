@@ -157,5 +157,7 @@
   "profile_save_changes": "Save changes",
   "profile_delete": "Delete my profile",
   "profile_confirmation_delete_text" : "Are you sure you want to delete your user?",
-  "profile_confirmation_delete": "Delete user"
+  "profile_confirmation_delete": "Delete user",
+
+  "car_info": "My car"
 }

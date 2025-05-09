@@ -148,6 +148,8 @@
   "profile_save_changes": "Guardar cambios",
   "profile_delete": "Eliminar mi usuario",
   "profile_confirmation_delelte_text" : "Está seguro de que quiere eliminar su usuario?",
-  "profile_confirmation_delete": "Eliminar usuario"
+  "profile_confirmation_delete": "Eliminar usuario",
+
+  "car_info": "Mi coche"
 
 }

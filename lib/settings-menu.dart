@@ -58,6 +58,18 @@ class _NavigationPageState extends State<NavigationPage> {
                   );
                 },
               ),
+              const SizedBox(height: 16),
+              _buildSettingCard(
+                context,
+                icon: Icons.directions_car,
+                title: context.loc.car_info,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => UserProfilePage()),
+                  );
+                },
+              ),
+
             ],
           ),
         ),
