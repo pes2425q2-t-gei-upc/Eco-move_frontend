@@ -58,40 +58,7 @@ class _CreateVehiclePageState extends State<CreateVehiclePage> {
   Future<String?> getAccessToken() async {
     return await _secureStorage.read(key: 'access');
   }
-
-
-
-  Future<void> fetchUserInfo() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.apiBase}/me/'),
-        headers: {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ3MDQ4Nzk0LCJpYXQiOjE3NDY5NjIzOTQsImp0aSI6ImFlZGUwNTljODAzMDQzYmJiMzcwOTdkZGZlZWFjMzE3IiwidXNlcl9pZCI6Mn0.qSZ2d3BnOB9_HWlAL-FX71hdTh0fSClVTw_TdDTxPD8'},
-      );
-
-      if (response.statusCode == 200) {
-        final userData = jsonDecode(response.body);
-        setState(() {
-          _userId = userData['id'];
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _errorMessage = 'Failed to load user info: ${response.statusCode}';
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Error connecting to server: $e';
-        _isLoading = false;
-      });
-    }
-  }
+  
 
   Future<void> _saveVehicle() async {
     if (_formKey.currentState!.validate() && _selectedChargers.isNotEmpty) {
