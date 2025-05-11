@@ -7,6 +7,7 @@ import 'user_profile.dart';
 import 'package:eco_move_frontend/page/settings.dart';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'car-info.dart';
 
 class NavigationPage extends StatefulWidget {
   @override
@@ -65,7 +66,7 @@ class _NavigationPageState extends State<NavigationPage> {
                 title: context.loc.car_info,
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => UserProfilePage()),
+                    MaterialPageRoute(builder: (context) => CarInfo()),
                   );
                 },
               ),

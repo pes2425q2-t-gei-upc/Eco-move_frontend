@@ -150,6 +150,19 @@
   "profile_confirmation_delelte_text" : "Está seguro de que quiere eliminar su usuario?",
   "profile_confirmation_delete": "Eliminar usuario",
 
-  "car_info": "Mi coche"
+  "car_info": "Mis coches",
+
+    "car_info_license_plate": "Matrícula",
+    "car_info_compatible_chargers": "Cargadores compatibles",
+    "car_info_battery_capacity": "Capacidad de la batería",
+    "car_info_model": "Modelo",
+    "car_info_brand": "Marca",
+    "car_info_year": "Año",
+    "car_info_select_charger": "Selecciona los tipos de cargador",
+    "car_info_vehicle": "Información del vehículo",
+      "car_info_model_info": "Información del modelo",
+      "car_info_create": "Crear vehículo",
+        "car_info_actual_capacity": "Capacidad actual",
+        "car_info_save": "Guardar vehículo"
 
 }
