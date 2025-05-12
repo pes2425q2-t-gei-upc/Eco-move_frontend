@@ -136,7 +136,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Future<void> _fetchChats() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.prodBaseUrl}/social/chat/my_chats/'),
+        Uri.parse('${AppConfig.apiBase}/social/chat/my_chats/'),
         headers: {
           'Authorization': 'Bearer ${token}',
           'Content-Type': 'application/json',
@@ -159,7 +159,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Future<void> _newChat(String email) async {
     try {
       final response = await http.post(
-          Uri.parse('${AppConfig.prodBaseUrl}/social/chat/create_chat/'),
+          Uri.parse('${AppConfig.apiBase}/social/chat/create_chat/'),
           headers: {
             'Authorization': 'Bearer ${token}',
           },
@@ -181,7 +181,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Future<void> _getMyInfo() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
+    final url = Uri.parse('${AppConfig.apiBase}/me/');
 
     try {
       final response = await http.get(
@@ -208,7 +208,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Future<Map<String, String>> _fetchLastMessage(int chatId) async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.prodBaseUrl}/social/chat/$chatId/messages/'),
+        Uri.parse('${AppConfig.apiBase}/social/chat/$chatId/messages/'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

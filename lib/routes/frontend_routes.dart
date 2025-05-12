@@ -13,7 +13,7 @@ class FrontendRoutes {
   static const String me = '/me/';
 
   // Charging Stations
-  static const String chargingStations = '/api_punts_carrega/estacions/';
+  static const String chargingStations = '/api_punts_carrega/filtrar_estacions/';
   static const String nearestStation = '/api_punts_carrega/punt_mes_proper/';
   static const String chargingStationDetail =
       '/api_punts_carrega/estacions/'; // + id
@@ -36,6 +36,6 @@ class FrontendRoutes {
   static String stationById(String id) => '/api_punts_carrega/estacions/$id/';
 
   static const String nearestShelters =
-      '7api_punts_carrega/refugios_mas_cercanos/';
+      '/api_punts_carrega/refugios_mas_cercanos/';
   static String shelterById(String id) => '/api_punts_carrega/refugios/$id/';
 }

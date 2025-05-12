@@ -48,7 +48,7 @@ class EmergencyService {
   }
 
   Future<void> _refreshToken(String refreshToken) async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/token/refresh/');
+    final url = Uri.parse('${AppConfig.apiBase}/token/refresh/');
     final Map<String, dynamic> data = {'refresh': refreshToken};
 
     final response = await http.post(
@@ -77,8 +77,8 @@ class EmergencyService {
       'lng': lng.toString(),
     };
 
-     // Construye correctamente la URI usando AppConfig.prodBaseUrl
-  final uri = Uri.parse('${AppConfig.prodBaseUrl}$endpoint').replace(queryParameters: queryParams);
+     // Construye correctamente la URI usando AppConfig.apiBase
+  final uri = Uri.parse('${AppConfig.apiBase}$endpoint').replace(queryParameters: queryParams);
 
     try {
       final response = await http.get(
@@ -113,7 +113,7 @@ class EmergencyService {
     }
   }
 
-  Stream<EmergencyPoint?> pollForNewEmergencyPoints(double lat, double lng, {Duration interval = const Duration(seconds: 10)}) async* {
+  Stream<EmergencyPoint?> pollForNewEmergencyPoints(double lat, double lng, {Duration interval = const Duration(seconds: 20)}) async* {
     while (true) {
       try {
         final newPoints = await fetchEmergencyPoints(lat, lng);

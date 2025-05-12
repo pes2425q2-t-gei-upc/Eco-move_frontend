@@ -19,13 +19,15 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      home: const ListRatingsScreen(),
+      home: const ListRatingsScreen(idStation: '12345'), // Reemplaza '12345' con el ID real de la estación
     );
   }
 }
 
 class ListRatingsScreen extends StatefulWidget {
-  const ListRatingsScreen({Key? key}) : super(key: key);
+  final String idStation;
+
+  const ListRatingsScreen({Key? key, required this.idStation}) : super(key: key);
 
   @override
   _RatingsScreenState createState() => _RatingsScreenState();
@@ -43,35 +45,35 @@ class _RatingsScreenState extends State<ListRatingsScreen> {
   }
 
   Future<void> fetchRatings() async {
-    setState(() {
-      isLoading = true;
-      error = '';
-    });
+  setState(() {
+    isLoading = true;
+    error = '';
+  });
 
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.prodBaseUrl}/api_punts_carrega/estacions/46414972/valoraciones/'),
-      );
+  try {
+    final response = await http.get(
+      Uri.parse('${AppConfig.apiBase}/api_punts_carrega/estacions/${widget.idStation}/valoraciones/'),
+    );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          ratings = data;
-          isLoading = false;
-        });
-      } else {
-        setState(() {
-          error = 'Failed to load ratings: ${response.statusCode}';
-          isLoading = false;
-        });
-      }
-    } catch (e) {
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
       setState(() {
-        error = 'Error: $e';
+        ratings = data;
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        error = 'Failed to load ratings: ${response.statusCode}';
         isLoading = false;
       });
     }
+  } catch (e) {
+    setState(() {
+      error = 'Error: $e';
+      isLoading = false;
+    });
   }
+}
 
   @override
   Widget build(BuildContext context) {
