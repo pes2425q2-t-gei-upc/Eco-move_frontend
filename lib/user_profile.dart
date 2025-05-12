@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:eco_move_frontend/l10n/locale_provider.dart';
 import 'package:eco_move_frontend/log_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 
 
 class UserProfile {
@@ -116,6 +118,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
         isEditing = false;
       });
 
+      // Change the frontend language
+      Provider.of<LocaleProvider>(context, listen: false)
+        .setLocale(_mapToLocale(selectedLanguage));
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Perfil actualizado correctamente')),
       );
@@ -127,6 +133,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
       });
     }
   }
+
+  Locale _mapToLocale(String language) {
+    switch (language.toLowerCase()) {
+      case 'català':
+      case 'catala':
+        return const Locale('ca');
+      case 'castellano':
+        return const Locale('es');
+      case 'english':
+      default:
+        return const Locale('en');
+    }
+  }
+
 
   Future<void> _initialize() async {
     token = await getAccessToken();
@@ -141,8 +161,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     await _getProfilePhoto();
     _initControllers();
     setState(() => isLoading = false);
-
-    
   }
 
   Future<bool> _getMyInfo() async {
