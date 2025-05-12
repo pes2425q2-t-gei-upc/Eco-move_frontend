@@ -147,5 +147,21 @@
   "profile_save_changes": "Guardar canvis",
   "profile_delete": "Eliminar el meu usuari",
   "profile_confirmation_delete_text" : "Està segur que vol eliminar el seu usuari?",
-  "profile_confirmation_delete": "Eliminar usuari"
+  "profile_confirmation_delete": "Eliminar usuari",
+
+  "car_info": "Els meus vehicles",
+  "car_info_license_plate": "Matrícula",
+  "car_info_compatible_chargers": "Carregadors compatibles",
+  "car_info_battery_capacity": "Capacitat de la bateria",
+  "car_info_model": "Model",
+  "car_info_brand": "Marca",
+  "car_info_year": "Any",
+  "car_info_select_charger": "Selecciona els tipus de carregador",
+
+  "car_info_vehicle": "Informació del vehicle",
+  "car_info_model_info": "Informació del model",
+  "car_info_create": "Crear vehicle",
+  "car_info_actual_capacity": "Capacitat actual",
+  "car_info_save": "Guardar vehicle"
+
 }

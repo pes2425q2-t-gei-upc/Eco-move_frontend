@@ -1,39 +1,16 @@
 import 'dart:convert';
-import 'package:eco_move_frontend/config.dart';
 import 'dart:io';
-import 'package:eco_move_frontend/config.dart';
+import 'package:eco_move_frontend/l10n/locale_provider.dart';
 import 'package:eco_move_frontend/log_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'config.dart';
-import 'main.dart';
+import 'package:provider/provider.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Perfil usuario',
-      theme: ThemeData(
-        primarySwatch: Colors.lightGreen,
-        useMaterial3: true,
-      ),
-      home: const UserProfilePage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
 
 class UserProfile {
   String firstName;
@@ -141,6 +118,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
         isEditing = false;
       });
 
+      // Change the frontend language
+      Provider.of<LocaleProvider>(context, listen: false)
+        .setLocale(_mapToLocale(selectedLanguage));
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Perfil actualizado correctamente')),
       );
@@ -153,19 +134,38 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
 
+  Locale _mapToLocale(String language) {
+    switch (language.toLowerCase()) {
+      case 'català':
+      case 'catala':
+        return const Locale('ca');
+      case 'castellano':
+        return const Locale('es');
+      case 'english':
+      default:
+        return const Locale('en');
+    }
+  }
+
+
   Future<void> _initialize() async {
     token = await getAccessToken();
     print(token);
-    await _getMyInfo();
+    final success = await _getMyInfo();
+
+    if (!success) {
+      setState(() => isLoading = false);
+      return;
+    }
+
     await _getProfilePhoto();
     _initControllers();
-    setState(() {
-      isLoading = false;
-    });
+    setState(() => isLoading = false);
   }
 
-  Future<void> _getMyInfo() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
+  Future<bool> _getMyInfo() async {
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
+    print('la url de profile es ${url}');
     print('el token es ${token}');
     try {
       final response = await http.get(
@@ -182,25 +182,28 @@ class _UserProfilePageState extends State<UserProfilePage> {
         print(bodyJson);
         id = bodyJson['id'];
         userProfile = UserProfile(
-          firstName: bodyJson['first_name'],
-          lastName: bodyJson['last_name'],
-          email: bodyJson['email'],
-          description: bodyJson['descripcio'],
-          language: bodyJson['idioma'],
-          telephone: bodyJson['telefon'],
-          username: bodyJson['username'],
+          firstName: bodyJson['first_name'] ?? '',
+          lastName: bodyJson['last_name'] ?? '',
+          email: bodyJson['email'] ?? '',
+          description: bodyJson['descripcio'] ?? '',
+          language: bodyJson['idioma'] ?? '',
+          telephone: bodyJson['telefon'] ?? '',
+          username: bodyJson['username'] ?? '',
         );
+        return true;
       } else {
         print('Failed to get user info: ${response.statusCode} - ${response.body}');
+        return false;
       }
     } catch (e) {
       print('Error: $e');
+      return false;
     }
   }
 
   // Get profile photo
   Future<void> _getProfilePhoto() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhoto));
     try {
       final response = await http.get(
         url,
@@ -228,7 +231,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Upload profile photo
   Future<void> _uploadProfilePhoto(File imageFile) async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhoto));
     try {
       // Create a multipart request
       var request = http.MultipartRequest('POST', url);
@@ -275,7 +278,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Delete profile photo
   Future<void> _deleteProfilePhoto() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhoto));
     try {
       final response = await http.delete(
         url,
@@ -661,7 +664,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<void> editUser() async {
     print('Starting editUser function...');
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/api_punts_carrega/usuari/$id/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.user(id)));
 
     final Map<String, dynamic> data = {
       'first_name': userProfile.firstName,
@@ -694,7 +697,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
   Future<void> _deleteUser() async {
-    final url = Uri.parse('${AppConfig.localBaseUrl}/api_punts_carrega/usuari/$id/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.user(id)));
 
     try {
       final response = await http.delete(

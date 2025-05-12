@@ -7,6 +7,7 @@ import 'calculate_price.dart';
 import 'book_charger.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:eco_move_frontend/list-ratings.dart';
 
 void main() {
   runApp(const MyApp());
@@ -41,7 +42,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
   Future<void> _fetchStations() async {
     final url = Uri.parse(
       FrontendRoutes.build(
-        FrontendRoutes.stationById(idStation),
+        FrontendRoutes.estacion(idStation),
       ), // Ensure this URL is correct
     );
     try {
@@ -286,15 +287,13 @@ class _EstacionScreenState extends State<EstacionScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                BookChargerScreen(idStation: idStation),
-                          ),
-                        );
-                      },
+                     onPressed: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ListRatingsScreen(idStation: idStation),
+      ),
+    );
+  },
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.orangeAccent,
                         foregroundColor: Colors.white,

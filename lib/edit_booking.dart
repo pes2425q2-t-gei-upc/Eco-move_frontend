@@ -313,7 +313,7 @@ class _DateTimePickerWithDropdownState
     String estacion,
   ) async {
     final url = Uri.parse(
-      FrontendRoutes.build(FrontendRoutes.editReservation(id)),
+      FrontendRoutes.build(FrontendRoutes.reservasModificar(id)),
     );
 
     final Map<String, dynamic> data = {

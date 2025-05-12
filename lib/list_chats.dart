@@ -1,10 +1,10 @@
 import 'dart:convert';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'chat.dart';
-import 'config.dart';
 
 void main() {
   runApp(const MyApp());
@@ -136,7 +136,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Future<void> _fetchChats() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.prodBaseUrl}/social/chat/my_chats/'),
+        Uri.parse(FrontendRoutes.build(FrontendRoutes.myChats)),
         headers: {
           'Authorization': 'Bearer ${token}',
           'Content-Type': 'application/json',
@@ -159,7 +159,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Future<void> _newChat(String email) async {
     try {
       final response = await http.post(
-          Uri.parse('${AppConfig.prodBaseUrl}/social/chat/create_chat/'),
+          Uri.parse(FrontendRoutes.build(FrontendRoutes.createChat)),
           headers: {
             'Authorization': 'Bearer ${token}',
           },
@@ -181,7 +181,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Future<void> _getMyInfo() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
 
     try {
       final response = await http.get(
@@ -208,7 +208,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Future<Map<String, String>> _fetchLastMessage(int chatId) async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.prodBaseUrl}/social/chat/$chatId/messages/'),
+        Uri.parse(FrontendRoutes.build(FrontendRoutes.chatMessages(chatId))),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

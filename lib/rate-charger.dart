@@ -1,10 +1,8 @@
 import 'dart:convert';
-
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'config.dart';
-
 
 void main() {
   runApp(const MyApp());
@@ -61,7 +59,7 @@ class _RatingScreenState extends State<RatingScreen> {
     return await _secureStorage.read(key: 'access');
   }
   Future<void> _getInfo() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
 
     try {
       final response = await http.get(
@@ -91,7 +89,7 @@ class _RatingScreenState extends State<RatingScreen> {
 
   Future<void> _fetchStation() async {
     final url = Uri.parse(
-      '${AppConfig.prodBaseUrl}/api_punts_carrega/estacions/${widget.idStation}/', // Ensure this URL is correct
+      FrontendRoutes.build(FrontendRoutes.estacion(widget.idStation!)), // Ensure this URL is correct
     );
     try {
       final response = await http.get(url);
@@ -112,7 +110,7 @@ class _RatingScreenState extends State<RatingScreen> {
 
   Future<void> _fetchUser() async {
     final url = Uri.parse(
-      '${AppConfig.prodBaseUrl}/api_punts_carrega/usuari/$my_id/',
+      FrontendRoutes.build(FrontendRoutes.user(my_id)),
     );
     try {
       final response = await http.get(url);
@@ -135,7 +133,7 @@ class _RatingScreenState extends State<RatingScreen> {
 
 
   Future<void> sendRating() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/api_punts_carrega/valoraciones_estaciones/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.valoracionesEstaciones));
 
     final Map<String, dynamic> data = {
       'estacion': widget.idStation,
@@ -169,132 +167,133 @@ class _RatingScreenState extends State<RatingScreen> {
       appBar: AppBar(
         title: const Text('Valorar estación de carga'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Align children to the start (left)
-          children: [
-            // Station info at top left
-            SizedBox(height: 40),
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.ev_station, color: Color(0xE278A879)),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Estación: ${stationData['direccio'] ?? "No disponible"}',
-                            style: TextStyle(
-                              fontSize: 18,
+      body: SingleChildScrollView( // Envuelve el contenido en un SingleChildScrollView
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // Alinea los hijos al inicio (izquierda)
+            children: [
+              // Información de la estación
+              const SizedBox(height: 40),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.ev_station, color: Color(0xE278A879)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Estación: ${stationData['direccio'] ?? "No disponible"}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_city, color: Color(0xE278A879)),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Ciudad: ${stationData['ciutat'] ?? "No disponible"}',
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Espaciador
+              const SizedBox(height: 40),
+
+              // Sección de valoración
+              Center(
+                child: Column(
+                  children: [
+                    const Text(
+                      'Valora la estación de carga:',
+                      style: TextStyle(fontSize: 20),
                     ),
-                    SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(Icons.location_city, color: Color(0xE278A879)),
-                        SizedBox(width: 8),
-                        Text(
-                          'Ciudad: ${stationData['ciutat'] ?? "No disponible"}',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      ],
+                    const SizedBox(height: 20),
+                    RatingBar(
+                      rating: _rating,
+                      onRatingChanged: (rating) {
+                        setState(() {
+                          _rating = rating;
+                        });
+                      },
                     ),
+                    const SizedBox(height: 40),
+                    Text(
+                      _rating > 0 ? 'Tu valoración: $_rating de 5' : 'Por favor, valora la estación',
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                    const SizedBox(height: 40),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Añade un comentario:',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _commentController,
+                            maxLines: 4,
+                            decoration: const InputDecoration(
+                              hintText: 'Escribe tu opinión sobre esta estación...',
+                              filled: false,
+                            ),
+                            validator: (value) {
+                              if (_rating == 0) {
+                                return 'Por favor, selecciona una valoración';
+                              }
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Por favor, añade un comentario';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_rating > 0)
+                      ElevatedButton(
+                        onPressed: () {
+                          sendRating();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Valoración $_rating enviada correctamente')),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xE278A879),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        ),
+                        child: const Text('Enviar valoración'),
+                      ),
                   ],
                 ),
               ),
-            ),
-
-
-            // Spacer
-            SizedBox(height: 100),
-
-            // Rating section centered
-            Center(
-              child: Column(
-                children: [
-                  const Text(
-                    'Valora la estación de carga:',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  const SizedBox(height: 20),
-                  RatingBar(
-                    rating: _rating,
-                    onRatingChanged: (rating) {
-                      setState(() {
-                        _rating = rating;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 40),
-                  Text(
-                    _rating > 0 ? 'Tu valoración: $_rating de 5' : 'Por favor, valora la estación',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 40),
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Añade un comentario:',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        TextFormField(
-                          controller: _commentController,
-                          maxLines: 4,
-                          decoration: InputDecoration(
-                            hintText: 'Escribe tu opinión sobre esta estación...',
-                            filled: false,
-                          ),
-                          validator: (value) {
-                            if (_rating == 0) {
-                              return 'Por favor, selecciona una valoración';
-                            }
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Por favor, añade un comentario';
-                            }
-                            return null;
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (_rating > 0)
-                    ElevatedButton(
-                      onPressed: () {
-                        sendRating();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Valoración $_rating enviada correctamente')),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xE278A879),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                      ),
-                      child: const Text('Enviar valoración'),
-                    ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -9,6 +9,7 @@ import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 
 class LoginScreen extends StatefulWidget {
+
   const LoginScreen({Key? key}) : super(key: key);
 
   @override
@@ -18,18 +19,24 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _obscurePassword = true; // Add this to control password visibility
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
-  // Modify the initState() method in the _LoginScreenState class (paste-3.txt)
+  bool _obscurePassword = true;
+  static String token = '';
+
 
   @override
   void initState() {
     super.initState();
     // Check for existing token when the login screen initializes
-    checkExistingToken();
+    _initialize();
   }
 
-  // Add this new method to _LoginScreenState class
+  Future<void> _initialize() async {
+    checkExistingToken();
+    token = (await getAccessToken())!;
+  }
+
 
   Future<void> checkExistingToken() async {
     // Get the access token from secure storage
@@ -42,7 +49,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Add this method to verify token validity (recommended)
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: 'access');
+  }
+
 
   Future<bool> validateToken(String token) async {
     try {
@@ -62,15 +72,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   Future<void> saveAccessToken(String access, String refresh) async {
     await _secureStorage.write(key: 'access', value: access);
     await _secureStorage.write(key: 'refresh', value: refresh);
-  }
-
-  Future<String?> getAccessToken() async {
-    return await _secureStorage.read(key: 'access');
   }
 
   Future<String?> getRefreshToken() async {
@@ -85,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> getToken() async {
-    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.login));
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.token));
     print('la url del get token de log in es ${url}');
     final Map<String, dynamic> data = {
       'email': _emailController.text,
@@ -138,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> getTokenRefresh(String refresh) async {
-    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.refreshToken));
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.tokenRefresh));
 
     final Map<String, dynamic> data = {'refresh': refresh};
 
