@@ -128,7 +128,6 @@
   "common_description": "Descripción",
   "common_send": "Enviar",
 
-
   "settings_title": "Configuración",
   "settings_change_language" : "Cambiar idioma",
   "settings_my_profile": "Mi perfil",
@@ -147,7 +146,6 @@
   "profile_cancel": "Cancelar",
   "profile_save_changes": "Guardar cambios",
   "profile_delete": "Eliminar mi usuario",
-  "profile_confirmation_delelte_text" : "Está seguro de que quiere eliminar su usuario?",
+  "profile_confirmation_delete_text" : "Está seguro de que quiere eliminar su usuario?",
   "profile_confirmation_delete": "Eliminar usuario"
-
 }

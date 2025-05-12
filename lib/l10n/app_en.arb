@@ -1,8 +1,5 @@
 {
   "language": "English",
-  "@language": {
-    "description": "The current Language"
-  },
   "language_en": "English",
   "language_es": "Spanish",
   "language_ca": "Catalan",
@@ -115,13 +112,7 @@
 
   "common_hello": "Hello",
   "common_cancel": "Cancel",
-  "@common_cancel": {
-    "description": "Used on buttons to cancel an action"
-  },
   "common_confirm": "Confirm",
-  "@common_confirm": {
-    "description": "Used on buttons to confirm an action"
-  },
   "common_confirmation": "Confirmation",
   "common_close": "Close",
   "common_all": "All",
@@ -136,7 +127,6 @@
   "common_title": "Title",
   "common_description": "Description",
   "common_send": "Send",
-
 
   "settings_title": "Settings",
   "settings_change_language" : "Change language",
