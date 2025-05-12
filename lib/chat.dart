@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'config.dart';
 
 
 class ChatScreen extends StatefulWidget {
@@ -120,7 +120,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _isSendingMessage = true;
     });
 
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/social/messages/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.messages));
 
     final Map<String, dynamic> data = {
       'chat': chat,
@@ -164,7 +164,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _getMyInfo() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
 
     try {
       final response = await http.get(
@@ -200,7 +200,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.prodBaseUrl}/social/chat/${widget.chatId}/messages/'),
+        Uri.parse(FrontendRoutes.build(FrontendRoutes.chatMessages(widget.chatId))),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

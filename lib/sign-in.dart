@@ -1,11 +1,8 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'main.dart';
-import 'config.dart';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 
@@ -66,7 +63,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> getToken() async {
-    final url = Uri.parse('${FrontendRoutes.apiBase}/token/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.token));
     print('la url del get token del login es ${url}');
     final Map<String, dynamic> data = {
       'email': emailController.text,
@@ -387,7 +384,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> createUser() async {
-    final url = Uri.parse('${FrontendRoutes.apiBase}/register/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.register));
 
     final Map<String, dynamic> data = {
       'first_name': firstNameController.text,

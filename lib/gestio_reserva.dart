@@ -41,7 +41,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
   Future<void> _fetchStations() async {
     final url = Uri.parse(
       FrontendRoutes.build(
-        FrontendRoutes.stationById(idStation),
+        FrontendRoutes.estacion(idStation),
       ), // Ensure this URL is correct
     );
     try {

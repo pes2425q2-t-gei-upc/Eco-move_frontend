@@ -85,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> getToken() async {
-    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.login));
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.token));
     print('la url del get token de log in es ${url}');
     final Map<String, dynamic> data = {
       'email': _emailController.text,
@@ -138,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> getTokenRefresh(String refresh) async {
-    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.refreshToken));
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.tokenRefresh));
 
     final Map<String, dynamic> data = {'refresh': refresh};
 

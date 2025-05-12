@@ -71,7 +71,7 @@ class _SettingsPageState extends State<SettingsPage> {
     // Sync to backend
     final response = await http.put(
       Uri.parse(
-        FrontendRoutes.build(FrontendRoutes.updateUserLanguage(_userId!)),
+        FrontendRoutes.build(FrontendRoutes.usuariUpdateLanguage(_userId!)),
       ),
       headers: {
         'Content-Type': 'application/json',

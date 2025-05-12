@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'config.dart'; // Importar la configuración
 import 'package:latlong2/latlong.dart'; // Asegúrate de importar latlong2
 
 class EmergencyPoint {
@@ -38,7 +38,6 @@ class EmergencyPoint {
 }
 
 class EmergencyService {
-  final String endpoint = "/social/alerts/polling_alertes/";
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   List<EmergencyPoint> _previousPoints = []; // Almacena los puntos anteriores
@@ -48,7 +47,7 @@ class EmergencyService {
   }
 
   Future<void> _refreshToken(String refreshToken) async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/token/refresh/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.tokenRefresh));
     final Map<String, dynamic> data = {'refresh': refreshToken};
 
     final response = await http.post(
@@ -78,7 +77,7 @@ class EmergencyService {
     };
 
      // Construye correctamente la URI usando AppConfig.prodBaseUrl
-  final uri = Uri.parse('${AppConfig.prodBaseUrl}$endpoint').replace(queryParameters: queryParams);
+  final uri = Uri.parse(FrontendRoutes.build(FrontendRoutes.alertsPollingAlertes)).replace(queryParameters: queryParams);
 
     try {
       final response = await http.get(

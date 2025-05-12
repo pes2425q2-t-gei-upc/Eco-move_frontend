@@ -1,18 +1,13 @@
 import 'dart:convert';
-import 'package:eco_move_frontend/config.dart';
 import 'dart:io';
-import 'package:eco_move_frontend/config.dart';
 import 'package:eco_move_frontend/log_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'config.dart';
-import 'main.dart';
 
 void main() {
   runApp(const MyApp());
@@ -165,7 +160,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _getMyInfo() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
     print('el token es ${token}');
     try {
       final response = await http.get(
@@ -200,7 +195,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Get profile photo
   Future<void> _getProfilePhoto() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhoto));
     try {
       final response = await http.get(
         url,
@@ -228,7 +223,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Upload profile photo
   Future<void> _uploadProfilePhoto(File imageFile) async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhoto));
     try {
       // Create a multipart request
       var request = http.MultipartRequest('POST', url);
@@ -275,7 +270,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Delete profile photo
   Future<void> _deleteProfilePhoto() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhoto));
     try {
       final response = await http.delete(
         url,
@@ -661,7 +656,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<void> editUser() async {
     print('Starting editUser function...');
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/api_punts_carrega/usuari/$id/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.user(id)));
 
     final Map<String, dynamic> data = {
       'first_name': userProfile.firstName,
@@ -694,7 +689,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
   Future<void> _deleteUser() async {
-    final url = Uri.parse('${AppConfig.localBaseUrl}/api_punts_carrega/usuari/$id/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.user(id)));
 
     try {
       final response = await http.delete(
