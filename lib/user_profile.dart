@@ -9,26 +9,6 @@ import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Perfil usuario',
-      theme: ThemeData(
-        primarySwatch: Colors.lightGreen,
-        useMaterial3: true,
-      ),
-      home: const UserProfilePage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
 
 class UserProfile {
   String firstName;
@@ -151,15 +131,21 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Future<void> _initialize() async {
     token = await getAccessToken();
     print(token);
-    await _getMyInfo();
+    final success = await _getMyInfo();
+
+    if (!success) {
+      setState(() => isLoading = false);
+      return;
+    }
+
     await _getProfilePhoto();
     _initControllers();
-    setState(() {
-      isLoading = false;
-    });
+    setState(() => isLoading = false);
+
+    
   }
 
-  Future<void> _getMyInfo() async {
+  Future<bool> _getMyInfo() async {
     final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
     print('el token es ${token}');
     try {
@@ -177,19 +163,22 @@ class _UserProfilePageState extends State<UserProfilePage> {
         print(bodyJson);
         id = bodyJson['id'];
         userProfile = UserProfile(
-          firstName: bodyJson['first_name'],
-          lastName: bodyJson['last_name'],
-          email: bodyJson['email'],
-          description: bodyJson['descripcio'],
-          language: bodyJson['idioma'],
-          telephone: bodyJson['telefon'],
-          username: bodyJson['username'],
+          firstName: bodyJson['first_name'] ?? '',
+          lastName: bodyJson['last_name'] ?? '',
+          email: bodyJson['email'] ?? '',
+          description: bodyJson['descripcio'] ?? '',
+          language: bodyJson['idioma'] ?? '',
+          telephone: bodyJson['telefon'] ?? '',
+          username: bodyJson['username'] ?? '',
         );
+        return true;
       } else {
         print('Failed to get user info: ${response.statusCode} - ${response.body}');
+        return false;
       }
     } catch (e) {
       print('Error: $e');
+      return false;
     }
   }
 
