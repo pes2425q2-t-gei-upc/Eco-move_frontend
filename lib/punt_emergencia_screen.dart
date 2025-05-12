@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'EmergenciaDetails.dart';
 
 class PuntEmergenciaScreen extends StatelessWidget {
   final LatLng? position; // Recibir la posición como parámetro
@@ -152,18 +151,7 @@ class PuntEmergenciaScreen extends StatelessWidget {
               tituloController.text,
               descripcionController.text,
             );
-
-             /*Navegar directamente a la nueva página
-             Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const EmergenciaDetails()),
-              );
-              */
-            /*NotiService().showNotification(
-               title: "Alerta enviada",
-               body: "Tu alerta ha sido enviada con éxito.",
-               payload: "navigate_to_screen",
-            );
-            */
+             Navigator.of(context).pop();
           },
           style: TextButton.styleFrom(foregroundColor: Colors.red),
           child: const Text("Enviar"),
