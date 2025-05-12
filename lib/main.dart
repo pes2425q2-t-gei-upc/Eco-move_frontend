@@ -461,7 +461,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      estacion['direccio'] ?? 'Dirección desconocida',
+                      estacion['direccio'] ?? context.loc.station_address_unknown,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -470,7 +470,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Ciudad: ${estacion['ciutat'] ?? 'N/A'}',
+                      '${context.loc.station_city}: ${estacion['ciutat'] ?? 'N/A'}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -494,7 +494,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          'Plazas libres: ${estacion['nplaces'] ?? 'N/A'}',
+                          '${context.loc.station_free_spots}: ${estacion['nplaces'] ?? 'N/A'}',
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.black54,
@@ -504,7 +504,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Potencia: ${estacion['potencia'] ?? 'N/A'} kW',
+                      '${context.loc.station_power}: ${estacion['potencia'] ?? 'N/A'} kW',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -512,7 +512,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Velocidad: ${estacion['tipus_velocitat'] ?? 'N/A'}',
+                      '${context.loc.station_speed_type}: ${estacion['tipus_velocitat'] ?? 'N/A'}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -522,7 +522,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(height: 5),
                     if (estacion.containsKey('distancia_km'))
                       Text(
-                        'Distancia: ${estacion['distancia_km'].toStringAsFixed(2)} km',
+                        '${context.loc.station_distance}: ${estacion['distancia_km'].toStringAsFixed(2)} km',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.blueGrey,
