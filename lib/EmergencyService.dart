@@ -112,7 +112,7 @@ class EmergencyService {
     }
   }
 
-  Stream<EmergencyPoint?> pollForNewEmergencyPoints(double lat, double lng, {Duration interval = const Duration(seconds: 10)}) async* {
+  Stream<EmergencyPoint?> pollForNewEmergencyPoints(double lat, double lng, {Duration interval = const Duration(seconds: 20)}) async* {
     while (true) {
       try {
         final newPoints = await fetchEmergencyPoints(lat, lng);

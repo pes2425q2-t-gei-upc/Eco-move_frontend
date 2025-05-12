@@ -272,7 +272,10 @@ class _MyHomePageState extends State<MyHomePage> {
       queryParameters['ciutat'] = ciudadSeleccionada;
     }
 
-    final uri = Uri.parse(FrontendRoutes.build(FrontendRoutes.opcionsFiltres));
+    final uri = Uri.parse(FrontendRoutes.build(FrontendRoutes.filtrarEstacions))
+      .replace(queryParameters: queryParameters);
+    
+    print(uri);
 
     try {
       final response = await http.get(uri);
@@ -323,6 +326,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final uri = Uri.parse(
       '${FrontendRoutes.build(FrontendRoutes.puntmesproper)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
+    print(uri);
 
     try {
       final response = await http.get(uri);
@@ -378,11 +382,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _buildEstacionesList() {
-    // final dropdownItems = {
-    //   'all': context.loc.common_all,
-    //   'nearest': context.loc.filter_closest,
-    // };
+ Widget _buildEstacionesList() {
     return Stack(
       children: [
         Column(
@@ -449,8 +449,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      estacion[context.loc.station_address] ??
-                          context.loc.station_address_unknown,
+                      estacion['direccio'] ?? 'Dirección desconocida',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -459,7 +458,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      '${context.loc.station_city}: ${estacion['ciutat'] ?? 'N/A'}',
+                      'Ciudad: ${estacion['ciutat'] ?? 'N/A'}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -483,7 +482,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          '${context.loc.station_free_spots}: ${estacion['nplaces'] ?? 'N/A'}',
+                          'Plazas libres: ${estacion['nplaces'] ?? 'N/A'}',
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.black54,
@@ -493,7 +492,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      '${context.loc.station_power}: ${estacion['potencia'] ?? 'N/A'} kW',
+                      'Potencia: ${estacion['potencia'] ?? 'N/A'} kW',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -501,7 +500,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      '${context.loc.station_speed_type}: ${estacion['tipus_velocitat'] ?? 'N/A'}',
+                      'Velocidad: ${estacion['tipus_velocitat'] ?? 'N/A'}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -511,7 +510,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(height: 5),
                     if (estacion.containsKey('distancia_km'))
                       Text(
-                        '${context.loc.station_distance}: ${estacion['distancia_km'].toStringAsFixed(2)} km',
+                        'Distancia: ${estacion['distancia_km'].toStringAsFixed(2)} km',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.blueGrey,

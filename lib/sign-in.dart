@@ -385,7 +385,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<void> createUser() async {
     final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.register));
-
+    print(url);
     final Map<String, dynamic> data = {
       'first_name': firstNameController.text,
       'last_name': lastNameController.text,

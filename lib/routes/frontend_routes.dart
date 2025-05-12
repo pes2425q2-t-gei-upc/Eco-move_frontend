@@ -26,6 +26,7 @@ class FrontendRoutes {
 
   // Filters
   static const String opcionsFiltres = '/api_punts_carrega/opcions_filtres/';
+  static const String filtrarEstacions = '/api_punts_carrega/filtrar_estacions/';
 
   // Language
   static const String updateLanguage = '/api_punts_carrega/update_language/';

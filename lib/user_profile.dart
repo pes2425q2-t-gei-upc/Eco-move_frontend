@@ -165,6 +165,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<bool> _getMyInfo() async {
     final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
+    print('la url de profile es ${url}');
     print('el token es ${token}');
     try {
       final response = await http.get(

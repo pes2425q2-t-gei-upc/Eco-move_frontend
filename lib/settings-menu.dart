@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'user_profile.dart';
 import 'package:eco_move_frontend/page/language_settings.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'car-info.dart';
 
 class NavigationPage extends StatefulWidget {
   @override
@@ -54,6 +55,18 @@ class _NavigationPageState extends State<NavigationPage> {
                   );
                 },
               ),
+              const SizedBox(height: 16),
+              _buildSettingCard(
+                context,
+                icon: Icons.directions_car,
+                title: context.loc.car_info,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => CarInfo()),
+                  );
+                },
+              ),
+
             ],
           ),
         ),
