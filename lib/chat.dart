@@ -120,7 +120,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _isSendingMessage = true;
     });
 
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/social/messages/');
+    final url = Uri.parse('${AppConfig.apiBase}/social/messages/');
 
     final Map<String, dynamic> data = {
       'chat': chat,
@@ -164,7 +164,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _getMyInfo() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
+    final url = Uri.parse('${AppConfig.apiBase}/me/');
 
     try {
       final response = await http.get(
@@ -200,7 +200,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.prodBaseUrl}/social/chat/${widget.chatId}/messages/'),
+        Uri.parse('${AppConfig.apiBase}/social/chat/${widget.chatId}/messages/'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

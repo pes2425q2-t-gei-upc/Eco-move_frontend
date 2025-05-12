@@ -695,7 +695,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
   Future<void> _deleteUser() async {
-    final url = Uri.parse('${AppConfig.localBaseUrl}/api_punts_carrega/usuari/$id/');
+    final url = Uri.parse('${AppConfig.apiBase}/api_punts_carrega/usuari/$id/');
 
     try {
       final response = await http.delete(
