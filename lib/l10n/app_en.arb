@@ -50,6 +50,23 @@
   "station_navigate": "Navigate",
   "station_distance": "Distance",
   "station_enter_the_name_of_the_city": "Enter the name of the city",
+  "station_give_a_review": "Give a review",
+  "station_see_reviews": "See reviews",
+  "station_share_station": "Share station",
+  "station_share_message_1": "Check out this charging station",
+  "station_share_message_2": "Here is the location",
+
+  "review": "Review",
+  "review_rate_charging_station": "Rate charging station",
+  "review_rate_the_charging_station": "Rate the charging station",
+  "review_please_rate_the_station": "Please rate the station",
+  "review_your_rating": "Your rating",
+  "review_add_a_comment": "Add a comment",
+  "review_write_your_opinion": "Write your review of this station...",
+  "review_submit_review": "Submit review",
+  "review_sent_correctly": "sent correctly",
+  "review_please_select_a_rating": "Please select a rating",
+  "review_please_add_a_comment": "Please add a comment",
   
   "filter_closest": "Closest",
   "filter_by_proximity": "Filter by proximity",
@@ -127,6 +144,7 @@
   "common_title": "Title",
   "common_description": "Description",
   "common_send": "Send",
+  "common_of": "of",
 
   "settings_title": "Settings",
   "settings_change_language" : "Change language",
@@ -150,19 +168,16 @@
   "profile_confirmation_delete": "Delete user",
 
   "car_info": "My vehicles",
-
-    "car_info_license_plate": "Plate number",
-    "car_info_compatible_chargers": "Compatible chargers",
-    "car_info_battery_capacity": "Battery capacity",
-    "car_info_model": "Model",
-    "car_info_brand": "Brand",
-    "car_info_year": "Year",
-    "car_info_select_charger": "Select charger types",
-    "car_info_vehicle": "Vehicle information",
-      "car_info_model_info": "Car model information",
-      "car_info_create": "Create vehicle",
-        "car_info_actual_capacity": "Current charge",
-        "car_info_save": "Save vehicle"
-
-
+  "car_info_license_plate": "Plate number",
+  "car_info_compatible_chargers": "Compatible chargers",
+  "car_info_battery_capacity": "Battery capacity",
+  "car_info_model": "Model",
+  "car_info_brand": "Brand",
+  "car_info_year": "Year",
+  "car_info_select_charger": "Select charger types",
+  "car_info_vehicle": "Vehicle information",
+  "car_info_model_info": "Car model information",
+  "car_info_create": "Create vehicle",
+  "car_info_actual_capacity": "Current charge",
+  "car_info_save": "Save vehicle"
 }
