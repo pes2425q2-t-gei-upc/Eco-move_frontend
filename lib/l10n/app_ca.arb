@@ -162,6 +162,19 @@
   "car_info_model_info": "Informació del model",
   "car_info_create": "Crear vehicle",
   "car_info_actual_capacity": "Capacitat actual",
-  "car_info_save": "Guardar vehicle"
+  "car_info_save": "Guardar vehicle",
+
+  "bici_detail_title": "Estació Bicing",
+"bici_detail_capacity": "Capacitat",
+"bici_detail_is_charging_station": "Carrega elèctrica?",
+"bici_detail_ride_code_support": "Suporta codi de viatge",
+"bici_detail_nearby_distance": "Distància propera (m)",
+"bici_detail_physical_configuration": "Tipus d'estació",
+"bici_detail_how_to_arrive": "Com arribar",
+"bici_detail_reserve": "Reservar",
+"bici_detail_yes": "Sí",
+"bici_detail_no": "No",
+"bici_detail_address": "Adreça",
+"bici_detail_unknown_address": "Desconeguda"
 
 }

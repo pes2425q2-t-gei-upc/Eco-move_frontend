@@ -163,6 +163,20 @@
       "car_info_model_info": "Información del modelo",
       "car_info_create": "Crear vehículo",
         "car_info_actual_capacity": "Capacidad actual",
-        "car_info_save": "Guardar vehículo"
+        "car_info_save": "Guardar vehículo",
+
+
+"bici_detail_title": "Estación Bicing",
+"bici_detail_capacity": "Capacidad",
+"bici_detail_is_charging_station": "¿Carga eléctrica?",
+"bici_detail_ride_code_support": "Soporta código de viaje",
+"bici_detail_nearby_distance": "Distancia cercana (m)",
+"bici_detail_physical_configuration": "Tipo estación",
+"bici_detail_how_to_arrive": "Cómo llegar",
+"bici_detail_reserve": "Reservar",
+"bici_detail_yes": "Sí",
+"bici_detail_no": "No",
+"bici_detail_address": "Dirección",
+"bici_detail_unknown_address": "Desconocida"
 
 }

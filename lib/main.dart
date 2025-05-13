@@ -35,6 +35,7 @@ import 'alertManager.dart'; // Importa AlertManager
 import 'EmergencyScreen.dart';
 import 'EmergencyService.dart';
 import 'settings-menu.dart';
+import 'bici_detail_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
@@ -225,18 +226,11 @@ class _MyHomePageState extends State<MyHomePage> {
       final List<dynamic> data = json.decode(response.body);
       setState(() {
         _bicis = data.map((item) {
-          return {
-            "id": item["id"],
-            "station_id": item["station_id"],
-            "lat": item["lat"],
-            "lng": item["lon"],
-            "name": item["name"],
-            "address": item["address"],
-            "capacity": item["capacity"],
-            "is_charging_station": item["is_charging_station"],
-            "nearby_distance": item["nearby_distance"],
-            // Puedes añadir más campos si los necesitas
-          };
+    return {
+      "id": item["id"],
+      "lat": item["lat"],
+      "lng": item["lon"],
+    };
         }).toList();
       });
     } else {
@@ -430,6 +424,14 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+void _abrirBiciScreen(BuildContext context, String idBici) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => BiciDetailScreen(idBici: idBici),
+    ),
+  );
+}
+
  Widget _buildEstacionesList() {
     return Stack(
       children: [
@@ -619,7 +621,7 @@ class _MyHomePageState extends State<MyHomePage> {
             if (_tipoMapa == 'refugios') {
               _abrirRefugioScreen(context, estacion['id_punt'].toString());
             } else if (_tipoMapa == 'bicis') {
-              // Aquí puedes mostrar detalles de la estación de bicing si quieres
+              _abrirBiciScreen(context, estacion['id'].toString());
             } else {
               _abrirEstacionScreen(context, estacion['id_punt'].toString());
             }
@@ -1100,7 +1102,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                     selected: selected,
-                    showCheckmark: false, // Quita el tick
+                    showCheckmark: false,
                     selectedColor: (opcion['color'] as Color).withOpacity(0.18),
                     backgroundColor: Colors.grey.shade200,
                     onSelected: (isSelected) {
