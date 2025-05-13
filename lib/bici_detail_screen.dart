@@ -120,33 +120,39 @@ class _BiciDetailScreenState extends State<BiciDetailScreen> {
                   icon: Icons.location_on,
                   label: loc.bici_detail_address,
                   value: bici!['address'] ?? loc.bici_detail_unknown_address,
+                  color: Colors.orange,
                 ),
                 _buildInfoRow(
                   icon: Icons.directions_bike,
                   label: loc.bici_detail_capacity,
                   value: bici!['capacity']?.toString() ?? 'N/A',
+                  color: Colors.orange,
                 ),
                 _buildInfoRow(
                   icon: Icons.bolt,
                   label: loc.bici_detail_is_charging_station,
                   value: (bici!['is_charging_station'] ?? false) ? loc.bici_detail_yes : loc.bici_detail_no,
-                  color: (bici!['is_charging_station'] ?? false) ? Colors.green : Colors.red,
+                  color: Colors.orange,
                 ),
                 _buildInfoRow(
                   icon: Icons.qr_code,
                   label: loc.bici_detail_ride_code_support,
                   value: (bici!['ride_code_support'] ?? false) ? loc.bici_detail_yes : loc.bici_detail_no,
-                  color: (bici!['ride_code_support'] ?? false) ? Colors.green : Colors.red,
+                  color: Colors.orange,
                 ),
                 _buildInfoRow(
                   icon: Icons.social_distance,
                   label: loc.bici_detail_nearby_distance,
-                  value: bici!['nearby_distance']?.toString() ?? 'N/A',
+                  value: bici!['nearby_distance'] != null
+                    ? '${bici!['nearby_distance']} m'
+                    : 'N/A',
+                  color: Colors.orange,
                 ),
                 _buildInfoRow(
                   icon: Icons.settings,
                   label: loc.bici_detail_physical_configuration,
                   value: bici!['physical_configuration'] ?? 'N/A',
+                  color: Colors.orange,
                 ),
                 const SizedBox(height: 30),
                 Center(
@@ -159,9 +165,11 @@ class _BiciDetailScreenState extends State<BiciDetailScreen> {
                           _openGoogleMaps(lat, lng);
                         },
                         icon: const Icon(Icons.directions, color: Colors.white),
-                        label: Text(loc.bici_detail_how_to_arrive),
+                        label: Text(loc.bici_detail_how_to_arrive,
+                                  style: const TextStyle(color: Colors.white),),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -174,7 +182,8 @@ class _BiciDetailScreenState extends State<BiciDetailScreen> {
                           // Aquí puedes implementar la lógica de reserva en el futuro
                         },
                         icon: const Icon(Icons.lock, color: Colors.white),
-                        label: Text(loc.bici_detail_reserve),
+                        label: Text(loc.bici_detail_reserve,
+                                  style: const TextStyle(color: Colors.white),),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.grey,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

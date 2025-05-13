@@ -178,7 +178,7 @@
 "bici_detail_capacity": "Capacity",
 "bici_detail_is_charging_station": "Electric charging?",
 "bici_detail_ride_code_support": "Ride code support",
-"bici_detail_nearby_distance": "Nearby distance (m)",
+"bici_detail_nearby_distance": "Nearby distance",
 "bici_detail_physical_configuration": "Station type",
 "bici_detail_how_to_arrive": "How to arrive",
 "bici_detail_reserve": "Reserve",
