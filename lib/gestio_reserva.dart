@@ -9,6 +9,7 @@ import 'book_charger.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'package:eco_move_frontend/list-ratings.dart';
+import 'notificar_error_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -320,12 +321,12 @@ class _EstacionScreenState extends State<EstacionScreen> {
                     const SizedBox(height: 16),
                     TextButton(
                      onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => ListRatingsScreen(idStation: idStation),
-                        ),
-                      );
-                    },
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ListRatingsScreen(idStation: idStation),
+                          ),  
+                        );
+                      },
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.orangeAccent,
                         foregroundColor: Colors.white,
@@ -340,7 +341,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
                         children: [
                           Icon(Icons.star, color: Colors.white),
                           SizedBox(width: 8),
-                          Text(context.loc.station_see_reviews),
+                          Text(context.loc.station_view_reviews),
                         ],
                       ),
                     ),
@@ -364,12 +365,37 @@ class _EstacionScreenState extends State<EstacionScreen> {
                           ), // Rounded corners
                         ),
                       ),
-                      child: Row(
+                      child:  Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.recommend_sharp, color: Colors.white),
                           SizedBox(width: 8),
-                          Text(context.loc.station_give_a_review),
+                          Text(context.loc.station_give_review),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => NotificarErrorScreen(idStation: idStation),
+                          ),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children:  [
+                          Icon(Icons.error, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(context.loc.station_report_error),
                         ],
                       ),
                     ),

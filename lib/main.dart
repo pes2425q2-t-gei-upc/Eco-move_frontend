@@ -19,11 +19,19 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'l10n/locale_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'l10n/locale_provider.dart';
+import 'calendar.dart';
 import 'settings-menu.dart';
 import 'noti_service.dart';
 import 'alertManager.dart'; // Importa AlertManager
+
 import 'EmergencyScreen.dart';
 import 'EmergencyService.dart';
+import 'settings-menu.dart';
+import 'bici_detail_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
@@ -109,6 +117,10 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Map<String, dynamic>> refugios = [];
   bool mostrarRefugios = false;
 
+  //Bicis
+  List<dynamic> _bicis = [];
+  String _tipoMapa = 'estaciones'; // valores: 'estaciones', 'refugios', 'bicis'
+
   // Add a new list to store selected charger types
   List<String> tiposCargadorSeleccionados = [];
 
@@ -162,6 +174,8 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+
+
   Future<void> _fetchRefugiosCercanos() async {
     if (myPosition == null) {
       print('Posición no disponible');
@@ -198,7 +212,31 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  // Modify _fetchFiltros to dynamically fetch charger types
+  Future<void> _fetchBicis() async {
+  final url = Uri.parse(
+    'http://127.0.0.1:8000/api/bicing/estaciones/',
+  );
+  try {
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        _bicis = data.map((item) {
+    return {
+      "id": item["id"],
+      "lat": item["lat"],
+      "lng": item["lon"],
+    };
+        }).toList();
+      });
+    } else {
+      print('Error al cargar bicis: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error en la solicitud de bicis: $e');
+  }
+}
+
   Future<void> _fetchFiltros() async {
     final url = Uri.parse(
       FrontendRoutes.build(FrontendRoutes.opcionsFiltres),
@@ -382,6 +420,14 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+void _abrirBiciScreen(BuildContext context, String idBici) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => BiciDetailScreen(idBici: idBici),
+    ),
+  );
+}
+
  Widget _buildEstacionesList() {
     return Stack(
       children: [
@@ -449,7 +495,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      estacion['direccio'] ?? 'Dirección desconocida',
+                      estacion['direccio'] ?? context.loc.station_address_unknown,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -458,7 +504,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Ciudad: ${estacion['ciutat'] ?? 'N/A'}',
+                      '${context.loc.station_city}: ${estacion['ciutat'] ?? 'N/A'}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -482,7 +528,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          'Plazas libres: ${estacion['nplaces'] ?? 'N/A'}',
+                          '${context.loc.station_free_spots}: ${estacion['nplaces'] ?? 'N/A'}',
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.black54,
@@ -492,7 +538,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Potencia: ${estacion['potencia'] ?? 'N/A'} kW',
+                      '${context.loc.station_power}: ${estacion['potencia'] ?? 'N/A'} kW',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -500,7 +546,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Velocidad: ${estacion['tipus_velocitat'] ?? 'N/A'}',
+                      '${context.loc.station_speed_type}: ${estacion['tipus_velocitat'] ?? 'N/A'}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -510,7 +556,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(height: 5),
                     if (estacion.containsKey('distancia_km'))
                       Text(
-                        'Distancia: ${estacion['distancia_km'].toStringAsFixed(2)} km',
+                        '${context.loc.station_distance}: ${estacion['distancia_km'].toStringAsFixed(2)} km',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.blueGrey,
@@ -534,7 +580,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   MarkerLayer _buildMarkersLayer() {
-    final data = mostrarRefugios ? refugios : estaciones;
+    List<dynamic> data;
+    if (_tipoMapa == 'refugios') {
+      data = refugios;
+    } else if (_tipoMapa == 'bicis') {
+      data = _bicis;
+    } else {
+     data = estaciones;
+    }
     return MarkerLayer(
       markers:
           data
@@ -546,34 +599,34 @@ class _MyHomePageState extends State<MyHomePage> {
                   height: 40.0,
                   point: LatLng(lat, lng),
                   builder:
-                      (ctx) => Container(
-                        child: IconButton(
+                      (ctx) => IconButton(
                           icon: Icon(
-                            mostrarRefugios ? Icons.ac_unit : Icons.location_on,
-                          ),
-                          color: mostrarRefugios ? Colors.blue : Colors.green,
-                          iconSize: 25,
-                          onPressed: () {
-                            if (mostrarRefugios) {
-                              _abrirRefugioScreen(
-                                context,
-                                estacion['id_punt'].toString(),
-                              );
-                            } else {
-                              _abrirEstacionScreen(
-                                context,
-                                estacion['id_punt'].toString(),
-                              );
-                            }
-                          },
-                        ),
-                      ),
-                );
-              })
-              .whereType<Marker>()
-              .toList(),
-    );
-  }
+                           _tipoMapa == 'refugios'
+                ? Icons.ac_unit
+                : _tipoMapa == 'bicis'
+                    ? Icons.pedal_bike
+                    : Icons.location_on,
+          ),
+          color: _tipoMapa == 'refugios'
+              ? Colors.blue
+              : _tipoMapa == 'bicis'
+                  ? Colors.orange
+                  : Colors.green,
+          iconSize: 25,
+          onPressed: () {
+            if (_tipoMapa == 'refugios') {
+              _abrirRefugioScreen(context, estacion['id_punt'].toString());
+            } else if (_tipoMapa == 'bicis') {
+              _abrirBiciScreen(context, estacion['id'].toString());
+            } else {
+              _abrirEstacionScreen(context, estacion['id_punt'].toString());
+            }
+          },
+        ),
+      );
+    }).toList(),
+  );
+}
 
   Widget _showMap() {
     final MapController mapController = MapController();
@@ -983,46 +1036,97 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _buildFiltro() {
-    return Positioned(
-      top: 20,
-      left: 10,
-      child: Column(
-        children: [
-          FloatingActionButton(
-            heroTag: 'filterButton',
-            mini: true,
-            onPressed: _showFilterBottomSheet,
-            backgroundColor: Colors.white,
-            child: const Icon(Icons.filter_list, color: Colors.green),
+ Widget _buildFiltro() {
+  final opciones = [
+    {
+      'value': 'estaciones',
+      'icon': Icons.ev_station,
+      'tooltip': 'Estaciones de carga',
+      'color': Colors.green
+    },
+    {
+      'value': 'refugios',
+      'icon': Icons.ac_unit,
+      'tooltip': 'Refugios climáticos',
+      'color': Colors.lightBlueAccent
+    },
+    {
+      'value': 'bicis',
+      'icon': Icons.pedal_bike,
+      'tooltip': 'Bicing',
+      'color': Colors.orange
+    },
+  ];
+
+  return Positioned(
+    top: 20,
+    left: 10,
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        FloatingActionButton(
+          heroTag: 'filterButton',
+          mini: true,
+          onPressed: _showFilterBottomSheet,
+          backgroundColor: Colors.white,
+          child: const Icon(Icons.filter_list, color: Colors.green),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          "Ver:",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          height: 36,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: opciones.map((opcion) {
+                final bool selected = _tipoMapa == (opcion['value'] as String);
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: ChoiceChip(
+                    label: Tooltip(
+                      message: opcion['tooltip'] as String,
+                      child: Icon(
+                        opcion['icon'] as IconData,
+                        size: 22,
+                        color: selected
+                            ? opcion['color'] as Color
+                            : Colors.black45,
+                      ),
+                    ),
+                    selected: selected,
+                    showCheckmark: false,
+                    selectedColor: (opcion['color'] as Color).withOpacity(0.18),
+                    backgroundColor: Colors.grey.shade200,
+                    onSelected: (isSelected) {
+                      if (isSelected) {
+                        setState(() {
+                          _tipoMapa = opcion['value'] as String;
+                          if (_tipoMapa == 'estaciones') {
+                            _fetchEstaciones();
+                          } else if (_tipoMapa == 'refugios') {
+                            _fetchRefugiosCercanos();
+                          } else if (_tipoMapa == 'bicis') {
+                            _fetchBicis();
+                          }
+                        });
+                      }
+                    },
+                    elevation: 2,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Text(
-                context.loc.common_shelters,
-                style: TextStyle(color: Colors.black),
-              ),
-              Switch(
-                value: mostrarRefugios,
-                onChanged: (value) {
-                  setState(() {
-                    mostrarRefugios = value;
-                    if (mostrarRefugios) {
-                      _fetchRefugiosCercanos();
-                    } else {
-                      _fetchEstaciones();
-                    }
-                  });
-                },
-                activeColor: Colors.green,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   Future<void> deleteTokens() async {
     try {
