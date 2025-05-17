@@ -304,12 +304,12 @@ class _EstacionScreenState extends State<EstacionScreen> {
                           ), // Rounded corners
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.star, color: Colors.white),
                           SizedBox(width: 8),
-                          Text('Ver reseñas'),
+                          Text(context.loc.station_view_reviews),
                         ],
                       ),
                     ),
@@ -333,12 +333,12 @@ class _EstacionScreenState extends State<EstacionScreen> {
                           ), // Rounded corners
                         ),
                       ),
-                      child: const Row(
+                      child:  Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.recommend_sharp, color: Colors.white),
                           SizedBox(width: 8),
-                          Text('Dar una reseña'),
+                          Text(context.loc.station_give_review),
                         ],
                       ),
                     ),
@@ -360,10 +360,10 @@ class _EstacionScreenState extends State<EstacionScreen> {
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
+                        children:  [
                           Icon(Icons.error, color: Colors.white),
                           SizedBox(width: 8),
-                          Text('Notificar error'),
+                          Text(context.loc.station_report_error),
                         ],
                       ),
                     ),

@@ -186,6 +186,10 @@
   "notificar_error_success": "Error notificat amb èxit",
   "notificar_error_session_expired": "Sessió expirada. Torna a iniciar sessió.",
   "notificar_error_connection_error": "Error de connexió",
-  "notificar_error_error": "Error"
+  "notificar_error_error": "Error",
+
+  "station_view_reviews": "Veure ressenyes",
+  "station_give_review": "Fer una ressenya",
+  "station_report_error": "Notificar error"
 
 }

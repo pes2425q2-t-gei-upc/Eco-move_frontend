@@ -20,6 +20,44 @@ class _NotificarErrorScreenState extends State<NotificarErrorScreen> {
   bool isLoading = true;
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
+  final Map<String, Map<String, String>> tiposErrorTraducciones = {
+    'NO_FUNCIONA': {
+      'es': 'No funciona / Sin energía',
+      'en': 'Not working / No power',
+      'ca': 'No funciona / Sense energia',
+    },
+    'CARGA_LENTA': {
+      'es': 'Carga inesperadamente lenta',
+      'en': 'Unexpectedly slow charging',
+      'ca': 'Càrrega inesperadament lenta',
+    },
+    'CONECTOR_DANADO': {
+      'es': 'Conector dañado o bloqueado',
+      'en': 'Damaged or blocked connector',
+      'ca': 'Connector danyat o bloquejat',
+    },
+    'PANTALLA_APAGADA': {
+      'es': 'Pantalla apagada o ilegible',
+      'en': 'Screen off or unreadable',
+      'ca': 'Pantalla apagada o il·legible',
+    },
+    'PAGO_FALLIDO': {
+      'es': 'Problema con el sistema de pago',
+      'en': 'Payment system problem',
+      'ca': 'Problema amb el sistema de pagament',
+    },
+    'OBSTACULO_FISICO': {
+      'es': 'Obstáculo físico / Plaza bloqueada',
+      'en': 'Physical obstacle / Blocked spot',
+      'ca': 'Obstacle físic / Plaça bloquejada',
+    },
+    'OTRO': {
+      'es': 'Otro problema (ver comentario)',
+      'en': 'Other problem (see comment)',
+      'ca': 'Altre problema (vegeu comentari)',
+    },
+  };
+
   @override
   void initState() {
     super.initState();
@@ -108,6 +146,7 @@ class _NotificarErrorScreenState extends State<NotificarErrorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final String lang = Localizations.localeOf(context).languageCode;
     return Scaffold(
       appBar: AppBar(title: Text(context.loc.notificar_error_title)),
       body: isLoading
@@ -126,9 +165,11 @@ class _NotificarErrorScreenState extends State<NotificarErrorScreen> {
                     DropdownButtonFormField<String>(
                       value: tipoSeleccionado,
                       items: tiposError.map<DropdownMenuItem<String>>((tipo) {
+                        final valor = tipo['valor'];
+                        final display = tiposErrorTraducciones[valor]?[lang] ?? tipo['display'];
                         return DropdownMenuItem<String>(
-                          value: tipo['valor'],
-                          child: Text(tipo['display']),
+                          value: valor,
+                          child: Text(display),
                         );
                       }).toList(),
                       onChanged: (value) {
@@ -136,9 +177,9 @@ class _NotificarErrorScreenState extends State<NotificarErrorScreen> {
                           tipoSeleccionado = value;
                         });
                       },
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        hintText: 'Selecciona un error',
+                        hintText: context.loc.notificar_error_description_hint,
                       ),
                     ),
                     const SizedBox(height: 20),

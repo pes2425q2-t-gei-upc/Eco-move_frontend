@@ -196,7 +196,11 @@
 "notificar_error_success": "Error reported successfully",
 "notificar_error_session_expired": "Session expired. Please log in again.",
 "notificar_error_connection_error": "Connection error",
-"notificar_error_error": "Error"
+"notificar_error_error": "Error",
+
+"station_view_reviews": "View reviews",
+"station_give_review": "Give a review",
+"station_report_error": "Report error"
 
 
 }

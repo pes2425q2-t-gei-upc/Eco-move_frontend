@@ -188,6 +188,10 @@
 "notificar_error_success": "Error reportado con éxito",
 "notificar_error_session_expired": "Sesión expirada. Vuelve a iniciar sesión.",
 "notificar_error_connection_error": "Error de conexión",
-"notificar_error_error": "Error"
+"notificar_error_error": "Error",
+
+"station_view_reviews": "Ver reseñas",
+"station_give_review": "Dar una reseña",
+"station_report_error": "Notificar error"
 
 }
