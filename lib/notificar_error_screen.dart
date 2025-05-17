@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'routes/frontend_routes.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 class NotificarErrorScreen extends StatefulWidget {
   final String idStation;
@@ -56,7 +57,7 @@ class _NotificarErrorScreenState extends State<NotificarErrorScreen> {
     final token = await getAccessToken();
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Token no disponible')),
+         SnackBar(content: Text(context.loc.notificar_error_token_missing)),
       );
       return;
     }
@@ -82,7 +83,7 @@ class _NotificarErrorScreenState extends State<NotificarErrorScreen> {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error reportado con éxito')),
+           SnackBar(content: Text(context.loc.notificar_error_success)),
         );
         setState(() {
           tipoSeleccionado = null;
@@ -90,16 +91,16 @@ class _NotificarErrorScreenState extends State<NotificarErrorScreen> {
         });
       } else if (response.statusCode == 401) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sesión expirada. Vuelve a iniciar sesión.')),
+          SnackBar(content: Text(context.loc.notificar_error_session_expired)),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${response.body}')),
+          SnackBar(content: Text('${context.loc.notificar_error_error}: ${response.body}')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error de conexión: $e')),
+        SnackBar(content: Text('${context.loc.notificar_error_connection_error}: $e')),
       );
     }
   }
@@ -108,7 +109,7 @@ class _NotificarErrorScreenState extends State<NotificarErrorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Notificar error')),
+      appBar: AppBar(title: Text(context.loc.notificar_error_title)),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
@@ -117,8 +118,8 @@ class _NotificarErrorScreenState extends State<NotificarErrorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Selecciona el tipo de error:',
+                    Text(
+                      context.loc.notificar_error_select_type,
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const SizedBox(height: 10),
@@ -143,17 +144,17 @@ class _NotificarErrorScreenState extends State<NotificarErrorScreen> {
                     const SizedBox(height: 20),
                     const Divider(),
                     const SizedBox(height: 10),
-                    const Text(
-                      'Descripción o comentario (opcional):',
+                    Text(
+                      context.loc.notificar_error_description_label,
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: comentarioController,
                       maxLines: 3,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        hintText: 'Describe el problema...',
+                        hintText: context.loc.notificar_error_description_hint,
                       ),
                     ),
                   ],
@@ -167,7 +168,7 @@ class _NotificarErrorScreenState extends State<NotificarErrorScreen> {
             width: double.infinity,
             child: ElevatedButton.icon(
               icon: const Icon(Icons.send),
-              label: const Text('Enviar'),
+              label: Text(context.loc.notificar_error_send),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(255, 23, 51, 209),
                 foregroundColor: Colors.white,

@@ -185,7 +185,18 @@
 "bici_detail_yes": "Yes",
 "bici_detail_no": "No",
 "bici_detail_address": "Address",
-"bici_detail_unknown_address": "Unknown"
+"bici_detail_unknown_address": "Unknown",
+
+"notificar_error_title": "Report error",
+"notificar_error_select_type": "Select error type:",
+"notificar_error_description_label": "Description or comment (optional):",
+"notificar_error_description_hint": "Describe the problem...",
+"notificar_error_send": "Send",
+"notificar_error_token_missing": "Token not available",
+"notificar_error_success": "Error reported successfully",
+"notificar_error_session_expired": "Session expired. Please log in again.",
+"notificar_error_connection_error": "Connection error",
+"notificar_error_error": "Error"
 
 
 }

@@ -165,16 +165,27 @@
   "car_info_save": "Guardar vehicle",
 
   "bici_detail_title": "Estació Bicing",
-"bici_detail_capacity": "Capacitat",
-"bici_detail_is_charging_station": "Carrega elèctrica?",
-"bici_detail_ride_code_support": "Suporta codi de viatge",
-"bici_detail_nearby_distance": "Distància propera",
-"bici_detail_physical_configuration": "Tipus d'estació",
-"bici_detail_how_to_arrive": "Com arribar",
-"bici_detail_reserve": "Reservar",
-"bici_detail_yes": "Sí",
-"bici_detail_no": "No",
-"bici_detail_address": "Adreça",
-"bici_detail_unknown_address": "Desconeguda"
+  "bici_detail_capacity": "Capacitat",
+  "bici_detail_is_charging_station": "Carrega elèctrica?",
+  "bici_detail_ride_code_support": "Suporta codi de viatge",
+  "bici_detail_nearby_distance": "Distància propera",
+  "bici_detail_physical_configuration": "Tipus d'estació",
+  "bici_detail_how_to_arrive": "Com arribar",
+  "bici_detail_reserve": "Reservar",
+  "bici_detail_yes": "Sí",
+  "bici_detail_no": "No",
+  "bici_detail_address": "Adreça",
+  "bici_detail_unknown_address": "Desconeguda",
+
+  "notificar_error_title": "Notificar error",
+  "notificar_error_select_type": "Selecciona el tipus d'error:",
+  "notificar_error_description_label": "Descripció o comentari (opcional):",
+  "notificar_error_description_hint": "Descriu el problema...",
+  "notificar_error_send": "Enviar",
+  "notificar_error_token_missing": "Token no disponible",
+  "notificar_error_success": "Error notificat amb èxit",
+  "notificar_error_session_expired": "Sessió expirada. Torna a iniciar sessió.",
+  "notificar_error_connection_error": "Error de connexió",
+  "notificar_error_error": "Error"
 
 }
