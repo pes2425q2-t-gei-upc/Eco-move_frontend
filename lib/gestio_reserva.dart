@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
+import 'package:share_plus/share_plus.dart';
 import 'rate-charger.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -7,6 +8,7 @@ import 'calculate_price.dart';
 import 'book_charger.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:eco_move_frontend/list-ratings.dart';
 
 void main() {
   runApp(const MyApp());
@@ -41,7 +43,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
   Future<void> _fetchStations() async {
     final url = Uri.parse(
       FrontendRoutes.build(
-        FrontendRoutes.stationById(idStation),
+        FrontendRoutes.estacion(idStation),
       ), // Ensure this URL is correct
     );
     try {
@@ -70,6 +72,37 @@ class _EstacionScreenState extends State<EstacionScreen> {
   void initState() {
     super.initState();
     _fetchStations(); // Fetch data when the widget is initialized
+  }
+
+  Widget _shareTextButton({
+    required BuildContext context,
+    required double latitude, 
+    required double longitude,
+    required String stationName,
+  }) {
+    return TextButton(
+      onPressed: () async {
+        final mapUrl = 'https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude';
+        final shareMessage = '${context.loc.station_share_message_1}: $stationName\n${context.loc.station_share_message_2}: $mapUrl';
+
+        await Share.shareWithResult(shareMessage);
+      },
+      style: TextButton.styleFrom(
+        backgroundColor: Colors.yellow, // Choose your color
+        foregroundColor: Colors.black,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(13),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.ios_share_rounded, color: Colors.black),
+          SizedBox(width: 8),
+          Text(context.loc.station_share_station),
+        ],
+      ),
+    );
   }
 
   @override
@@ -286,15 +319,13 @@ class _EstacionScreenState extends State<EstacionScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                BookChargerScreen(idStation: idStation),
-                          ),
-                        );
-                      },
+                     onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => ListRatingsScreen(idStation: idStation),
+                        ),
+                      );
+                    },
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.orangeAccent,
                         foregroundColor: Colors.white,
@@ -304,12 +335,12 @@ class _EstacionScreenState extends State<EstacionScreen> {
                           ), // Rounded corners
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.star, color: Colors.white),
                           SizedBox(width: 8),
-                          Text('Ver reseñas'),
+                          Text(context.loc.station_see_reviews),
                         ],
                       ),
                     ),
@@ -333,15 +364,22 @@ class _EstacionScreenState extends State<EstacionScreen> {
                           ), // Rounded corners
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.recommend_sharp, color: Colors.white),
                           SizedBox(width: 8),
-                          Text('Dar una reseña'),
+                          Text(context.loc.station_give_a_review),
                         ],
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    _shareTextButton(
+                      context: context,
+                      latitude: stationData['lat'],
+                      longitude: stationData['lng'],
+                      stationName: stationData['direccio'] ?? 'Cargando...',
+                    )
                   ],
                 ),
               ),

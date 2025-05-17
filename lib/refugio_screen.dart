@@ -26,7 +26,7 @@ class _RefugioScreenState extends State<RefugioScreen> {
 
   Future<void> _fetchRefugio() async {
     final url = Uri.parse(
-      FrontendRoutes.build(FrontendRoutes.shelterById(widget.idRefugio)),
+      FrontendRoutes.build(FrontendRoutes.refugio(widget.idRefugio)),
     );
     try {
       final response = await http.get(url);

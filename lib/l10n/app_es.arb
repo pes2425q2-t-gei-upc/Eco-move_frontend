@@ -50,6 +50,23 @@
   "station_navigate": "Cómo llegar",
   "station_distance": "Distancia",
   "station_enter_the_name_of_the_city": "Introduce el nombre de la ciudad",
+  "station_give_a_review": "Dar una reseña",
+  "station_see_reviews": "Ver reseñas",
+  "station_share_station": "Compartir estación",
+  "station_share_message_1": "Mira esta estación de carga",
+  "station_share_message_2": "Aquí está la ubicación",
+
+  "review": "Valoración",
+  "review_rate_charging_station": "Valorar estación de carga",
+  "review_rate_the_charging_station": "Valora la estación de carga",
+  "review_please_rate_the_station": "Por favor, valora la estación",
+  "review_your_rating": "Tu valoración",
+  "review_add_a_comment": "Añade un comentario",
+  "review_write_your_opinion": "Escribe tu opinión sobre esta estación...",
+  "review_submit_review": "Enviar valoración",
+  "review_sent_correctly": "enviada correctamente",
+  "review_please_select_a_rating": "Por favor, selecciona una valoración",
+  "review_please_add_a_comment": "Por favor, añade un comentario",
   
   "filter_closest": "Más cercanas",
   "filter_by_proximity": "Filtrar por cercanía",
@@ -127,7 +144,7 @@
   "common_title": "Título",
   "common_description": "Descripción",
   "common_send": "Enviar",
-
+  "common_of": "de",
 
   "settings_title": "Configuración",
   "settings_change_language" : "Cambiar idioma",
@@ -147,7 +164,21 @@
   "profile_cancel": "Cancelar",
   "profile_save_changes": "Guardar cambios",
   "profile_delete": "Eliminar mi usuario",
-  "profile_confirmation_delelte_text" : "Está seguro de que quiere eliminar su usuario?",
-  "profile_confirmation_delete": "Eliminar usuario"
+  "profile_confirmation_delete_text" : "Está seguro de que quiere eliminar su usuario?",
+  "profile_confirmation_delete": "Eliminar usuario",
+
+  "car_info": "Mis coches",
+  "car_info_license_plate": "Matrícula",
+  "car_info_compatible_chargers": "Cargadores compatibles",
+  "car_info_battery_capacity": "Capacidad de la batería",
+  "car_info_model": "Modelo",
+  "car_info_brand": "Marca",
+  "car_info_year": "Año",
+  "car_info_select_charger": "Selecciona los tipos de cargador",
+  "car_info_vehicle": "Información del vehículo",
+  "car_info_model_info": "Información del modelo",
+  "car_info_create": "Crear vehículo",
+  "car_info_actual_capacity": "Capacidad actual",
+  "car_info_save": "Guardar vehículo"
 
 }

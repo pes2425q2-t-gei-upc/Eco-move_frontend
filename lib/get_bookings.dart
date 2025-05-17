@@ -67,7 +67,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
   Future<List<Booking>> fetchBookings() async {
     final url = Uri.parse(
-      FrontendRoutes.build(FrontendRoutes.listReservations),
+      FrontendRoutes.build(FrontendRoutes.reservas),
     );
     try {
       final response = await http.get(url);
@@ -380,7 +380,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
   Future<void> deleteBooking(int id) async {
     final url = Uri.parse(
-      FrontendRoutes.build(FrontendRoutes.deleteReservation(id)),
+      FrontendRoutes.build(FrontendRoutes.reservasEliminar(id)),
     );
     bool? confirmDelete = await _showConfirmationDialog();
     if (confirmDelete == true) {
