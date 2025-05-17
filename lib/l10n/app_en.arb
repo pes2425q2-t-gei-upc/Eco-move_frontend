@@ -179,5 +179,33 @@
   "car_info_model_info": "Car model information",
   "car_info_create": "Create vehicle",
   "car_info_actual_capacity": "Current charge",
-  "car_info_save": "Save vehicle"
+  "car_info_save": "Save vehicle",
+
+"bici_detail_title": "Bicing Station",
+"bici_detail_capacity": "Capacity",
+"bici_detail_is_charging_station": "Electric charging?",
+"bici_detail_ride_code_support": "Ride code support",
+"bici_detail_nearby_distance": "Nearby distance",
+"bici_detail_physical_configuration": "Station type",
+"bici_detail_how_to_arrive": "How to arrive",
+"bici_detail_reserve": "Reserve",
+"bici_detail_yes": "Yes",
+"bici_detail_no": "No",
+"bici_detail_address": "Address",
+"bici_detail_unknown_address": "Unknown",
+
+"notificar_error_title": "Report error",
+"notificar_error_select_type": "Select error type:",
+"notificar_error_description_label": "Description or comment (optional):",
+"notificar_error_description_hint": "Describe the problem...",
+"notificar_error_send": "Send",
+"notificar_error_token_missing": "Token not available",
+"notificar_error_success": "Error reported successfully",
+"notificar_error_session_expired": "Session expired. Please log in again.",
+"notificar_error_connection_error": "Connection error",
+"notificar_error_error": "Error",
+
+"station_view_reviews": "View reviews",
+"station_give_review": "Give a review",
+"station_report_error": "Report error"
 }

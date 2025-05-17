@@ -22,7 +22,7 @@ class FrontendRoutes {
   static const String puntmesproper = '/api_punts_carrega/punt_mes_proper/';
   static String estacion(String station) =>
       '/api_punts_carrega/estacions/$station';
-  static String valoracionesEstaciones = 'api_punts_carrega/valoraciones_estaciones/';
+  static String valoracionesEstaciones = '/api_punts_carrega/valoraciones_estaciones/';
 
   // Filters
   static const String opcionsFiltres = '/api_punts_carrega/opcions_filtres/';
@@ -57,4 +57,12 @@ class FrontendRoutes {
   // Alerts
   static const String alerts = '/social/alerts/';
   static const String alertsPollingAlertes = '/social/alerts/polling_alertes/';
+
+  //Notificar Error
+  static const String tiposErrorEstacion = '/api_punts_carrega/tipos_error_estacion/';
+  static String reportarErrorEstacion(String id) => '/api_punts_carrega/estacions/$id/reportar_error/';
+
+  //Bicis
+  static const String biciDetailBase = '/api/bicing/estaciones/';
+  static String biciDetailById(String id) => '/api/bicing/estaciones/$id';
 }
