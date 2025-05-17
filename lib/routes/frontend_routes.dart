@@ -57,4 +57,6 @@ class FrontendRoutes {
   // Alerts
   static const String alerts = '/social/alerts/';
   static const String alertsPollingAlertes = '/social/alerts/polling_alertes/';
+
+  static String addPoints(int id) => '/api_punts_carrega/usuari/$id/sumaPunts/';
 }
