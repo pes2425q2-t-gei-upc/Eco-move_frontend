@@ -1,10 +1,9 @@
 import 'dart:convert';
-
+import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'config.dart';
-
 
 void main() {
   runApp(const MyApp());
@@ -61,7 +60,7 @@ class _RatingScreenState extends State<RatingScreen> {
     return await _secureStorage.read(key: 'access');
   }
   Future<void> _getInfo() async {
-    final url = Uri.parse('${AppConfig.apiBase}/me/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
 
     try {
       final response = await http.get(
@@ -91,7 +90,7 @@ class _RatingScreenState extends State<RatingScreen> {
 
   Future<void> _fetchStation() async {
     final url = Uri.parse(
-      '${AppConfig.apiBase}/api_punts_carrega/estacions/${widget.idStation}/', // Ensure this URL is correct
+      FrontendRoutes.build(FrontendRoutes.estacion(widget.idStation!)), // Ensure this URL is correct
     );
     try {
       final response = await http.get(url);
@@ -112,7 +111,7 @@ class _RatingScreenState extends State<RatingScreen> {
 
   Future<void> _fetchUser() async {
     final url = Uri.parse(
-      '${AppConfig.apiBase}/api_punts_carrega/usuari/$my_id/',
+      FrontendRoutes.build(FrontendRoutes.user(my_id)),
     );
     try {
       final response = await http.get(url);
@@ -135,7 +134,7 @@ class _RatingScreenState extends State<RatingScreen> {
 
 
   Future<void> sendRating() async {
-    final url = Uri.parse('${AppConfig.apiBase}/api_punts_carrega/valoraciones_estaciones/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.valoracionesEstaciones));
 
     final Map<String, dynamic> data = {
       'estacion': widget.idStation,
@@ -167,7 +166,7 @@ class _RatingScreenState extends State<RatingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Valorar estación de carga'),
+        title: Text(context.loc.review_rate_charging_station),
       ),
       body: SingleChildScrollView( // Envuelve el contenido en un SingleChildScrollView
         child: Padding(
@@ -193,7 +192,7 @@ class _RatingScreenState extends State<RatingScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Estación: ${stationData['direccio'] ?? "No disponible"}',
+                              '${context.loc.station_title}: ${stationData['direccio'] ?? context.loc.station_not_available}',
                               style: const TextStyle(
                                 fontSize: 18,
                               ),
@@ -207,7 +206,7 @@ class _RatingScreenState extends State<RatingScreen> {
                           const Icon(Icons.location_city, color: Color(0xE278A879)),
                           const SizedBox(width: 8),
                           Text(
-                            'Ciudad: ${stationData['ciutat'] ?? "No disponible"}',
+                            '${context.loc.station_city}: ${stationData['ciutat'] ?? context.loc.station_not_available}',
                             style: const TextStyle(fontSize: 18),
                           ),
                         ],
@@ -224,8 +223,8 @@ class _RatingScreenState extends State<RatingScreen> {
               Center(
                 child: Column(
                   children: [
-                    const Text(
-                      'Valora la estación de carga:',
+                    Text(
+                      '${context.loc.review_rate_the_charging_station}:',
                       style: TextStyle(fontSize: 20),
                     ),
                     const SizedBox(height: 20),
@@ -239,7 +238,7 @@ class _RatingScreenState extends State<RatingScreen> {
                     ),
                     const SizedBox(height: 40),
                     Text(
-                      _rating > 0 ? 'Tu valoración: $_rating de 5' : 'Por favor, valora la estación',
+                      _rating > 0 ? '${context.loc.review_your_rating}: $_rating ${context.loc.common_of} 5' : context.loc.review_please_rate_the_station,
                       style: const TextStyle(fontSize: 18),
                     ),
                     const SizedBox(height: 40),
@@ -248,8 +247,8 @@ class _RatingScreenState extends State<RatingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Añade un comentario:',
+                          Text(
+                            '${context.loc.review_add_a_comment}:',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -259,16 +258,16 @@ class _RatingScreenState extends State<RatingScreen> {
                           TextFormField(
                             controller: _commentController,
                             maxLines: 4,
-                            decoration: const InputDecoration(
-                              hintText: 'Escribe tu opinión sobre esta estación...',
+                            decoration: InputDecoration(
+                              hintText: context.loc.review_write_your_opinion,
                               filled: false,
                             ),
                             validator: (value) {
                               if (_rating == 0) {
-                                return 'Por favor, selecciona una valoración';
+                                return context.loc.review_please_select_a_rating;
                               }
                               if (value == null || value.trim().isEmpty) {
-                                return 'Por favor, añade un comentario';
+                                return context.loc.review_please_add_a_comment;
                               }
                               return null;
                             },
@@ -281,7 +280,7 @@ class _RatingScreenState extends State<RatingScreen> {
                         onPressed: () {
                           sendRating();
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Valoración $_rating enviada correctamente')),
+                            SnackBar(content: Text('${context.loc.review} $_rating ${context.loc.review_sent_correctly}')),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -289,7 +288,7 @@ class _RatingScreenState extends State<RatingScreen> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                         ),
-                        child: const Text('Enviar valoración'),
+                        child: Text(context.loc.review_submit_review),
                       ),
                   ],
                 ),

@@ -74,7 +74,7 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
           "${day.day.toString().padLeft(2, '0')}/${day.month.toString().padLeft(2, '0')}/${day.year}";
       final response = await http.get(
         Uri.parse(
-          '${FrontendRoutes.apiBase}/api_punts_carrega/reservas/?dia=$formattedDate',
+          FrontendRoutes.build(FrontendRoutes.reservasDia(formattedDate)),
         ),
         headers: {'Authorization': 'Bearer $token'},
       );
@@ -202,7 +202,7 @@ class Booking {
     try {
       final response = await http.get(
         Uri.parse(
-          '${FrontendRoutes.apiBase}}/api_punts_carrega/estacions/${station}/',
+          FrontendRoutes.build(FrontendRoutes.estacion(station)),
         ),
       );
       if (response.statusCode == 200) {

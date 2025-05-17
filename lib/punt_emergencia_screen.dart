@@ -1,9 +1,8 @@
-import 'package:eco_move_frontend/noti_service.dart';
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class PuntEmergenciaScreen extends StatelessWidget {
@@ -25,7 +24,7 @@ class PuntEmergenciaScreen extends StatelessWidget {
       return;
     }
 
-    final url = Uri.parse('${AppConfig.apiBase}/social/alerts/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.alerts));
     final token = await getAccessToken();
 
     if (token == null) {
@@ -79,7 +78,7 @@ class PuntEmergenciaScreen extends StatelessWidget {
   }
 
   Future<void> _refreshToken(String refreshToken, BuildContext context) async {
-    final url = Uri.parse('${AppConfig.apiBase}/token/refresh/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.tokenRefresh));
     final Map<String, dynamic> data = {'refresh': refreshToken};
 
     try {

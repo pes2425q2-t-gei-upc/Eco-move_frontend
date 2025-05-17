@@ -129,3 +129,5 @@ app.*.symbols
 .idea/
 .vscode/
 
+# other
+untranslated.json
