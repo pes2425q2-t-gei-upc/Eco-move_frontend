@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'package:eco_move_frontend/calendar.dart';
-import 'package:eco_move_frontend/config.dart';
 import 'package:eco_move_frontend/l10n/l10n.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'package:eco_move_frontend/list_chats.dart';
-import 'package:eco_move_frontend/page/settings.dart';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -14,7 +12,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'gestio_reserva.dart';
 import 'package:geolocator/geolocator.dart';
-import 'get_bookings.dart';
 import 'log_in.dart';
 import 'refugio_screen.dart';
 import 'punt_emergencia_screen.dart';
@@ -22,20 +19,11 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'l10n/locale_provider.dart';
-import 'alert_dialog_page.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:provider/provider.dart';
-import 'l10n/locale_provider.dart';
-import 'calendar.dart';
 import 'settings-menu.dart';
 import 'noti_service.dart';
-import 'package:provider/provider.dart';
 import 'alertManager.dart'; // Importa AlertManager
-import 'alertScreen.dart';
 import 'EmergencyScreen.dart';
 import 'EmergencyService.dart';
-import 'settings-menu.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
@@ -181,7 +169,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final url = Uri.parse(
-      '${FrontendRoutes.build(FrontendRoutes.nearestShelters)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
+      '${FrontendRoutes.build(FrontendRoutes.refugios)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
     try {
       final response = await http.get(url);
@@ -213,7 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // Modify _fetchFiltros to dynamically fetch charger types
   Future<void> _fetchFiltros() async {
     final url = Uri.parse(
-      '${FrontendRoutes.apiBase}/api_punts_carrega/opcions_filtres/',
+      FrontendRoutes.build(FrontendRoutes.opcionsFiltres),
     );
     try {
       final response = await http.get(url);
@@ -284,9 +272,9 @@ class _MyHomePageState extends State<MyHomePage> {
       queryParameters['ciutat'] = ciudadSeleccionada;
     }
 
-    final uri = Uri.parse('${AppConfig.apiBase}/api_punts_carrega/filtrar_estacions/')
-        .replace(queryParameters: queryParameters);
-
+    final uri = Uri.parse(FrontendRoutes.build(FrontendRoutes.filtrarEstacions))
+      .replace(queryParameters: queryParameters);
+    
     print(uri);
 
     try {
@@ -336,7 +324,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     final uri = Uri.parse(
-      '${FrontendRoutes.build(FrontendRoutes.nearestStation)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
+      '${FrontendRoutes.build(FrontendRoutes.puntmesproper)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
     print(uri);
 

@@ -1,10 +1,8 @@
 import 'dart:convert';
-
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'config.dart';
-
 
 void main() {
   runApp(const MyApp());
@@ -61,7 +59,7 @@ class _RatingScreenState extends State<RatingScreen> {
     return await _secureStorage.read(key: 'access');
   }
   Future<void> _getInfo() async {
-    final url = Uri.parse('${AppConfig.apiBase}/me/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
 
     try {
       final response = await http.get(
@@ -91,7 +89,7 @@ class _RatingScreenState extends State<RatingScreen> {
 
   Future<void> _fetchStation() async {
     final url = Uri.parse(
-      '${AppConfig.apiBase}/api_punts_carrega/estacions/${widget.idStation}/', // Ensure this URL is correct
+      FrontendRoutes.build(FrontendRoutes.estacion(widget.idStation!)), // Ensure this URL is correct
     );
     try {
       final response = await http.get(url);
@@ -112,7 +110,7 @@ class _RatingScreenState extends State<RatingScreen> {
 
   Future<void> _fetchUser() async {
     final url = Uri.parse(
-      '${AppConfig.apiBase}/api_punts_carrega/usuari/$my_id/',
+      FrontendRoutes.build(FrontendRoutes.user(my_id)),
     );
     try {
       final response = await http.get(url);
@@ -135,7 +133,7 @@ class _RatingScreenState extends State<RatingScreen> {
 
 
   Future<void> sendRating() async {
-    final url = Uri.parse('${AppConfig.apiBase}/api_punts_carrega/valoraciones_estaciones/');
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.valoracionesEstaciones));
 
     final Map<String, dynamic> data = {
       'estacion': widget.idStation,

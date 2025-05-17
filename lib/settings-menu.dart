@@ -1,11 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
 import 'user_profile.dart';
-import 'package:eco_move_frontend/page/settings.dart';
-import 'package:eco_move_frontend/routes/frontend_routes.dart';
+import 'package:eco_move_frontend/page/language_settings.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'car-info.dart';
 
@@ -42,7 +38,7 @@ class _NavigationPageState extends State<NavigationPage> {
                 title: context.loc.settings_change_language,
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => SettingsPage()),
+                    MaterialPageRoute(builder: (context) => LanguageSettingsPage()),
                   );
                 },
               ),

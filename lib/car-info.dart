@@ -1,4 +1,3 @@
-import 'package:eco_move_frontend/config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
@@ -6,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'create-vehicle.dart';
 import 'config.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
-import 'log_in.dart';
 
 
 // Model class for Vehicle that includes car model information
