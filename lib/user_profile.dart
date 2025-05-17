@@ -165,7 +165,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _getMyInfo() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/me/');
+    final url = Uri.parse('${AppConfig.apiBase}/me/');
     print('el token es ${token}');
     try {
       final response = await http.get(
@@ -182,14 +182,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
         print(bodyJson);
         id = bodyJson['id'];
         userProfile = UserProfile(
-          firstName: bodyJson['first_name'],
-          lastName: bodyJson['last_name'],
-          email: bodyJson['email'],
-          description: bodyJson['descripcio'],
-          language: bodyJson['idioma'],
-          telephone: bodyJson['telefon'],
-          username: bodyJson['username'],
+          firstName: bodyJson['first_name'] ?? '',
+          lastName: bodyJson['last_name'] ?? '',
+          email: bodyJson['email'] ?? '',
+          description: bodyJson['descripcio'] ?? '',
+          language: bodyJson['idioma'] ?? '',
+          telephone: bodyJson['telefon'] ?? '',
+          username: bodyJson['username'] ?? '',
         );
+        print('tot ok');
       } else {
         print('Failed to get user info: ${response.statusCode} - ${response.body}');
       }
@@ -200,7 +201,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Get profile photo
   Future<void> _getProfilePhoto() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
+    final url = Uri.parse('${AppConfig.apiBase}/profile/foto/');
     try {
       final response = await http.get(
         url,
@@ -228,7 +229,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Upload profile photo
   Future<void> _uploadProfilePhoto(File imageFile) async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
+    final url = Uri.parse('${AppConfig.apiBase}/profile/foto/');
     try {
       // Create a multipart request
       var request = http.MultipartRequest('POST', url);
@@ -275,7 +276,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Delete profile photo
   Future<void> _deleteProfilePhoto() async {
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/profile/foto/');
+    final url = Uri.parse('${AppConfig.apiBase}/profile/foto/');
     try {
       final response = await http.delete(
         url,
@@ -661,7 +662,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<void> editUser() async {
     print('Starting editUser function...');
-    final url = Uri.parse('${AppConfig.prodBaseUrl}/api_punts_carrega/usuari/$id/');
+    final url = Uri.parse('${AppConfig.apiBase}/api_punts_carrega/usuari/$id/');
 
     final Map<String, dynamic> data = {
       'first_name': userProfile.firstName,
