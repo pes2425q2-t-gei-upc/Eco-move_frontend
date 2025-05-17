@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'routes/frontend_routes.dart';
 
 class BiciDetailScreen extends StatefulWidget {
   final String idBici;
@@ -23,7 +24,9 @@ class _BiciDetailScreenState extends State<BiciDetailScreen> {
   }
 
   Future<void> fetchBici() async {
-    final url = Uri.parse('http://127.0.0.1:8000/api/bicing/estaciones/${widget.idBici}');
+   final url = Uri.parse(
+    FrontendRoutes.build(FrontendRoutes.biciDetailById(widget.idBici)),
+  );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {

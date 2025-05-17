@@ -38,4 +38,12 @@ class FrontendRoutes {
   static const String nearestShelters =
       '/api_punts_carrega/refugios_mas_cercanos/';
   static String shelterById(String id) => '/api_punts_carrega/refugios/$id/';
+
+  //Notificar Error
+  static const String tiposErrorEstacion = '/api_punts_carrega/tipos_error_estacion/';
+  static String reportarErrorEstacion(String id) => '/api_punts_carrega/estacions/$id/reportar_error/';
+
+  //Bicis
+  static const String biciDetailBase = '/api/bicing/estaciones/';
+  static String biciDetailById(String id) => '/api/bicing/estaciones/$id';
 }
