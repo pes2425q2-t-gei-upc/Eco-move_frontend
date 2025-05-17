@@ -55,6 +55,10 @@ class _CreateVehiclePageState extends State<CreateVehiclePage> {
     fetchUserInfo();
   }
 
+  void fetchUserInfo() {
+    
+  }
+
   Future<String?> getAccessToken() async {
     return await _secureStorage.read(key: 'access');
   }
