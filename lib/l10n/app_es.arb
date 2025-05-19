@@ -27,6 +27,11 @@
   "settings_language": "Cambiar idioma",
   "settings_language_change_successfull": "¡Idioma cambiado correctamente!",
   "settings_language_change_failed": "¡Error al cambiar el idioma!",
+  "settings_my_trophies": "Mis trofeos",
+  "settings_current_points": "Puntos actuales",
+  "settings_next_trophy": "Próximo trofeo",
+  "settings_trophies_earned": "Trofeos conseguidos",
+  "settings_pending_trophies": "Trofeos pendientes",
 
   "alert_send_alert": "Enviar alerta",
   "alert_optional_message": "Mensaje opcional",
