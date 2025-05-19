@@ -318,7 +318,7 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       final response = await http.get(uri);
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
         print('fetch estaciones devuelve ${data}');
 
         setState(() {
