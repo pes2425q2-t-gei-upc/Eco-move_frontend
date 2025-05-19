@@ -208,5 +208,8 @@
 
   "station_view_reviews": "Veure ressenyes",
   "station_give_review": "Fer una ressenya",
-  "station_report_error": "Notificar error"
+  "station_report_error": "Notificar error",
+
+  "out_of_service": "Fora de servei",
+  "station_no_actions_available": "No hi ha accions disponibles mentres l'estació estigui fora de servei."
 }

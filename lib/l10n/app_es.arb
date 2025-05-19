@@ -208,6 +208,9 @@
 
 "station_view_reviews": "Ver reseñas",
 "station_give_review": "Dar una reseña",
-"station_report_error": "Notificar error"
+"station_report_error": "Notificar error",
+
+"out_of_service": "Fuera de servicio",
+"station_no_actions_available": "No hay acciones disponibles mientras la estación esté fuera de servicio"
 
 }
