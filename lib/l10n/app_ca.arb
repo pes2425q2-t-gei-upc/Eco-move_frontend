@@ -208,5 +208,13 @@
 
   "station_view_reviews": "Veure ressenyes",
   "station_give_review": "Fer una ressenya",
-  "station_report_error": "Notificar error"
+  "station_report_error": "Notificar error",
+
+
+  "booking_title": "Carregar vehicle",
+  "booking_description": "Reserva per a carregar el vehicle",
+  "booking_time": "Hora: ",
+  "booking_date": "Data: ",
+  "booking_duration": "Duració: ",
+  "booking_station_address": "Adreça: "
 }

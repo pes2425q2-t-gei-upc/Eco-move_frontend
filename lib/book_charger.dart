@@ -6,6 +6,148 @@ import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 
+import 'package:googleapis/calendar/v3.dart' as calendar;
+import 'package:googleapis_auth/auth_io.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+
+
+
+class GoogleCalendarService {
+  // Set up Google Sign-In with required scopes
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: [
+      'https://www.googleapis.com/auth/calendar',
+      'https://www.googleapis.com/auth/calendar.events',
+    ],
+  );
+
+  // Function to save a booking to Google Calendar
+  Future<bool> saveBookingToGoogleCalendar({
+    required String title,
+    required String startDate,
+    required String startTime,
+    required String duration,
+    String? location,
+    String? description,
+  }) async {
+    try {
+      // Authenticate with Google
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        print('Google Sign-In was canceled');
+        return false;
+      }
+
+      // Get the authenticated client
+      final httpClient = await _googleSignIn.authenticatedClient();
+      if (httpClient == null) {
+        print('Failed to get authenticated client');
+        return false;
+      }
+
+      // Create a Calendar API client
+      final calendarApi = calendar.CalendarApi(httpClient);
+
+      // Parse the date (format: dd/mm/yyyy)
+      final dateParts = startDate.split('/');
+      final day = int.parse(dateParts[0]);
+      final month = int.parse(dateParts[1]);
+      final year = int.parse(dateParts[2]);
+
+      // Parse the time (format: hh:mm)
+      final timeParts = startTime.split(':');
+      final hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+
+      // Create start datetime
+      final startDateTime = DateTime(year, month, day, hour, minute);
+
+      // Parse duration (format: hh:mm)
+      final durationParts = duration.split(':');
+      final durationHours = int.parse(durationParts[0]);
+      final durationMinutes = int.parse(durationParts[1]);
+
+      // Calculate end datetime
+      final endDateTime = startDateTime.add(
+        Duration(hours: durationHours, minutes: durationMinutes),
+      );
+
+      // Create the calendar event
+      final start = calendar.EventDateTime()
+        ..dateTime = startDateTime.toUtc()
+        ..timeZone = 'Europe/Madrid'; // or another valid IANA time zone
+
+      final end = calendar.EventDateTime()
+        ..dateTime = endDateTime.toUtc()
+        ..timeZone = 'Europe/Madrid';
+
+      final event = calendar.Event()
+        ..summary = title
+        ..start = start
+        ..end = end;
+
+      // Add optional fields if provided
+      if (location != null && location.isNotEmpty) {
+        event.location = location;
+      }
+
+      if (description != null && description.isNotEmpty) {
+        event.description = description;
+      }
+
+      // Insert the event to the user's primary calendar
+      final createdEvent = await calendarApi.events.insert(event, 'primary');
+      print('Event created: ${createdEvent.htmlLink}');
+      return true;
+    } catch (e) {
+      print('Error saving event to Google Calendar: $e');
+      return false;
+    }
+  }
+}
+
+// Extension for the existing _DateTimePickerWithDropdownState class
+extension GoogleCalendarExtension on _DateTimePickerWithDropdownState {
+  // Function to save booking to Google Calendar
+  Future<void> saveBookingToGoogleCalendar(String stationId, String date, String time, String duration) async {
+    final GoogleCalendarService calendarService = GoogleCalendarService();
+
+    // Create a meaningful title and description for the event
+    final title = "${context.loc.booking_title}";
+    final description = "${context.loc.booking_description}\n${context.loc.booking_station_address}$stationId\n${context.loc.booking_date}$date\n${context.loc.booking_time}$time\n${context.loc.booking_duration}$duration";
+
+    // Try to get station location info (if available in your app)
+    String? location;
+    // If you have a way to get station address/location, add it here
+    // location = await getStationLocation(stationId);
+
+    final success = await calendarService.saveBookingToGoogleCalendar(
+      title: title,
+      startDate: date,
+      startTime: time,
+      duration: duration,
+      location: location,
+      description: description,
+    );
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Guardat')),
+      );
+    } else {
+      // Only show error if user didn't cancel the sign-in process
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error')),
+      );
+    }
+  }
+}
+
+
+
+
+
 class BookChargerScreen extends StatelessWidget {
   final String idStation;
   const BookChargerScreen({super.key, required this.idStation});
@@ -215,7 +357,8 @@ class _DateTimePickerWithDropdownState
                               );
                             } else {
                               // Proceed with reservation creation if valid
-                              createReservation(
+                              createReservationWithCalendar(
+                                context,
                                 widget.idStation,
                                 _dateController.text,
                                 _timeController.text,
@@ -279,12 +422,40 @@ class _DateTimePickerWithDropdownState
     print('Token: $token');
   }
 
-  Future<void> createReservation(
-    String id,
-    String date,
-    String hour,
-    String? duration,
-  ) async {
+  Future<String?> _fetchStations(String idStation) async {
+    final url = Uri.parse(
+      FrontendRoutes.build(
+        FrontendRoutes.estacion(idStation),
+      ), // Ensure this URL is correct
+    );
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        String decodedResponse = utf8.decode(response.bodyBytes);
+        Map<String, dynamic> data = jsonDecode(decodedResponse);
+        return data['direccio'];
+
+      } else {
+        print(
+          'Error: Received status code ${response.statusCode}',
+        ); // Print error if status code isn't 200
+      }
+    } catch (e) {
+      print(
+        'Error during HTTP request: $e',
+      ); // Catch any errors during the request
+    }
+
+    return '';
+  }
+
+  Future<void> createReservationWithCalendar(
+      BuildContext context,
+      String id,
+      String date,
+      String hour,
+      String duration,
+      ) async {
     final url = Uri.parse(
       FrontendRoutes.build(FrontendRoutes.reservasCrear),
     );
@@ -297,6 +468,7 @@ class _DateTimePickerWithDropdownState
     };
 
     try {
+      // First, save to your backend API
       final response = await http.post(
         url,
         headers: {
@@ -308,13 +480,39 @@ class _DateTimePickerWithDropdownState
 
       if (response.statusCode == 201) {
         print('Reservation created successfully');
+
+        // Then, save to Google Calendar
+        final GoogleCalendarService calendarService = GoogleCalendarService();
+
+
+        String? address = await _fetchStations(id);
+
+
+        final title = "${context.loc.booking_title}";
+        final description = "${context.loc.booking_description}\n${context.loc.booking_station_address}$address\n${context.loc.booking_date}$date\n${context.loc.booking_time}$hour\n${context.loc.booking_duration}$duration";
+
+
+        await calendarService.saveBookingToGoogleCalendar(
+          title: title,
+          startDate: date,
+          startTime: hour,
+          duration: duration,
+          description: description,
+        );
+
       } else {
         print(
           'Failed to create reservation: ${response.statusCode} - ${response.body}',
         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to create reservation')),
+        );
       }
     } catch (e) {
       print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error creating reservation: $e')),
+      );
     }
   }
 }

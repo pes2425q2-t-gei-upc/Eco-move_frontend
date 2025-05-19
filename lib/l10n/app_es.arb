@@ -208,6 +208,13 @@
 
 "station_view_reviews": "Ver reseñas",
 "station_give_review": "Dar una reseña",
-"station_report_error": "Notificar error"
+"station_report_error": "Notificar error",
+
+  "booking_title": "Cargar vehículo",
+  "booking_description": "Reserva para cargar el vehículo",
+  "booking_time": "Hora: ",
+  "booking_date": "Fecha: ",
+  "booking_duration": "Duración: ",
+  "booking_station_address": "Dirección: "
 
 }

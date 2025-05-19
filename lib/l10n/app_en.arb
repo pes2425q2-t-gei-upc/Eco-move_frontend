@@ -207,5 +207,12 @@
 
 "station_view_reviews": "View reviews",
 "station_give_review": "Give a review",
-"station_report_error": "Report error"
+"station_report_error": "Report error",
+
+  "booking_title": "Charge vehicle",
+  "booking_description": "Booking to charge the vehicle",
+  "booking_time": "Hour: ",
+  "booking_date": "Date: ",
+  "booking_duration": "Duration: ",
+  "booking_station_address": "Address: "
 }
