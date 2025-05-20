@@ -71,4 +71,7 @@ class FrontendRoutes {
   static String usuariSumaPunts(int userId) => '/api_punts_carrega/usuari/$userId/sumaPunts/';
   static String usuariRestarPunts(int userId) => '/api_punts_carrega/usuari/$userId/restarPunts/';
   static String usuariTrofeos(int userId) => '/api_punts_carrega/usuari/$userId/trofeos/';
+
+  static String addPoints(int id) => '/api_punts_carrega/usuari/$id/sumaPunts/';
+
 }
