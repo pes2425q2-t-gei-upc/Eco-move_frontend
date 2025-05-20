@@ -27,6 +27,11 @@
   "settings_language": "Canvia l'idioma",
   "settings_language_change_successfull": "Idioma canviat correctament!",
   "settings_language_change_failed": "No s'ha pogut canviar l'idioma!",
+  "settings_my_trophies": "Els meus trofeus",
+  "settings_current_points": "Punts actuals",
+  "settings_next_trophy": "Pròxim trofeu",
+  "settings_trophies_earned": "Trofeus aconseguits",
+  "settings_pending_trophies": "Trofeus pendents",
 
   "alert_send_alert": "Envia un alerta",
   "alert_optional_message": "Missatge opcional",
