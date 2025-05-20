@@ -150,18 +150,7 @@ class PuntEmergenciaScreen extends StatelessWidget {
               tituloController.text,
               descripcionController.text,
             );
-
-             /*Navegar directamente a la nueva página
-             Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const EmergenciaDetails()),
-              );
-              */
-            /*NotiService().showNotification(
-               title: "Alerta enviada",
-               body: "Tu alerta ha sido enviada con éxito.",
-               payload: "navigate_to_screen",
-            );
-            */
+             Navigator.of(context).pop();
           },
           style: TextButton.styleFrom(foregroundColor: Colors.red),
           child: const Text("Enviar"),

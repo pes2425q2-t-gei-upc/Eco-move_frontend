@@ -52,7 +52,7 @@ class _CreateVehiclePageState extends State<CreateVehiclePage> {
 
   Future<void> _initialize() async {
     token = (await getAccessToken())!;
-    fetchUserInfo();
+   // fetchUserInfo();
   }
 
   void fetchUserInfo() {
@@ -159,10 +159,10 @@ class _CreateVehiclePageState extends State<CreateVehiclePage> {
               SizedBox(height: 16),
               Text(_errorMessage!, textAlign: TextAlign.center),
               SizedBox(height: 16),
-              ElevatedButton(
+              /*ElevatedButton(
                 onPressed: fetchUserInfo,
                 child: Text('Retry'),
-              ),
+              ), */
             ],
           ),
         ),
