@@ -187,6 +187,7 @@ class _DateTimePickerWithDropdownState
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? token = '';
+  int myId = -1;
 
   @override
   void dispose() {
@@ -468,7 +469,6 @@ class _DateTimePickerWithDropdownState
     };
 
     try {
-      // First, save to your backend API
       final response = await http.post(
         url,
         headers: {
@@ -500,12 +500,72 @@ class _DateTimePickerWithDropdownState
           description: description,
         );
 
+        addPoints();
       } else {
         print(
           'Failed to create reservation: ${response.statusCode} - ${response.body}',
         );
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+  Future<void> _getInfo() async {
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(
+          utf8.decode(response.bodyBytes),
+        );
+        myId = data['id'];
+        print('Les dades són: $data');
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create reservation')),
+          const SnackBar(content: Text('Failed to load user info')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+    }
+  }
+
+  Future<void> addPoints() async {
+    await _getInfo();
+
+    final urlMe = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
+
+    final url = Uri.parse(
+      FrontendRoutes.build(FrontendRoutes.addPoints(myId)),
+    );
+
+    final Map<String, dynamic> data = {
+      'punts': 100,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(data),
+      );
+
+      if (response.statusCode == 20) {
+        print('Se han sumado bien los puntos');
+
+      } else {
+        print(
+          'Failed to create reservation: ${response.statusCode} - ${response.body}',
         );
       }
     } catch (e) {

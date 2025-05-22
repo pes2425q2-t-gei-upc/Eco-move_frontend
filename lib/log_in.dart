@@ -1,12 +1,16 @@
 import 'dart:convert';
+import 'package:eco_move_frontend/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 import 'sign-in.dart';
 import 'main.dart'; // Import main.dart to access MyHomePage
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class LoginScreen extends StatefulWidget {
 
@@ -113,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
         print('Log in correcte');
         print('retorna: ${response.body}');
         saveAccessToken(resp['access'], resp['refresh']);
-        _getInfo(resp['access']);
+        await _getInfo(resp['access']);
 
         // Navigate to MyHomePage after successful login
         Navigator.of(context).pushReplacement(
@@ -188,17 +192,43 @@ class _LoginScreenState extends State<LoginScreen> {
           utf8.decode(response.bodyBytes),
         );
         print('Les dades són: $data');
+
+        // Step 1: Extract the idioma from the response
+        final String idioma = data['idioma'] ?? 'English';
+
+        // Step 2: Map idioma to language code
+        String langCode;
+        switch (idioma) {
+          case 'Catala':
+            langCode = 'ca';
+            break;
+          case 'Castellano':
+            langCode = 'es';
+            break;
+          case 'English':
+          default:
+            langCode = 'en';
+        }
+
+        // Step 3: Save to SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('Language', langCode);
+
+        // Step 4: Set language in LocaleProvider
+        Provider.of<LocaleProvider>(context, listen: false)
+            .setLocale(Locale(langCode));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to load user info')),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     }
   }
+
 
   Widget _buildTextField(
     String label,
@@ -260,18 +290,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
-                _buildTextField('Email', _emailController, Icons.person),
+                SizedBox(height: 32),
+                _buildTextField(context.loc.login_email, _emailController, Icons.person),
                 _buildTextField(
-                  'Contraseña',
+                  context.loc.login_password,
                   _passwordController,
                   Icons.lock,
                   isPassword: true, // Set this field as a password field
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () {
-                    getToken();
+                  onPressed: () async {
+                    await getToken();
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -344,7 +374,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
                 Center(
                   child: Text(
-                    'No tienes cuenta?',
+                    context.loc.login_no_account,
                     style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ),
@@ -357,8 +387,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     );
                   },
-                  child: const Text(
-                    'Crear cuenta',
+                  child: Text(
+                    context.loc.login_create_account,
                     style: TextStyle(fontSize: 16, color: Colors.black),
                   ),
                 ),

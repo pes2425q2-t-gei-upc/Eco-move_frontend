@@ -4,6 +4,7 @@ import 'user_profile.dart';
 import 'package:eco_move_frontend/page/language_settings.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'car-info.dart';
+import 'package:eco_move_frontend/user_trophies.dart';
 
 class NavigationPage extends StatefulWidget {
   @override
@@ -55,6 +56,7 @@ class _NavigationPageState extends State<NavigationPage> {
                   );
                 },
               ),
+
               const SizedBox(height: 16),
               _buildSettingCard(
                 context,
@@ -63,6 +65,19 @@ class _NavigationPageState extends State<NavigationPage> {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (context) => CarInfo()),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 16),
+
+              _buildSettingCard(
+                context,
+                icon: Icons.emoji_events,
+                title: context.loc.settings_my_trophies,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const UserTrophiesPage()),
                   );
                 },
               ),

@@ -362,7 +362,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.loc.profile_cancel),
+            child: Text(context.loc.common_cancel),
           ),
         ],
       ),

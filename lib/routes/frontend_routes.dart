@@ -65,4 +65,13 @@ class FrontendRoutes {
   //Bicis
   static const String biciDetailBase = '/api/bicing/estaciones/';
   static String biciDetailById(String id) => '/api/bicing/estaciones/$id';
+
+  // Throphies
+  static String usuariGetPunts(int userId) => '/api_punts_carrega/usuari/$userId/getPunts/';
+  static String usuariSumaPunts(int userId) => '/api_punts_carrega/usuari/$userId/sumaPunts/';
+  static String usuariRestarPunts(int userId) => '/api_punts_carrega/usuari/$userId/restarPunts/';
+  static String usuariTrofeos(int userId) => '/api_punts_carrega/usuari/$userId/trofeos/';
+
+  static String addPoints(int id) => '/api_punts_carrega/usuari/$id/sumaPunts/';
+
 }
