@@ -176,6 +176,7 @@
   "profile_gallery": "Galery",
   "profile_camera": "Camera",
   "profile_delete_photo": "Delete photo",
+  "profile_cancel": "Cancel",
   "profile_save_changes": "Save changes",
   "profile_delete": "Delete my profile",
   "profile_confirmation_delete_text" : "Are you sure you want to delete your user?",
@@ -218,7 +219,14 @@
   "notificar_error_connection_error": "Connection error",
   "notificar_error_error": "Error",
 
-  "station_view_reviews": "View reviews",
-  "station_give_review": "Give a review",
-  "station_report_error": "Report error"
+"station_view_reviews": "View reviews",
+"station_give_review": "Give a review",
+"station_report_error": "Report error",
+
+  "booking_title": "Charge vehicle",
+  "booking_description": "Booking to charge the vehicle",
+  "booking_time": "Hour: ",
+  "booking_date": "Date: ",
+  "booking_duration": "Duration: ",
+  "booking_station_address": "Address: "
 }
