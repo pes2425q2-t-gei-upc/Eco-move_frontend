@@ -109,6 +109,9 @@ class _UserTrophiesPageState extends State<UserTrophiesPage> {
   }
 
   Widget _buildTrophyCard(Map<String, dynamic> trofeo, {bool earned = false}) {
+    final trophyName = trofeo['nombre_traducido'] ?? trofeo['nombre'];
+    final trophyDesc = trofeo['descripcion_traducida'] ?? trofeo['descripcion'];
+
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -128,7 +131,7 @@ class _UserTrophiesPageState extends State<UserTrophiesPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    trofeo['nombre'],
+                    trophyName,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -140,7 +143,7 @@ class _UserTrophiesPageState extends State<UserTrophiesPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              trofeo['descripcion'],
+              trophyDesc,
               style: const TextStyle(fontSize: 13),
             )
           ],
