@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:eco_move_frontend/config.dart';
 import 'package:eco_move_frontend/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -178,6 +180,72 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<bool> signInWithGoogle(BuildContext context) async {
+    try {
+      // Initialize Google Sign In
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+      );
+
+      // Attempt to sign in
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      // If user cancels the sign-in process
+      if (googleUser == null) {
+        return false;
+      }
+
+      // Get authentication details
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // Get the access token
+      final String? accessToken = googleAuth.accessToken;
+
+      if (accessToken == null) {
+        throw Exception("Failed to obtain access token");
+      }
+
+      // Send the token to your backend
+      final response = await http.post(
+        Uri.parse(FrontendRoutes.build(FrontendRoutes.googleSignin)),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'access_token': accessToken,
+        }),
+      );
+
+      // Check if the request was successful
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Parse the response from your backend
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        print(responseData);
+        saveAccessToken(responseData['access'], responseData['refresh']);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MyHomePage(title: 'ECO-MOVE'),
+          ),
+        );
+
+
+        return true;
+      } else {
+        // Handle the error
+        print('Failed to authenticate with backend: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        return false;
+      }
+
+    } catch (error) {
+      print('Error during Google sign in: $error');
+      return false;
+    }
+  }
+
+
+
   Future<void> _getInfo(String token) async {
     final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
 
@@ -228,7 +296,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
-
 
   Widget _buildTextField(
     String label,
@@ -331,7 +398,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Google sign in button
                     ElevatedButton.icon(
                       onPressed: () {
-                        // Implement Google sign in
+                        signInWithGoogle(context);
                       },
                       icon: const FaIcon(
                         FontAwesomeIcons.google,

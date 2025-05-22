@@ -58,6 +58,8 @@ class FrontendRoutes {
   static const String alerts = '/social/alerts/';
   static const String alertsPollingAlertes = '/social/alerts/polling_alertes/';
 
+  static const String googleSignin = '/auth/social/google/';
+
   //Notificar Error
   static const String tiposErrorEstacion = '/api_punts_carrega/tipos_error_estacion/';
   static String reportarErrorEstacion(String id) => '/api_punts_carrega/estacions/$id/reportar_error/';
