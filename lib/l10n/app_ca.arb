@@ -35,6 +35,11 @@
 
   "alert_send_alert": "Envia un alerta",
   "alert_optional_message": "Missatge opcional",
+  "alert_sent_successfully": "Alerta enviada amb èxit",
+  "alert_authentication_required": "Autenticació requerida",
+  "alert_emergency_points": "Punts d'emergència",
+  "alert_endpoint_not_found": "Endpoint no trobat.",
+  "alert_no_emergency_points_found": "No s'han trobat punts d'emergència.",
 
   "station_address": "Direcció",
   "station_address_unknown": "Direcció desconeguda",
@@ -126,6 +131,11 @@
   "login_password": "Contrasenya",
   "login_button": "Iniciar sessió",
   "login_or": "O",
+  "login_create_account": "Crear compte",
+  "login_no_account": "No tens compte?",
+
+  "logout_sign_out": "Tancar sessió",
+  "logout_are_you_sure": "Estàs segur que vols tancar la sessió?",
 
   "shelter_shelter_details": "Detalls del Refugi",
   "shelter_shelter_could_not_be_loaded": "No es va poder carregar el refugi",
@@ -166,7 +176,6 @@
   "profile_gallery": "Galeria",
   "profile_camera": "Càmera",
   "profile_delete_photo": "Eliminar foto",
-  "profile_cancel": "Cancelar",
   "profile_save_changes": "Guardar canvis",
   "profile_delete": "Eliminar el meu usuari",
   "profile_confirmation_delete_text" : "Està segur que vol eliminar el seu usuari?",
@@ -204,7 +213,6 @@
   "notificar_error_select_type": "Selecciona el tipus d'error:",
   "notificar_error_description_label": "Descripció o comentari (opcional):",
   "notificar_error_description_hint": "Descriu el problema...",
-  "notificar_error_send": "Enviar",
   "notificar_error_token_missing": "Token no disponible",
   "notificar_error_success": "Error notificat amb èxit",
   "notificar_error_session_expired": "Sessió expirada. Torna a iniciar sessió.",
