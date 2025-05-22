@@ -224,5 +224,12 @@
   "station_report_error": "Notificar error",
 
   "out_of_service": "Fuera de servicio",
-  "station_no_actions_available": "No hay acciones disponibles mientras la estación esté fuera de servicio"
+  "station_no_actions_available": "No hay acciones disponibles mientras la estación esté fuera de servicio",
+
+    "booking_title": "Cargar vehículo",
+    "booking_description": "Reserva para cargar el vehículo",
+    "booking_time": "Hora: ",
+    "booking_date": "Fecha: ",
+    "booking_duration": "Duración: ",
+    "booking_station_address": "Dirección: "
 }
