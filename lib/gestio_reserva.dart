@@ -108,307 +108,299 @@ class _EstacionScreenState extends State<EstacionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Create a reusable method for building buttons
+    Widget _buildActionButton({
+      required IconData icon,
+      required String text,
+      required Color backgroundColor,
+      required VoidCallback onPressed,
+    }) {
+      return TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          backgroundColor: backgroundColor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(13),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white),
+            SizedBox(width: 8),
+            Text(text),
+          ],
+        ),
+      );
+    }
+
+    // Create a reusable method for the info rows
+    Widget _buildInfoRow({
+      required String label,
+      required String value,
+      bool expandValue = false,
+    }) {
+      final labelWidget = Text(
+        label,
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+
+      final valueWidget = Text(
+        value,
+        style: const TextStyle(
+          color: Colors.black,
+          fontSize: 18,
+        ),
+        overflow: expandValue ? TextOverflow.ellipsis : TextOverflow.clip,
+        softWrap: expandValue,
+      );
+
+      return Row(
+        children: [
+          labelWidget,
+          const SizedBox(width: 10),
+          expandValue ? Expanded(child: valueWidget) : valueWidget,
+        ],
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Estación ${stationData['direccio'] ?? 'Cargando...'}'),
       ),
-      body:
-          isLoading
-              ? Center(
-                child: CircularProgressIndicator(),
-              ) // Show loading spinner while data is being fetched
-              : Padding(
-                padding: const EdgeInsets.all(30.0),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Padding(
+        padding: const EdgeInsets.all(30.0),
+        child: Column(
+          children: [
+            // Charger type info
+            _buildInfoRow(
+              label: '${context.loc.station_plug_type}: ',
+              value: '',
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Wrap(
+                    spacing: 8.0,
+                    runSpacing: 4.0,
+                    children: (stationData['tipus_carregador'] as List<dynamic>? ?? [])
+                        .expand((tipo) => (tipo ?? '').split('+'))
+                        .map<Widget>((tipo) => Chip(
+                      label: Text(
+                        tipo.trim(),
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ))
+                        .toList(),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Station power info
+            _buildInfoRow(
+              label: '${context.loc.station_power}: ',
+              value: stationData['potencia'] != null
+                  ? '${stationData['potencia']} kW'
+                  : 'N/A',
+            ),
+            const SizedBox(height: 16),
+
+            // Station status info
+            _buildInfoRow(
+              label: '${context.loc.station_status}: ',
+              value: stationData['fuera_de_servicio'] == true
+                  ? context.loc.out_of_service ?? 'Out of Service'
+                  : (stationData['nplaces'] != null &&
+                  int.tryParse(stationData['nplaces'])! > 0
+                  ? 'Disponible'
+                  : 'Ocupat'),
+            ),
+            const SizedBox(height: 16),
+
+            // City info
+            _buildInfoRow(
+              label: '${context.loc.station_city}: ',
+              value: stationData['ciutat'] ?? 'No disponible',
+              expandValue: true,
+            ),
+
+
+            if (stationData['fuera_de_servicio'] == true) ...[
+              const SizedBox(height: 40),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  border: Border.all(color: Colors.red),
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${context.loc.station_plug_type}: ',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Wrap(
-                            spacing: 8.0, // Horizontal spacing between chips
-                            runSpacing: 4.0, // Vertical spacing between rows
-                            children:
-                                (stationData['tipus_carregador']
-                                            as List<dynamic>? ??
-                                        [])
-                                    .expand(
-                                      (tipo) => (tipo ?? '').split('+'),
-                                    ) // Split by '+'
-                                    .map<Widget>(
-                                      (tipo) => Chip(
-                                        label: Text(
-                                          tipo.trim(), // Remove any surrounding whitespace
-                                          style: const TextStyle(fontSize: 16),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                          ),
-                        ),
-                      ],
+                    Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 48,
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Text(
-                          '${context.loc.station_power}: ',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          stationData['potencia'] != null
-                              ? '${stationData['potencia']} kW'
-                              : 'N/A',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      context.loc.out_of_service ?? 'Out of Service',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
                     ),
+                      if (stationData['motivo_fuera_servicio'] != null &&
+                                             stationData['motivo_fuera_servicio'].toString().isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        stationData['motivo_fuera_servicio'].toString(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Text(
-                          '${context.loc.station_status}: ',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          stationData['nplaces'] != null &&
-                                  int.tryParse(stationData['nplaces'])! > 0
-                              ? 'Disponible'
-                              : 'Ocupat',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Text(
-                          '${context.loc.station_city}: ',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            stationData['ciutat'] ?? 'No disponible',
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 18,
-                            ),
-                            overflow:
-                                TextOverflow
-                                    .ellipsis, // Handle overflow with ellipsis
-                            softWrap: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 60),
-                    TextButton(
-                      onPressed:
-                          () => _openGoogleMaps(
-                            stationData['lat'],
-                            stationData['lng'],
-                          ),
-                      style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xFF2C8235),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            13,
-                          ), // Rounded corners
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.location_on, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(context.loc.station_how_to_arrive),
-                        ],
+                    Text(
+                      context.loc.station_no_actions_available ?? 'No actions available while station is out of service.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        color: Colors.black54,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder:
-                                (context) => ChargeCalculatorScreen(
-                                  tipoCarga: stationData['tipus_velocitat'],
-                                  precio: '3 €',
-                                ),
-                          ),
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xFF54a0e8),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            13,
-                          ), // Rounded corners
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.money, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(context.loc.station_calculate_price),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                    BookChargerScreen(idStation: idStation),
-                          ),
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xFFa955e0),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            13,
-                          ), // Rounded corners
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.calendar_month, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(context.loc.station_reserve),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                     onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => ListRatingsScreen(idStation: idStation),
-                          ),  
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.orangeAccent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            13,
-                          ), // Rounded corners
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.star, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(context.loc.station_view_reviews),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                RatingScreen(idStation: idStation),
-                          ),
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            13,
-                          ), // Rounded corners
-                        ),
-                      ),
-                      child:  Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.recommend_sharp, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(context.loc.station_give_review),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => NotificarErrorScreen(idStation: idStation),
-                          ),
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(13),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children:  [
-                          Icon(Icons.error, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(context.loc.station_report_error),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _shareTextButton(
-                      context: context,
-                      latitude: stationData['lat'],
-                      longitude: stationData['lng'],
-                      stationName: stationData['direccio'] ?? 'Cargando...',
-                    )
                   ],
                 ),
               ),
+              // Only show report error button when station is out of service
+              const SizedBox(height: 30),
+              _buildActionButton(
+                icon: Icons.error,
+                text: context.loc.station_report_error,
+                backgroundColor: Colors.red,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => NotificarErrorScreen(idStation: idStation),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              _shareTextButton(
+                context: context,
+                latitude: stationData['lat'],
+                longitude: stationData['lng'],
+                stationName: stationData['direccio'] ?? 'Cargando...',
+              ),
+            ] else ...[
+              // Show all action buttons when station is not out of service
+              const SizedBox(height: 60),
+
+              // Action buttons
+              _buildActionButton(
+                icon: Icons.location_on,
+                text: context.loc.station_how_to_arrive,
+                backgroundColor: const Color(0xFF2C8235),
+                onPressed: () => _openGoogleMaps(stationData['lat'], stationData['lng']),
+              ),
+              const SizedBox(height: 16),
+
+              _buildActionButton(
+                icon: Icons.money,
+                text: context.loc.station_calculate_price,
+                backgroundColor: const Color(0xFF54a0e8),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ChargeCalculatorScreen(
+                        tipoCarga: stationData['tipus_velocitat'],
+                        precio: '3 €',
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              _buildActionButton(
+                icon: Icons.calendar_month,
+                text: context.loc.station_reserve,
+                backgroundColor: const Color(0xFFa955e0),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => BookChargerScreen(idStation: idStation),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              _buildActionButton(
+                icon: Icons.star,
+                text: context.loc.station_view_reviews,
+                backgroundColor: Colors.orangeAccent,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ListRatingsScreen(idStation: idStation),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              _buildActionButton(
+                icon: Icons.recommend_sharp,
+                text: context.loc.station_give_review,
+                backgroundColor: Colors.redAccent,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => RatingScreen(idStation: idStation),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              _buildActionButton(
+                icon: Icons.error,
+                text: context.loc.station_report_error,
+                backgroundColor: Colors.red,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => NotificarErrorScreen(idStation: idStation),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              _shareTextButton(
+                context: context,
+                latitude: stationData['lat'],
+                longitude: stationData['lng'],
+                stationName: stationData['direccio'] ?? 'Cargando...',
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 

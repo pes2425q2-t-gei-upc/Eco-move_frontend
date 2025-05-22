@@ -224,6 +224,9 @@
   "station_report_error": "Notificar error",
 
 
+  "out_of_service": "Fora de servei",
+  "station_no_actions_available": "No hi ha accions disponibles mentres l'estació estigui fora de servei.",
+
   "booking_title": "Carregar vehicle",
   "booking_description": "Reserva per a carregar el vehicle",
   "booking_time": "Hora: ",

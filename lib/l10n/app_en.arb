@@ -223,6 +223,9 @@
 "station_give_review": "Give a review",
 "station_report_error": "Report error",
 
+"out_of_service": "Out of service",
+"station_no_actions_available": "No actions available while station is out of service.",
+
   "booking_title": "Charge vehicle",
   "booking_description": "Booking to charge the vehicle",
   "booking_time": "Hour: ",
