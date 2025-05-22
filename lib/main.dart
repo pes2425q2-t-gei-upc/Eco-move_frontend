@@ -22,10 +22,8 @@ import 'l10n/locale_provider.dart';
 import 'settings-menu.dart';
 import 'noti_service.dart';
 import 'alertManager.dart'; // Importa AlertManager
-
 import 'EmergencyScreen.dart';
 import 'EmergencyService.dart';
-import 'settings-menu.dart';
 import 'bici_detail_screen.dart';
 import 'bici_reservas_screen.dart'; 
 
@@ -314,7 +312,8 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       final response = await http.get(uri);
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        print('fetch estaciones devuelve ${data}');
 
         setState(() {
           estaciones =
@@ -459,6 +458,8 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
   }
 
   Widget _buildEstacionCard(Map<String, dynamic> estacion) {
+    final bool fueraDeServicio = estacion['fuera_de_servicio'] == true;
+
     return InkWell(
       onTap: () {
         _abrirEstacionScreen(context, estacion['id_punt'].toString());
@@ -467,109 +468,143 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
         elevation: 5,
         margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.green.shade100,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.ev_station,
-                  color: Colors.green,
-                  size: 30,
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      estacion['direccio'] ?? context.loc.station_address_unknown,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: fueraDeServicio ? Colors.red.shade100 : Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      '${context.loc.station_city}: ${estacion['ciutat'] ?? 'N/A'}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black54,
-                      ),
+                    child: Icon(
+                      Icons.ev_station,
+                      color: fueraDeServicio ? Colors.red : Colors.green,
+                      size: 30,
                     ),
-                    const SizedBox(height: 5),
-                    Row(
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Builder(
-                          builder: (context) {
-                            final plazasLibres =
-                                (int.tryParse(estacion['nplaces'].toString()) ??
-                                    0) >
-                                0;
-                            return Icon(
-                              plazasLibres ? Icons.check_circle : Icons.cancel,
-                              color: plazasLibres ? Colors.green : Colors.red,
-                              size: 18,
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 5),
                         Text(
-                          '${context.loc.station_free_spots}: ${estacion['nplaces'] ?? 'N/A'}',
+                          estacion['direccio'] ?? context.loc.station_address_unknown,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          '${context.loc.station_city}: ${estacion['ciutat'] ?? 'N/A'}',
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.black54,
                           ),
                         ),
+                        const SizedBox(height: 5),
+                        Row(
+                          children: [
+                            Builder(
+                              builder: (context) {
+                                final plazasLibres =
+                                    (int.tryParse(estacion['nplaces'].toString()) ??
+                                        0) >
+                                        0;
+                                return Icon(
+                                  plazasLibres ? Icons.check_circle : Icons.cancel,
+                                  color: plazasLibres ? Colors.green : Colors.red,
+                                  size: 18,
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              '${context.loc.station_free_spots}: ${estacion['nplaces'] ?? 'N/A'}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          '${context.loc.station_power}: ${estacion['potencia'] ?? 'N/A'} kW',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          '${context.loc.station_speed_type}: ${estacion['tipus_velocitat'] ?? 'N/A'}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        if (estacion.containsKey('distancia_km'))
+                          const SizedBox(height: 5),
+                        if (estacion.containsKey('distancia_km'))
+                          Text(
+                            '${context.loc.station_distance}: ${estacion['distancia_km'].toStringAsFixed(2)} km',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.blueGrey,
+                            ),
+                          ),
                       ],
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      '${context.loc.station_power}: ${estacion['potencia'] ?? 'N/A'} kW',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black54,
-                      ),
+                  ),
+                  const SizedBox(width: 10),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward, color: Colors.green),
+                    onPressed: () {
+                      _abrirEstacionScreen(context, estacion['id_punt'].toString());
+                    },
+                  ),
+                ],
+              ),
+            ),
+            // Out of service label
+            if (fueraDeServicio)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(15),
+                      bottomLeft: Radius.circular(10),
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      '${context.loc.station_speed_type}: ${estacion['tipus_velocitat'] ?? 'N/A'}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black54,
-                      ),
-                    ),
-                    if (estacion.containsKey('distancia_km'))
-                      const SizedBox(height: 5),
-                    if (estacion.containsKey('distancia_km'))
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
                       Text(
-                        '${context.loc.station_distance}: ${estacion['distancia_km'].toStringAsFixed(2)} km',
+                        context.loc.out_of_service ,
                         style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.blueGrey,
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 10),
-              IconButton(
-                icon: const Icon(Icons.arrow_forward, color: Colors.green),
-                onPressed: () {
-                  _abrirEstacionScreen(context, estacion['id_punt'].toString());
-                },
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -1178,20 +1213,31 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: const Text('Cerrar sesión'),
-                    content: const Text(
-                      '¿Estás seguro que quieres cerrar sesión?',
+                    title: Text(context.loc.logout_sign_out),
+                    content: Text(
+                      context.loc.logout_are_you_sure,
                     ),
                     actions: [
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).pop(); // Close the dialog
                         },
-                        child: const Text('Cancelar'),
+                        child: Text(context.loc.common_cancel),
                       ),
                       TextButton(
-                        onPressed: () {
-                          deleteTokens();
+                        onPressed: () async {
+                          // clear tokens
+                          await deleteTokens();
+                          await _secureStorage.deleteAll();
+
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setString('Language', 'en');
+
+                          // Reset locale
+                          Provider.of<LocaleProvider>(navigatorKey.currentContext!, listen: false)
+                            .setLocale(const Locale('en'));
+
+                          // Navigate back to login screen
                           Navigator.of(context).pop(); // Close the dialog
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
@@ -1200,7 +1246,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                                 (Route<dynamic> route) => false,
                           );
                         },
-                        child: const Text('Cerrar sesión'),
+                        child: Text(context.loc.logout_sign_out),
                       ),
                     ],
                   );

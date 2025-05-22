@@ -11,6 +11,22 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Perfil usuario',
+      theme: ThemeData(
+        primarySwatch: Colors.lightGreen,
+        useMaterial3: true,
+      ),
+      home: const UserProfilePage(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
 
 class UserProfile {
   String firstName;
@@ -362,7 +378,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.loc.profile_cancel),
+            child: Text(context.loc.common_cancel),
           ),
         ],
       ),
