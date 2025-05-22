@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'EmergencyService.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 class EmergencyScreen extends StatefulWidget {
   final double userLat;
@@ -23,7 +24,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Puntos de Emergencia')),
+      appBar: AppBar(title: Text(context.loc.alert_emergency_points)),
       body: FutureBuilder<List<EmergencyPoint>>(
         future: _emergencyPointsFuture,
         builder: (context, snapshot) {
@@ -32,11 +33,11 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
           } else if (snapshot.hasError) {
             final error = snapshot.error.toString();
             if (error.contains('404')) {
-              return const Center(child: Text('Error 404: Endpoint no encontrado.'));
+              return Center(child: Text('Error 404: ${context.loc.alert_endpoint_not_found}'));
             }
             return Center(child: Text('Error: $error'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No se encontraron puntos de emergencia.'));
+            return Center(child: Text(context.loc.alert_no_emergency_points_found));
           } else {
             final points = snapshot.data!;
             return ListView.builder(
