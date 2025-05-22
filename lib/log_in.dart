@@ -290,10 +290,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
-                _buildTextField('Email', _emailController, Icons.person),
+                SizedBox(height: 32),
+                _buildTextField(context.loc.login_email, _emailController, Icons.person),
                 _buildTextField(
-                  'Contraseña',
+                  context.loc.login_password,
                   _passwordController,
                   Icons.lock,
                   isPassword: true, // Set this field as a password field
@@ -374,7 +374,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
                 Center(
                   child: Text(
-                    'No tienes cuenta?',
+                    context.loc.login_no_account,
                     style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ),
@@ -387,8 +387,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     );
                   },
-                  child: const Text(
-                    'Crear cuenta',
+                  child: Text(
+                    context.loc.login_create_account,
                     style: TextStyle(fontSize: 16, color: Colors.black),
                   ),
                 ),

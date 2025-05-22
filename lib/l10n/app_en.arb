@@ -35,6 +35,11 @@
 
   "alert_send_alert": "Send Alert",
   "alert_optional_message": "Optional message",
+  "alert_sent_successfully": "Alert sent successfully",
+  "alert_authentication_required": "Authentication required",
+  "alert_emergency_points": "Emergency points",
+  "alert_endpoint_not_found": "Endpoint not found.",
+  "alert_no_emergency_points_found": "No emergency points were found.",
 
   "station_address": "Address",
   "station_address_unknown": "Unknown address",
@@ -126,6 +131,11 @@
   "login_password": "Password",
   "login_button": "Login",
   "login_or": "OR",
+  "login_create_account": "Create account",
+  "login_no_account": "Don't have an account?",
+
+  "logout_sign_out": "Sign out",
+  "logout_are_you_sure": "Are you sure you want to log out?",
 
   "shelter_shelter_details": "Shelter details",
   "shelter_shelter_could_not_be_loaded": "The shelter could not be loaded",
@@ -166,7 +176,6 @@
   "profile_gallery": "Galery",
   "profile_camera": "Camera",
   "profile_delete_photo": "Delete photo",
-  "profile_cancel": "Cancel",
   "profile_save_changes": "Save changes",
   "profile_delete": "Delete my profile",
   "profile_confirmation_delete_text" : "Are you sure you want to delete your user?",
@@ -203,7 +212,6 @@
   "notificar_error_select_type": "Select error type:",
   "notificar_error_description_label": "Description or comment (optional):",
   "notificar_error_description_hint": "Describe the problem...",
-  "notificar_error_send": "Send",
   "notificar_error_token_missing": "Token not available",
   "notificar_error_success": "Error reported successfully",
   "notificar_error_session_expired": "Session expired. Please log in again.",

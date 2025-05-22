@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 class PuntEmergenciaScreen extends StatelessWidget {
   final LatLng? position; // Recibir la posición como parámetro
@@ -53,7 +54,7 @@ class PuntEmergenciaScreen extends StatelessWidget {
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Alerta enviada con éxito')),
+          SnackBar(content: Text(context.loc.alert_sent_successfully)),
         );
         //Navigator.of(context).pop();
       } else if (response.statusCode == 401) {
@@ -62,7 +63,7 @@ class PuntEmergenciaScreen extends StatelessWidget {
           await _refreshToken(refreshToken, context);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Autenticación requerida')),
+            SnackBar(content: Text(context.loc.alert_authentication_required)),
           );
         }
       } else {
@@ -112,24 +113,24 @@ class PuntEmergenciaScreen extends StatelessWidget {
     TextEditingController descripcionController = TextEditingController();
 
     return AlertDialog(
-      title: const Text("Enviar alerta"),
+      title: Text(context.loc.alert_send_alert),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: tituloController,
-            decoration: const InputDecoration(
-              labelText: "Título",
-              hintText: "Título",
+            decoration: InputDecoration(
+              labelText: context.loc.common_title,
+              hintText: context.loc.common_title,
               border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: descripcionController,
-            decoration: const InputDecoration(
-              labelText: "Descripción",
-              hintText: "Descripción",
+            decoration: InputDecoration(
+              labelText: context.loc.common_description,
+              hintText: context.loc.common_description,
               border: OutlineInputBorder(),
             ),
             maxLines: 3,
@@ -141,7 +142,7 @@ class PuntEmergenciaScreen extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text("Cancelar"),
+          child: Text(context.loc.common_cancel),
         ),
         TextButton(
           onPressed: () {
@@ -153,7 +154,7 @@ class PuntEmergenciaScreen extends StatelessWidget {
              Navigator.of(context).pop();
           },
           style: TextButton.styleFrom(foregroundColor: Colors.red),
-          child: const Text("Enviar"),
+          child: Text(context.loc.common_send),
         ),
       ],
     );

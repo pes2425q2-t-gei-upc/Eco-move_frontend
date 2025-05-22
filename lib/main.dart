@@ -1155,16 +1155,16 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: const Text('Cerrar sesión'),
-                    content: const Text(
-                      '¿Estás seguro que quieres cerrar sesión?',
+                    title: Text(context.loc.logout_sign_out),
+                    content: Text(
+                      context.loc.logout_are_you_sure,
                     ),
                     actions: [
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).pop(); // Close the dialog
                         },
-                        child: const Text('Cancelar'),
+                        child: Text(context.loc.common_cancel),
                       ),
                       TextButton(
                         onPressed: () async {
@@ -1188,7 +1188,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                                 (Route<dynamic> route) => false,
                           );
                         },
-                        child: const Text('Cerrar sesión'),
+                        child: Text(context.loc.logout_sign_out),
                       ),
                     ],
                   );

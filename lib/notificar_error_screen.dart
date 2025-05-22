@@ -209,7 +209,7 @@ class _NotificarErrorScreenState extends State<NotificarErrorScreen> {
             width: double.infinity,
             child: ElevatedButton.icon(
               icon: const Icon(Icons.send),
-              label: Text(context.loc.notificar_error_send),
+              label: Text(context.loc.common_send),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(255, 23, 51, 209),
                 foregroundColor: Colors.white,
