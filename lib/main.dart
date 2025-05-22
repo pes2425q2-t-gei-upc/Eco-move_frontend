@@ -19,11 +19,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'l10n/locale_provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:provider/provider.dart';
-import 'l10n/locale_provider.dart';
-import 'calendar.dart';
 import 'settings-menu.dart';
 import 'noti_service.dart';
 import 'alertManager.dart'; // Importa AlertManager
@@ -32,6 +27,7 @@ import 'EmergencyScreen.dart';
 import 'EmergencyService.dart';
 import 'settings-menu.dart';
 import 'bici_detail_screen.dart';
+import 'bici_reservas_screen.dart'; 
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
@@ -738,45 +734,65 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
   Widget _buildHomePage() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          InkWell(
-            onTap: _navigateToBookingsScreen,
-            borderRadius: BorderRadius.circular(12.0),
-            splashColor: Colors.white24,
-            child: AnimatedContainer(
-              duration: Duration(milliseconds: 200),
-              padding: EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 5,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Icon(Icons.calendar_month, color: Colors.white, size: 30),
-                  SizedBox(width: 10),
-                  Text(
-                    context.loc.home_my_reservations,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+      child: Center(
+        child: Card(
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.eco, color: Colors.green, size: 60),
+                const SizedBox(height: 24),
+                Text(
+                  '¡Bienvenido a ECO-MOVE!',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const BiciReservasScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.pedal_bike),
+                  label: const Text('Bicis reservadas'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 48),
+                    textStyle: const TextStyle(fontSize: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: _navigateToBookingsScreen,
+                  icon: const Icon(Icons.calendar_month),
+                  label: Text(context.loc.home_my_reservations),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 48),
+                    textStyle: const TextStyle(fontSize: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
