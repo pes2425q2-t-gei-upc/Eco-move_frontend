@@ -775,56 +775,83 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.eco, color: Colors.green, size: 60),
-                const SizedBox(height: 24),
-                Text(
-                  '¡Bienvenido a ECO-MOVE!',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.eco, color: Colors.green, size: 60),
+                  const SizedBox(height: 24),
+                  Text(
+                    '¡Bienvenido a ECO-MOVE!',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const BiciReservasScreen()),
+                      );
+                    },
+                    icon: const Icon(Icons.pedal_bike),
+                    label: const Text('Bicis reservadas'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48),
+                      textStyle: const TextStyle(fontSize: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const BiciReservasScreen()),
-                    );
-                  },
-                  icon: const Icon(Icons.pedal_bike),
-                  label: const Text('Bicis reservadas'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 48),
-                    textStyle: const TextStyle(fontSize: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: _navigateToBookingsScreen,
-                  icon: const Icon(Icons.calendar_month),
-                  label: Text(context.loc.home_my_reservations),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 48),
-                    textStyle: const TextStyle(fontSize: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: _navigateToBookingsScreen,
+                    icon: const Icon(Icons.calendar_month),
+                    label: Text(context.loc.home_my_reservations),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48),
+                      textStyle: const TextStyle(fontSize: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => EmergencyScreen(
+                            userLat: myPosition?.latitude ?? 0.0,
+                            userLng: myPosition?.longitude ?? 0.0,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.notifications, color: Colors.white),
+                    label: const Text('Emergencias'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48),
+                      textStyle: const TextStyle(fontSize: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
         ),
@@ -1316,20 +1343,6 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => EmergencyScreen(
-                userLat: myPosition?.latitude ?? 0.0,
-                userLng: myPosition?.longitude ?? 0.0,
-              ),
-            ),
-          );
-        },
-      backgroundColor: Colors.green,
-      child: const Icon(Icons.notifications),
-    ),
     bottomNavigationBar: BottomNavigationBar(
       items: <BottomNavigationBarItem>[
         BottomNavigationBarItem(
