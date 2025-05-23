@@ -334,6 +334,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   "potencia": estacion["potencia"],
                   "tipus_velocitat": estacion["tipus_velocitat"],
                   "tipus_carregador": estacion["tipus_carregador"],
+                  "fuera_de_servicio": estacion["fuera_de_servicio"],
+
                 };
               }).toList();
           _isLoading = false;
@@ -468,12 +470,16 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
 
     return InkWell(
       onTap: () {
+        if (fueraDeServicio) {
+          return;
+        }
         _abrirEstacionScreen(context, estacion['id_punt'].toString());
       },
       child: Card(
         elevation: 5,
         margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        color: fueraDeServicio ? Colors.grey.shade200 : Colors.white,
         child: Stack(
           children: [
             Padding(
@@ -572,8 +578,14 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                   ),
                   const SizedBox(width: 10),
                   IconButton(
-                    icon: const Icon(Icons.arrow_forward, color: Colors.green),
+                    icon: Icon(Icons.arrow_forward, 
+                    color: fueraDeServicio ? Colors.grey : Colors.green
+                    ),
+                    tooltip: fueraDeServicio ? context.loc.out_of_service : null,
                     onPressed: () {
+                      if (fueraDeServicio) {
+                        return;
+                      }
                       _abrirEstacionScreen(context, estacion['id_punt'].toString());
                     },
                   ),
