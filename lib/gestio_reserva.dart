@@ -175,10 +175,10 @@ class _EstacionScreenState extends State<EstacionScreen> {
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.all(30.0),
-        child: Column(
-          children: [
+          : SingleChildScrollView(
+            padding: const EdgeInsets.all(30.0),
+            child: Column(
+              children: [
             // Charger type info
             _buildInfoRow(
               label: '${context.loc.station_plug_type}: ',

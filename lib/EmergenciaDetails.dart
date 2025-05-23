@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart'; // Importar url_launcher
+import 'package:url_launcher/url_launcher.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart'; // Importa tu extensión de localización
 
 class EmergenciaDetails extends StatelessWidget {
   final String title;
@@ -32,7 +33,7 @@ class EmergenciaDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalles de Emergencia'),
+        title: Text(context.loc.emergency_details_title), // Traducción
         backgroundColor: Colors.redAccent,
       ),
       body: SingleChildScrollView(
@@ -80,7 +81,7 @@ class EmergenciaDetails extends StatelessWidget {
                     const Icon(Icons.location_on, color: Colors.redAccent),
                     const SizedBox(width: 10),
                     Text(
-                      'Latitud: $lat',
+                      '${context.loc.emergency_details_latitude}: $lat',
                       style: const TextStyle(
                         fontSize: 16,
                         color: Colors.black87,
@@ -94,7 +95,7 @@ class EmergenciaDetails extends StatelessWidget {
                     const Icon(Icons.location_on_outlined, color: Colors.redAccent),
                     const SizedBox(width: 10),
                     Text(
-                      'Longitud: $lng',
+                      '${context.loc.emergency_details_longitude}: $lng',
                       style: const TextStyle(
                         fontSize: 16,
                         color: Colors.black87,
@@ -112,7 +113,7 @@ class EmergenciaDetails extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Fecha: ${timestamp.split('T')[0]}',
+                            '${context.loc.emergency_details_date}: ${timestamp.split('T')[0]}',
                             style: const TextStyle(
                               fontSize: 16,
                               color: Colors.black87,
@@ -120,7 +121,7 @@ class EmergenciaDetails extends StatelessWidget {
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            'Hora: ${timestamp.split('T')[1].split('.')[0]}',
+                            '${context.loc.emergency_details_time}: ${timestamp.split('T')[1].split('.')[0]}',
                             style: const TextStyle(
                               fontSize: 16,
                               color: Colors.black87,
@@ -133,16 +134,16 @@ class EmergenciaDetails extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
-                  width: double.infinity, // Ocupa todo el ancho disponible
+                  width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () {
                       _openGoogleMaps(lat, lng);
                     },
                     icon: const Icon(Icons.map, color: Colors.white),
-                    label: const Text('Google Maps'),
+                    label: Text(context.loc.emergency_details_google_maps),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.purple,
-                      foregroundColor: Colors.white, // Texto blanco
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         vertical: 12,
                       ),
@@ -158,13 +159,13 @@ class EmergenciaDetails extends StatelessWidget {
                   children: [
                     ElevatedButton.icon(
                       onPressed: () {
-                        // Acción para rechazar ayuda (de momento no hace nada)
+                        Navigator.of(context).pop(); // Volver atrás al rechazar
                       },
                       icon: const Icon(Icons.close, color: Colors.white),
-                      label: const Text('Rechazar'),
+                      label: Text(context.loc.emergency_details_reject),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
-                        foregroundColor: Colors.white, // Texto blanco
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 12,
@@ -179,10 +180,10 @@ class EmergenciaDetails extends StatelessWidget {
                         // Acción para aceptar ayuda (de momento no hace nada)
                       },
                       icon: const Icon(Icons.check, color: Colors.white),
-                      label: const Text('Aceptar'),
+                      label: Text(context.loc.emergency_details_accept),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
-                        foregroundColor: Colors.white, // Texto blanco
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 12,

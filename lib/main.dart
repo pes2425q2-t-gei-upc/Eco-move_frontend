@@ -25,6 +25,7 @@ import 'alertManager.dart'; // Importa AlertManager
 import 'EmergencyScreen.dart';
 import 'EmergencyService.dart';
 import 'bici_detail_screen.dart';
+import 'bici_reservas_screen.dart'; 
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
@@ -780,45 +781,92 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
   Widget _buildHomePage() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          InkWell(
-            onTap: _navigateToBookingsScreen,
-            borderRadius: BorderRadius.circular(12.0),
-            splashColor: Colors.white24,
-            child: AnimatedContainer(
-              duration: Duration(milliseconds: 200),
-              padding: EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 5,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+      child: Center(
+        child: Card(
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.calendar_month, color: Colors.white, size: 30),
-                  SizedBox(width: 10),
+                  Icon(Icons.eco, color: Colors.green, size: 60),
+                  const SizedBox(height: 24),
                   Text(
-                    context.loc.home_my_reservations,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    '¡Bienvenido a ECO-MOVE!',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const BiciReservasScreen()),
+                      );
+                    },
+                    icon: const Icon(Icons.pedal_bike),
+                    label: const Text('Bicis reservadas'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48),
+                      textStyle: const TextStyle(fontSize: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: _navigateToBookingsScreen,
+                    icon: const Icon(Icons.calendar_month),
+                    label: Text(context.loc.home_my_reservations),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48),
+                      textStyle: const TextStyle(fontSize: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => EmergencyScreen(
+                            userLat: myPosition?.latitude ?? 0.0,
+                            userLng: myPosition?.longitude ?? 0.0,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.notifications, color: Colors.white),
+                    label: const Text('Emergencias'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48),
+                      textStyle: const TextStyle(fontSize: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -836,15 +884,22 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            return Padding(
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.8, // Porcentaje de pantalla que ocupa al abrirse
+          minChildSize: 0.4,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+              return Padding(
               padding: EdgeInsets.only(
                 left: 16.0,
                 right: 16.0,
                 top: 16.0,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
               ),
+              child: SingleChildScrollView(
               child: Wrap(
                 alignment: WrapAlignment.center, // Center the content
                 children: [
@@ -1071,11 +1126,14 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                   ),
                 ],
               ),
+              ),
             );
           },
         );
       },
     );
+  },
+  );
   }
 
  Widget _buildFiltro() {
@@ -1297,20 +1355,6 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => EmergencyScreen(
-                userLat: myPosition?.latitude ?? 0.0,
-                userLng: myPosition?.longitude ?? 0.0,
-              ),
-            ),
-          );
-        },
-      backgroundColor: Colors.green,
-      child: const Icon(Icons.notifications),
-    ),
     bottomNavigationBar: BottomNavigationBar(
       items: <BottomNavigationBarItem>[
         BottomNavigationBarItem(
