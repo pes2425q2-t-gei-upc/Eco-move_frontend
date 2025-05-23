@@ -19,18 +19,11 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'l10n/locale_provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:provider/provider.dart';
-import 'l10n/locale_provider.dart';
-import 'calendar.dart';
 import 'settings-menu.dart';
 import 'noti_service.dart';
 import 'alertManager.dart'; // Importa AlertManager
-
 import 'EmergencyScreen.dart';
 import 'EmergencyService.dart';
-import 'settings-menu.dart';
 import 'bici_detail_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -1211,20 +1204,31 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: const Text('Cerrar sesión'),
-                    content: const Text(
-                      '¿Estás seguro que quieres cerrar sesión?',
+                    title: Text(context.loc.logout_sign_out),
+                    content: Text(
+                      context.loc.logout_are_you_sure,
                     ),
                     actions: [
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).pop(); // Close the dialog
                         },
-                        child: const Text('Cancelar'),
+                        child: Text(context.loc.common_cancel),
                       ),
                       TextButton(
-                        onPressed: () {
-                          deleteTokens();
+                        onPressed: () async {
+                          // clear tokens
+                          await deleteTokens();
+                          await _secureStorage.deleteAll();
+
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setString('Language', 'en');
+
+                          // Reset locale
+                          Provider.of<LocaleProvider>(navigatorKey.currentContext!, listen: false)
+                            .setLocale(const Locale('en'));
+
+                          // Navigate back to login screen
                           Navigator.of(context).pop(); // Close the dialog
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
@@ -1233,7 +1237,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                                 (Route<dynamic> route) => false,
                           );
                         },
-                        child: const Text('Cerrar sesión'),
+                        child: Text(context.loc.logout_sign_out),
                       ),
                     ],
                   );

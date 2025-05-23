@@ -58,6 +58,8 @@ class FrontendRoutes {
   static const String alerts = '/social/alerts/';
   static const String alertsPollingAlertes = '/social/alerts/polling_alertes/';
 
+  static const String googleSignin = '/auth/social/google/';
+
   //Notificar Error
   static const String tiposErrorEstacion = '/api_punts_carrega/tipos_error_estacion/';
   static String reportarErrorEstacion(String id) => '/api_punts_carrega/estacions/$id/reportar_error/';
@@ -65,4 +67,13 @@ class FrontendRoutes {
   //Bicis
   static const String biciDetailBase = '/api/bicing/estaciones/';
   static String biciDetailById(String id) => '/api/bicing/estaciones/$id';
+
+  // Throphies
+  static String usuariGetPunts(int userId) => '/api_punts_carrega/usuari/$userId/getPunts/';
+  static String usuariSumaPunts(int userId) => '/api_punts_carrega/usuari/$userId/sumaPunts/';
+  static String usuariRestarPunts(int userId) => '/api_punts_carrega/usuari/$userId/restarPunts/';
+  static String usuariTrofeos(int userId) => '/api_punts_carrega/usuari/$userId/trofeos/';
+
+  static String addPoints(int id) => '/api_punts_carrega/usuari/$id/sumaPunts/';
+
 }
