@@ -232,179 +232,182 @@ class _DateTimePickerWithDropdownState
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Date Picker Field
-        Text(context.loc.common_date),
-        SizedBox(height: 8),
-        TextField(
-          controller: _dateController,
-          decoration: InputDecoration(
-            hintText: 'dd/mm/yyyy',
-            hintStyle: TextStyle(color: Colors.grey),
-            border: OutlineInputBorder(),
-            suffixIcon: Icon(Icons.calendar_today),
+    return SingleChildScrollView( // ← Wrap with this
+      padding: EdgeInsets.all(16), // Optional padding
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(context.loc.common_date),
+          SizedBox(height: 8),
+          TextField(
+            controller: _dateController,
+            decoration: InputDecoration(
+              hintText: 'dd/mm/yyyy',
+              hintStyle: TextStyle(color: Colors.grey),
+              border: OutlineInputBorder(),
+              suffixIcon: Icon(Icons.calendar_today),
+            ),
+            readOnly: true,
+            onTap: _selectDate,
           ),
-          readOnly: true,
-          onTap: _selectDate,
-        ),
-        SizedBox(height: 16), // Space between fields
-        // Time Picker Field
-        Text(context.loc.common_hour),
-        SizedBox(height: 8),
-        TextField(
-          controller: _timeController,
-          decoration: InputDecoration(
-            hintText: 'hh:mm',
-            hintStyle: TextStyle(color: Colors.grey),
-            border: OutlineInputBorder(),
-            suffixIcon: Icon(Icons.access_time),
+          SizedBox(height: 16), // Space between fields
+          // Time Picker Field
+          Text(context.loc.common_hour),
+          SizedBox(height: 8),
+          TextField(
+            controller: _timeController,
+            decoration: InputDecoration(
+              hintText: 'hh:mm',
+              hintStyle: TextStyle(color: Colors.grey),
+              border: OutlineInputBorder(),
+              suffixIcon: Icon(Icons.access_time),
+            ),
+            readOnly: true,
+            onTap: _selectTime,
           ),
-          readOnly: true,
-          onTap: _selectTime,
-        ),
-        SizedBox(height: 16), // Space between fields
-        // Dropdown Menu
-        TextField(
-          controller: _durationController,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: '${context.loc.reservations_duration_hint} (hh:mm)',
+          SizedBox(height: 16), // Space between fields
+          // Dropdown Menu
+          TextField(
+            controller: _durationController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: '${context.loc.reservations_duration_hint} (hh:mm)',
+            ),
           ),
-        ),
-        SizedBox(height: 8),
+          SizedBox(height: 8),
 
-        // Button to confirm the date, time, and dropdown selection
-        Center(
-          child: TextButton(
-            onPressed: () {
-              if (_dateController.text.isNotEmpty &&
-                  _timeController.text.isNotEmpty &&
-                  _durationController.text.isNotEmpty) {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext conext) {
-                    return AlertDialog(
-                      title: Text(conext.loc.edit_booking_confirm_reservation),
-                      content: Text(
-                        '${conext.loc.reservation_confirm_question}\n\n${conext.loc.common_date}: ${_dateController.text}\n${conext.loc.common_hour}: ${_timeController.text}\n${conext.loc.common_duration}: ${_durationController.text}',
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text(context.loc.common_cancel),
+          // Button to confirm the date, time, and dropdown selection
+          Center(
+            child: TextButton(
+              onPressed: () {
+                if (_dateController.text.isNotEmpty &&
+                    _timeController.text.isNotEmpty &&
+                    _durationController.text.isNotEmpty) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext conext) {
+                      return AlertDialog(
+                        title: Text(conext.loc.edit_booking_confirm_reservation),
+                        content: Text(
+                          '${conext.loc.reservation_confirm_question}\n\n${conext.loc.common_date}: ${_dateController.text}\n${conext.loc.common_hour}: ${_timeController.text}\n${conext.loc.common_duration}: ${_durationController.text}',
                         ),
-                        TextButton(
-                          onPressed: () {
-                            // Parse the selected date
-                            DateTime selectedDate = DateTime.parse(
-                              _dateController.text.isEmpty
-                                  ? DateTime.now().toString()
-                                  : _dateController.text
-                                      .split('/')
-                                      .reversed
-                                      .join('-'), // Convert to DateTime
-                            );
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text(context.loc.common_cancel),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              // Parse the selected date
+                              DateTime selectedDate = DateTime.parse(
+                                _dateController.text.isEmpty
+                                    ? DateTime.now().toString()
+                                    : _dateController.text
+                                    .split('/')
+                                    .reversed
+                                    .join('-'), // Convert to DateTime
+                              );
 
-                            // Parse the selected time
-                            List<String> timeParts = _timeController.text.split(
-                              ':',
-                            );
-                            TimeOfDay selectedTime = TimeOfDay(
-                              hour: int.parse(timeParts[0]),
-                              minute: int.parse(timeParts[1]),
-                            );
+                              // Parse the selected time
+                              List<String> timeParts = _timeController.text.split(
+                                ':',
+                              );
+                              TimeOfDay selectedTime = TimeOfDay(
+                                hour: int.parse(timeParts[0]),
+                                minute: int.parse(timeParts[1]),
+                              );
 
-                            DateTime selectedDateTime = DateTime(
-                              selectedDate.year,
-                              selectedDate.month,
-                              selectedDate.day,
-                              selectedTime.hour,
-                              selectedTime.minute,
-                            );
+                              DateTime selectedDateTime = DateTime(
+                                selectedDate.year,
+                                selectedDate.month,
+                                selectedDate.day,
+                                selectedTime.hour,
+                                selectedTime.minute,
+                              );
 
-                            // Check if the selected date and time are valid
-                            if (selectedDateTime.isBefore(DateTime.now())) {
-                              // Show the dialog if the selected date and time are invalid
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: Text(
-                                      context
-                                          .loc
-                                          .reservation_invalid_datetime_title,
-                                    ),
-                                    content: Text(
-                                      context
-                                          .loc
-                                          .reservation_invalid_datetime_message,
-                                    ),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text(context.loc.common_close),
+                              // Check if the selected date and time are valid
+                              if (selectedDateTime.isBefore(DateTime.now())) {
+                                // Show the dialog if the selected date and time are invalid
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text(
+                                        context
+                                            .loc
+                                            .reservation_invalid_datetime_title,
                                       ),
-                                    ],
-                                  );
-                                },
-                              );
-                            } else {
-                              // Proceed with reservation creation if valid
-                              createReservationWithCalendar(
-                                context,
-                                widget.idStation,
-                                _dateController.text,
-                                _timeController.text,
-                                _durationController.text,
-                              );
+                                      content: Text(
+                                        context
+                                            .loc
+                                            .reservation_invalid_datetime_message,
+                                      ),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text(context.loc.common_close),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              } else {
+                                // Proceed with reservation creation if valid
+                                createReservationWithCalendar(
+                                  context,
+                                  widget.idStation,
+                                  _dateController.text,
+                                  _timeController.text,
+                                  _durationController.text,
+                                );
 
-                              Navigator.of(context).pop(); // Close the dialog
-                              Navigator.pop(
-                                context,
-                              ); // Go back to the previous screen
-                            }
-                          },
-                          style: TextButton.styleFrom(
-                            backgroundColor: Color(0xffa610ad),
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
+                                Navigator.of(context).pop(); // Close the dialog
+                                Navigator.pop(
+                                  context,
+                                ); // Go back to the previous screen
+                              }
+                            },
+                            style: TextButton.styleFrom(
+                              backgroundColor: Color(0xffa610ad),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                            ),
+                            child: Text(
+                              conext.loc.edit_booking_confirm_reservation,
                             ),
                           ),
-                          child: Text(
-                            conext.loc.edit_booking_confirm_reservation,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(context.loc.edit_booking_missing_field),
-                  ),
-                );
-              }
-            },
-            style: TextButton.styleFrom(
-              backgroundColor: Color(0xffa610ad),
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(context.loc.edit_booking_missing_field),
+                    ),
+                  );
+                }
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Color(0xffa610ad),
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: Text(context.loc.edit_booking_confirm_reservation),
             ),
-            child: Text(context.loc.edit_booking_confirm_reservation),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

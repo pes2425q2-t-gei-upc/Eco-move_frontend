@@ -1072,19 +1072,22 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
       'value': 'estaciones',
       'icon': Icons.ev_station,
       'tooltip': 'Estaciones de carga',
-      'color': Colors.green
+      'color': Colors.green,
+      'label': 'Estaciones de carga'
     },
     {
       'value': 'refugios',
       'icon': Icons.ac_unit,
       'tooltip': 'Refugios climáticos',
-      'color': Colors.lightBlueAccent
+      'color': Colors.lightBlueAccent,
+      'label': 'Refugios climáticos'
     },
     {
       'value': 'bicis',
       'icon': Icons.pedal_bike,
       'tooltip': 'Bicing',
-      'color': Colors.orange
+      'color': Colors.orange,
+      'label': 'Estaciones de bicis'
     },
   ];
 
@@ -1119,12 +1122,35 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                   child: ChoiceChip(
                     label: Tooltip(
                       message: opcion['tooltip'] as String,
-                      child: Icon(
-                        opcion['icon'] as IconData,
-                        size: 22,
-                        color: selected
-                            ? opcion['color'] as Color
-                            : Colors.black45,
+                      child: IntrinsicWidth(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              opcion['icon'] as IconData,
+                              size: 22,
+                              color: selected
+                                  ? opcion['color'] as Color
+                                  : Colors.black45,
+                            ),
+                            if (selected) ...[
+                              SizedBox(height: 1),
+                              Flexible(
+                                child: Text(
+                                  opcion['label'] as String, // Add 'label' field to your opciones data
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w500,
+                                    color: opcion['color'] as Color,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
                     ),
                     selected: selected,
@@ -1146,7 +1172,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                       }
                     },
                     elevation: 2,
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                   ),
                 );
               }).toList(),

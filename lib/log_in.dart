@@ -416,26 +416,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    // GitHub sign in button
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        // Implement GitHub sign in
-                      },
-                      icon: const FaIcon(
-                        FontAwesomeIcons.github,
-                        size: 24,
-                        color: Colors.white,
-                      ),
-                      label: const Text('GitHub'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 40),

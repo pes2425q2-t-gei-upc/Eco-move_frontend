@@ -21,7 +21,7 @@
   "reservation_duration_hint": "Duración estimada (hh:mm)",
   "reservation_confirm_question": "¿Estás seguro de que deseas reservar?",
   "reservation_invalid_datetime_title": "Fecha y hora no válidas",
-  "reservation_invalid_datetime_message": "Por favor, selecciona una fecha y hora válida.",
+  "reservation_invalid_datetime_message": "Por favor, selecciona una fecha y hora válida posteriores a ahora",
   "reservation_fill_all_fields": "Por favor, selecciona fecha, hora y duración estimada",
 
   "settings_language": "Cambiar idioma",

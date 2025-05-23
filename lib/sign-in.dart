@@ -43,7 +43,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   late TextEditingController pass1Controller;
   late TextEditingController pass2Controller;
 
-  String? selectedLanguage;
+  String selectedLanguage = 'Castellano';
   bool _isPass1Visible = false;
   bool _isPass2Visible = false;
 
@@ -118,6 +118,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     usernameController = TextEditingController();
     pass1Controller = TextEditingController();
     pass2Controller = TextEditingController();
+    languageController.text = selectedLanguage;
   }
 
   @override
@@ -212,6 +213,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           border: OutlineInputBorder(),
           prefixIcon: Icon(Icons.language),
         ),
+
         value: selectedLanguage,
         items: const [
           DropdownMenuItem(value: 'Catala', child: Text('Catala')),
@@ -220,7 +222,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ],
         onChanged: (value) {
           setState(() {
-            selectedLanguage = value;
+            selectedLanguage = value!;
             languageController.text = value!;
           });
         },
