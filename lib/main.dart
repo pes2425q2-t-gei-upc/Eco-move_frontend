@@ -845,15 +845,22 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            return Padding(
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.8, // Porcentaje de pantalla que ocupa al abrirse
+          minChildSize: 0.4,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+              return Padding(
               padding: EdgeInsets.only(
                 left: 16.0,
                 right: 16.0,
                 top: 16.0,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
               ),
+              child: SingleChildScrollView(
               child: Wrap(
                 alignment: WrapAlignment.center, // Center the content
                 children: [
@@ -1080,10 +1087,13 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                   ),
                 ],
               ),
+              ),
             );
           },
         );
       },
+    );
+  },
     );
   }
 
