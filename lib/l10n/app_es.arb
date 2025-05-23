@@ -238,5 +238,14 @@
     "booking_time": "Hora: ",
     "booking_date": "Fecha: ",
     "booking_duration": "Duración: ",
-    "booking_station_address": "Dirección: "
+    "booking_station_address": "Dirección: ",
+    
+  "emergency_details_title": "Detalles de Emergencia",
+  "emergency_details_latitude": "Latitud",
+  "emergency_details_longitude": "Longitud",
+  "emergency_details_date": "Fecha",
+  "emergency_details_time": "Hora",
+  "emergency_details_google_maps": "Google Maps",
+  "emergency_details_reject": "Rechazar",
+  "emergency_details_accept": "Aceptar"
 }

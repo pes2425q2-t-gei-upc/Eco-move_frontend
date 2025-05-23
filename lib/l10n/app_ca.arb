@@ -240,5 +240,14 @@
   "booking_time": "Hora: ",
   "booking_date": "Data: ",
   "booking_duration": "Duració: ",
-  "booking_station_address": "Adreça: "
+  "booking_station_address": "Adreça: ",
+
+  "emergency_details_title": "Detalls d'Emergència",
+  "emergency_details_latitude": "Latitud",
+  "emergency_details_longitude": "Longitud",
+  "emergency_details_date": "Data",
+  "emergency_details_time": "Hora",
+  "emergency_details_google_maps": "Google Maps",
+  "emergency_details_reject": "Rebutjar",
+  "emergency_details_accept": "Acceptar"
 }

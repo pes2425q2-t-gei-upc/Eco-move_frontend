@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'EmergencyService.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'EmergenciaDetails.dart';
 
 class EmergencyScreen extends StatefulWidget {
   final double userLat;
@@ -50,6 +51,19 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                     title: Text(point.title),
                     subtitle: Text(point.description),
                     trailing: Text(point.timestamp),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => EmergenciaDetails(
+                            title: point.title,
+                            description: point.description,
+                            lat: point.lat,
+                            lng: point.lng,
+                            timestamp: point.timestamp,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 );
               },

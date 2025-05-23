@@ -1094,7 +1094,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
       },
     );
   },
-    );
+  );
   }
 
  Widget _buildFiltro() {
