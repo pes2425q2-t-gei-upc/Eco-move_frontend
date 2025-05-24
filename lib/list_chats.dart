@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -30,16 +31,18 @@ class ChatListScreen extends StatefulWidget {
   ChatListScreen({Key? key}) : super(key: key);
 
   @override
-  _ChatListScreenState createState() => _ChatListScreenState();
+  ChatListScreenState createState() => ChatListScreenState();
 }
 
-class _ChatListScreenState extends State<ChatListScreen> {
+class ChatListScreenState extends State<ChatListScreen> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? token = '';
   List<dynamic> chatsList = [];
-  Map<int, Map<String, String>> lastMessages = {}; // Add this to store last messages
+  Map<int, Map<String, String>> lastMessages = {};
   late int my_id;
   bool _isRefreshing = false;
+  Timer? _pollingTimer;
+  bool _isPollingActive = false;
 
   Future<String?> getAccessToken() async {
     return await _secureStorage.read(key: 'access');
@@ -49,6 +52,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
   void initState() {
     super.initState();
     _initialize();
+  }
+
+  @override
+  void dispose() {
+    // Cancel the timer when the widget is disposed
+    _pollingTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _initialize() async {
@@ -61,9 +71,42 @@ class _ChatListScreenState extends State<ChatListScreen> {
     print('te els chats');
     await _fetchAllLastMessages();
     print('surt');
+
+    // Start polling after initial load
+    _startPolling();
   }
 
-  // Method to refresh chats and messages
+  void _startPolling() {
+    // Don't start if already active
+    if (_isPollingActive) return;
+
+    _isPollingActive = true;
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      // Only poll if the widget is still mounted and not manually refreshing
+      if (mounted && !_isRefreshing) {
+        await _silentRefresh();
+      }
+    });
+  }
+
+  void _stopPolling() {
+    _isPollingActive = false;
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+  }
+
+  // Silent refresh without showing loading indicators
+  Future<void> _silentRefresh() async {
+    try {
+      await _fetchChats();
+      await _fetchAllLastMessages();
+    } catch (e) {
+      print('Error during silent refresh: $e');
+      // Don't show snackbar for silent refresh errors to avoid spam
+    }
+  }
+
+  // Method to refresh chats and messages (manual refresh)
   Future<void> _refreshChats() async {
     setState(() {
       _isRefreshing = true;
@@ -74,13 +117,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
       await _fetchAllLastMessages();
     } catch (e) {
       print('Error refreshing chats: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error refreshing chats: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error refreshing chats: $e')),
+        );
+      }
     } finally {
-      setState(() {
-        _isRefreshing = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isRefreshing = false;
+        });
+      }
     }
   }
 
@@ -88,7 +135,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     for (var chat in chatsList) {
       if (chat['id'] != null) {
         final lastMessage = await _fetchLastMessage(chat['id']);
-        if (lastMessage != null) {
+        if (lastMessage != null && mounted) {
           setState(() {
             lastMessages[chat['id']] = lastMessage;
           });
@@ -121,7 +168,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
           TextButton(
             onPressed: () {
-              _newChat(inputText!);
+              if (inputText != null && inputText!.isNotEmpty) {
+                newChat(inputText!);
+              }
               Navigator.pop(context);
             },
             child: const Text("Guardar"),
@@ -145,9 +194,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
       if (response.statusCode == 200) {
         final newChatsList = json.decode(utf8.decode(response.bodyBytes));
-        setState(() {
-          chatsList = newChatsList;
-        });
+        if (mounted) {
+          setState(() {
+            chatsList = newChatsList;
+          });
+        }
       } else {
         print('Error ${response.statusCode}: ${response.body}');
       }
@@ -156,7 +207,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
-  Future<void> _newChat(String email) async {
+  Future<void> newChat(String email) async {
     try {
       final response = await http.post(
           Uri.parse(FrontendRoutes.build(FrontendRoutes.createChat)),
@@ -167,16 +218,33 @@ class _ChatListScreenState extends State<ChatListScreen> {
             'receptor_email': email,
           }
       );
-      await _fetchChats();
+
       if (response.statusCode == 201) {
         print(response.bodyBytes);
-        // After creating a new chat, fetch messages again
-        _fetchAllLastMessages();
+        // After creating a new chat, refresh immediately
+        await _fetchChats();
+        await _fetchAllLastMessages();
       } else {
         print('Error ${response.statusCode}: ${response.body}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error creating chat: ${response.statusCode}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
       print('Error en la petición: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating chat: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -194,7 +262,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
       if (response.statusCode == 200) {
         print('el body es ${response.body}');
-        final bodyJson = json.decode(response.body); // Convert String to Map
+        final bodyJson = json.decode(response.body);
         my_id = bodyJson['id'];
         print(my_id);
       } else {
@@ -222,14 +290,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
           final messagesList = messagesJson['results'] as List;
 
           if (messagesList.isNotEmpty) {
-            final lastMessage = messagesList.first; // assuming first is the newest
+            final lastMessage = messagesList.first;
             print('last message es ${lastMessage}');
 
-            // Extract content and timestamp
             String content = lastMessage['content'] ?? 'No content';
             String timestamp = lastMessage['timestamp'] ?? 'No timestamp';
 
-            return {'content': content, 'timestamp': timestamp}; // Return a map with both
+            return {'content': content, 'timestamp': timestamp};
           }
         }
       } else {
@@ -239,7 +306,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       print('Error en la petición: $e');
     }
 
-    return {'content': 'No messages', 'timestamp': 'No timestamp'}; // Default if no message
+    return {'content': 'No messages', 'timestamp': 'No timestamp'};
   }
 
   DateTime _parseDateTime(String? timestamp) {
@@ -257,7 +324,22 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chats'),
+        title: Row(
+          children: [
+            const Text('Chats'),
+            const SizedBox(width: 8),
+            // Show polling indicator
+            if (_isPollingActive)
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                ),
+              ),
+          ],
+        ),
         backgroundColor: Colors.lightGreen[100],
         actions: [
           // Refresh button in app bar
@@ -276,6 +358,19 @@ class _ChatListScreenState extends State<ChatListScreen> {
             onPressed: _refreshChats,
             tooltip: 'Refresh chats',
           ),
+          // Toggle polling button
+          IconButton(
+            icon: Icon(_isPollingActive ? Icons.pause : Icons.play_arrow),
+            onPressed: () {
+              if (_isPollingActive) {
+                _stopPolling();
+              } else {
+                _startPolling();
+              }
+              setState(() {});
+            },
+            tooltip: _isPollingActive ? 'Stop auto-refresh' : 'Start auto-refresh',
+          ),
         ],
       ),
       body: chatsList.isEmpty
@@ -286,24 +381,34 @@ class _ChatListScreenState extends State<ChatListScreen> {
           itemCount: chatsList.length,
           itemBuilder: (context, index) {
             final chat = chatsList[index];
-            final lastMessage = lastMessages[chat['id']] ?? 'Loading...';
 
             return ChatListItem(
-              userName: my_id == chat['receptor'] ? '${chat['creador_first_name']} ${chat['creador_last_name']}' : '${chat['receptor_first_name']} ${chat['receptor_last_name']}',
+              userName: my_id == chat['receptor']
+                  ? '${chat['creador_first_name']} ${chat['creador_last_name']}'
+                  : '${chat['receptor_first_name']} ${chat['receptor_last_name']}',
               lastMessage: lastMessages[chat['id']]?['content'] ?? 'No content',
               lastMessageTime: _parseDateTime(lastMessages[chat['id']]?['timestamp']),
               onTap: () {
+                // Pause polling while in chat
+                _stopPolling();
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => ChatScreen(
                       chatId: chat['id'],
-                      name: my_id == chat['receptor'] ? chat['creador_first_name'] : chat['receptor_first_name'] ,
-                      lastName: my_id == chat['receptor'] ? chat['creador_last_name'] : chat['receptor_last_name'],
+                      name: my_id == chat['receptor']
+                          ? chat['creador_first_name']
+                          : chat['receptor_first_name'],
+                      lastName: my_id == chat['receptor']
+                          ? chat['creador_last_name']
+                          : chat['receptor_last_name'],
                     ),
                   ),
                 ).then((_) {
-                  // When returning from chat screen, refresh data
+                  // Resume polling when returning from chat
+                  _startPolling();
+                  // Also refresh immediately when returning
                   _refreshChats();
                 });
               },
@@ -433,7 +538,7 @@ class ChatListItem extends StatelessWidget {
     } else if (messageDate == yesterday) {
       return 'Ayer';
     } else if (now.difference(time).inDays < 7) {
-      return DateFormat('EEEE').format(time); // Day name
+      return DateFormat('EEEE').format(time);
     } else {
       return DateFormat('MM/dd/yy').format(time);
     }

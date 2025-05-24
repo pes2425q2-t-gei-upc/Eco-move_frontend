@@ -41,6 +41,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             return Center(child: Text(context.loc.alert_no_emergency_points_found));
           } else {
             final points = snapshot.data!;
+            print('aqui points val ${points}');
             return ListView.builder(
               itemCount: points.length,
               itemBuilder: (context, index) {
@@ -60,6 +61,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                             lat: point.lat,
                             lng: point.lng,
                             timestamp: point.timestamp,
+                            sender: point.sender,
                           ),
                         ),
                       );

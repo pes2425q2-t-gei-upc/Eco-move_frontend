@@ -26,7 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = true;
   bool _isSendingMessage = false;
 
-  final int _pollingIntervalSeconds = 10;
+  final int _pollingIntervalSeconds = 5;
   Timer? _pollingTimer;
 
 
