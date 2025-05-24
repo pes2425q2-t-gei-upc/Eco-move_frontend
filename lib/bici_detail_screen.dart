@@ -155,14 +155,20 @@ void _showReservaModal() {
         children: [
           Icon(icon, color: color ?? Colors.orange),
           const SizedBox(width: 10),
-          Text(
-            '$label: ',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          Flexible(
+            child: Text(
+              '$label: ',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
+          const SizedBox(width: 6),
           Expanded(
             child: Text(
               value,
               style: const TextStyle(fontSize: 16),
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -171,156 +177,178 @@ void _showReservaModal() {
     );
   }
 
-@override
-Widget build(BuildContext context) {
-  final loc = context.loc;
-  if (isLoading) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
-  }
-  if (bici == null) {
+  @override
+  Widget build(BuildContext context) {
+    final loc = context.loc;
+    final isSmallScreen = MediaQuery.of(context).size.width < 350;
+
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (bici == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(loc.bici_detail_title)),
+        body: Center(child: Text(loc.bici_detail_unknown_address)),
+      );
+    }
+
+    final estado = bici!['estado'] ?? {};
+
     return Scaffold(
-      appBar: AppBar(title: Text(loc.bici_detail_title)),
-      body: Center(child: Text(loc.bici_detail_unknown_address)),
-    );
-  }
-
-  final estado = bici!['estado'] ?? {};
-
-  return Scaffold(
-    appBar: AppBar(
-      title: Text(bici!['name'] ?? loc.bici_detail_title),
-      backgroundColor: Colors.orange,
-    ),
-    body: Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Card(
-        elevation: 5,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: ListView(
-            children: [
-              Center(
-                child: Text(
-                  bici!['name'] ?? loc.bici_detail_title,
-                  style: const TextStyle(
-                    fontSize: 22,
+      appBar: AppBar(
+        title: Text(bici!['name'] ?? loc.bici_detail_title),
+        backgroundColor: Colors.orange,
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(isSmallScreen ? 8.0 : 24.0),
+        child: Card(
+          elevation: 5,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(isSmallScreen ? 8.0 : 20.0),
+            child: ListView(
+              children: [
+                Center(
+                  child: Text(
+                    bici!['name'] ?? loc.bici_detail_title,
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 16 : 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildInfoRow(
+                  icon: Icons.directions_bike,
+                  label: loc.bici_detail_capacity,
+                  value: bici!['capacity']?.toString() ?? '',
+                  color: Colors.orange,
+                ),
+                _buildInfoRow(
+                  icon: Icons.bolt,
+                  label: loc.bici_detail_is_charging_station,
+                  value: (bici!['is_charging_station'] ?? false)
+                      ? loc.bici_detail_yes
+                      : loc.bici_detail_no,
+                  color: Colors.orange,
+                ),
+                const Divider(),
+                const SizedBox(height: 10),
+                Text(
+                  'Estado',
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
+                    fontSize: isSmallScreen ? 14 : 18,
                     color: Colors.orange,
                   ),
-                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              const SizedBox(height: 20),
-              _buildInfoRow(
-                icon: Icons.directions_bike,
-                label: loc.bici_detail_capacity,
-                value: bici!['capacity']?.toString() ?? '',
-                color: Colors.orange,
-              ),
-              _buildInfoRow(
-                icon: Icons.bolt,
-                label: loc.bici_detail_is_charging_station,
-                value: (bici!['is_charging_station'] ?? false)
-                    ? loc.bici_detail_yes
-                    : loc.bici_detail_no,
-                color: Colors.orange,
-              ),
-              const Divider(),
-              const SizedBox(height: 10),
-              Text(
-                'Estado',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.orange),
-              ),
-              const SizedBox(height: 10),
-              _buildInfoRow(
-                icon: Icons.update,
-                label: loc.bici_detail_ultima_actualizacion,
-                value: estado['ultima_actualizacion_global'] ?? '',
-                color: Colors.orange,
-              ),
-              _buildInfoRow(
-                icon: Icons.pedal_bike,
-                label: loc.bici_detail_num_bicis_disponibles,
-                value: estado['num_bicis_disponibles']?.toString() ?? '',
-                color: Colors.orange,
-              ),
-              _buildInfoRow(
-                icon: Icons.directions_bike,
-                label: loc.bici_detail_num_bicis_mecanicas,
-                value: estado['num_bicis_mecanicas']?.toString() ?? '',
-                color: Colors.orange,
-              ),
-              _buildInfoRow(
-                icon: Icons.electric_bike,
-                label: loc.bici_detail_num_bicis_electricas,
-                value: estado['num_bicis_electricas']?.toString() ?? '',
-                color: Colors.orange,
-              ),
-              _buildInfoRow(
-                icon: Icons.lock_open,
-                label: loc.bici_detail_num_docks_disponibles,
-                value: estado['num_docks_disponibles']?.toString() ?? '',
-                color: Colors.orange,
-              ),
-              _buildInfoRow(
-                icon: Icons.info,
-                label: loc.bici_detail_estado,
-                value: estado['estado'] ?? '',
-                color: Colors.orange,
-              ),
-               const SizedBox(height: 30),
-              Center(
-                child: Column(
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        final lat = bici!['lat'] as double? ?? 0.0;
-                        final lng = bici!['lon'] as double? ?? 0.0;
-                        _openGoogleMaps(lat, lng);
-                      },
-                      icon: const Icon(Icons.directions, color: Colors.white),
-                      label: Text(
-                        loc.bici_detail_how_to_arrive,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 10),
+                _buildInfoRow(
+                  icon: Icons.update,
+                  label: loc.bici_detail_ultima_actualizacion,
+                  value: estado['ultima_actualizacion_global'] ?? '',
+                  color: Colors.orange,
+                ),
+                _buildInfoRow(
+                  icon: Icons.pedal_bike,
+                  label: loc.bici_detail_num_bicis_disponibles,
+                  value: estado['num_bicis_disponibles']?.toString() ?? '',
+                  color: Colors.orange,
+                ),
+                _buildInfoRow(
+                  icon: Icons.directions_bike,
+                  label: loc.bici_detail_num_bicis_mecanicas,
+                  value: estado['num_bicis_mecanicas']?.toString() ?? '',
+                  color: Colors.orange,
+                ),
+                _buildInfoRow(
+                  icon: Icons.electric_bike,
+                  label: loc.bici_detail_num_bicis_electricas,
+                  value: estado['num_bicis_electricas']?.toString() ?? '',
+                  color: Colors.orange,
+                ),
+                _buildInfoRow(
+                  icon: Icons.lock_open,
+                  label: loc.bici_detail_num_docks_disponibles,
+                  value: estado['num_docks_disponibles']?.toString() ?? '',
+                  color: Colors.orange,
+                ),
+                _buildInfoRow(
+                  icon: Icons.info,
+                  label: loc.bici_detail_estado,
+                  value: estado['estado'] ?? '',
+                  color: Colors.orange,
+                ),
+                const SizedBox(height: 30),
+                Center(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            final lat = bici!['lat'] as double? ?? 0.0;
+                            final lng = bici!['lon'] as double? ?? 0.0;
+                            _openGoogleMaps(lat, lng);
+                          },
+                          icon: const Icon(Icons.directions, color: Colors.white),
+                          label: Text(
+                            loc.bici_detail_how_to_arrive,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 8 : 24,
+                              vertical: isSmallScreen ? 8 : 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _showReservaModal,
-                      icon: const Icon(Icons.lock, color: Colors.white),
-                      label: Text(
-                        loc.bici_detail_reserve,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _showReservaModal,
+                          icon: const Icon(Icons.lock, color: Colors.white),
+                          label: Text(
+                            loc.bici_detail_reserve,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 8 : 24,
+                              vertical: isSmallScreen ? 8 : 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

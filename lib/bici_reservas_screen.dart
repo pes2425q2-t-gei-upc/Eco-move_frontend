@@ -95,7 +95,9 @@ class _BiciReservasScreenState extends State<BiciReservasScreen> {
     return;
   }
 
-  final urlCancelar = Uri.parse(FrontendRoutes.build(FrontendRoutes.biciReservaCancelar(reservaId)));
+  final urlCancelar = Uri.parse(
+    FrontendRoutes.build(FrontendRoutes.biciReservaCancelar(reservaId.toString()))
+  );
   try {
     final response = await http.delete(
       urlCancelar,

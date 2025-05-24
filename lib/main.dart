@@ -208,7 +208,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _fetchBicis() async {
   final url = Uri.parse(
-    'http://127.0.0.1:8000/api/bicing/estaciones/',
+    FrontendRoutes.build(FrontendRoutes.biciDetailBase),
   );
   try {
     final response = await http.get(url);
