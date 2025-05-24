@@ -1,6 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:eco_move_frontend/l10n/context_ext.dart'; // Importa tu extensión de localización
+import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'package:eco_move_frontend/routes/frontend_routes.dart';
+import 'list_chats.dart';
+import 'chat.dart';
 
 class EmergenciaDetails extends StatelessWidget {
   final String title;
@@ -8,6 +15,7 @@ class EmergenciaDetails extends StatelessWidget {
   final double lat;
   final double lng;
   final String timestamp;
+  final String sender;
 
   const EmergenciaDetails({
     Key? key,
@@ -16,6 +24,7 @@ class EmergenciaDetails extends StatelessWidget {
     required this.lat,
     required this.lng,
     required this.timestamp,
+    required this.sender
   }) : super(key: key);
 
   Future<void> _openGoogleMaps(double latitude, double longitude) async {
@@ -29,11 +38,61 @@ class EmergenciaDetails extends StatelessWidget {
     }
   }
 
+  // Add this method to create a new chat
+  Future<bool> _createNewChat(String email, BuildContext context) async {
+    try {
+      final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+      final String? token = await secureStorage.read(key: 'access');
+
+      if (token == null) {
+        print('No access token found');
+        return false;
+      }
+
+      final response = await http.post(
+          Uri.parse(FrontendRoutes.build(FrontendRoutes.createChat)),
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+          body: {
+            'receptor_email': email,
+          }
+      );
+
+      if (response.statusCode == 201) {
+        print('Chat created successfully');
+        print('la body de la response es');
+        print(response.body);
+
+        final data = jsonDecode(response.body);
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatScreen(
+              chatId: data['id'],
+              name: data['receptor_first_name'],
+              lastName: data['receptor_last_name'],
+            ),
+          ),
+        );
+
+        return true;
+      } else {
+        print('Error creating chat: ${response.statusCode}: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error creating chat: $e');
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.loc.emergency_details_title), // Traducción
+        title: Text(context.loc.emergency_details_title),
         backgroundColor: Colors.redAccent,
       ),
       body: SingleChildScrollView(
@@ -159,7 +218,7 @@ class EmergenciaDetails extends StatelessWidget {
                   children: [
                     ElevatedButton.icon(
                       onPressed: () {
-                        Navigator.of(context).pop(); // Volver atrás al rechazar
+                        Navigator.of(context).pop();
                       },
                       icon: const Icon(Icons.close, color: Colors.white),
                       label: Text(context.loc.emergency_details_reject),
@@ -176,8 +235,34 @@ class EmergenciaDetails extends StatelessWidget {
                       ),
                     ),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        // Acción para aceptar ayuda (de momento no hace nada)
+                      onPressed: () async {
+                        // Show loading indicator
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (BuildContext context) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          },
+                        );
+
+                        try {
+                          // Create the chat first
+                          bool chatCreated = await _createNewChat(sender, context);
+
+                        } catch (e) {
+                          // Close loading dialog
+                          Navigator.of(context).pop();
+
+                          // Show error message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
                       },
                       icon: const Icon(Icons.check, color: Colors.white),
                       label: Text(context.loc.emergency_details_accept),
