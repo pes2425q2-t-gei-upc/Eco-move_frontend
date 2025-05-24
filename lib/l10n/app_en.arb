@@ -21,7 +21,7 @@
   "reservation_duration_hint": "Estimated Duration (hh:mm)",
   "reservation_confirm_question": "Are you sure you want to book?",
   "reservation_invalid_datetime_title": "Invalid Date and Time",
-  "reservation_invalid_datetime_message": "Please select a valid date and time.",
+  "reservation_invalid_datetime_message": "Please select a valid date and time after now",
   "reservation_fill_all_fields": "Please select date, time, and estimated duration",
 
   "settings_language": "Change language",

@@ -155,15 +155,25 @@ class BookChargerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
         title: Text(
           context.loc.reservations_book_charger,
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
         ),
+        centerTitle: true,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(30.0),
-        child: DateTimePickerWithDropdown(idStation: idStation),
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: DateTimePickerWithDropdown(idStation: idStation),
+        ),
       ),
     );
   }
@@ -181,9 +191,7 @@ class _DateTimePickerWithDropdownState
     extends State<DateTimePickerWithDropdown> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
-  final MaskedTextController _durationController = MaskedTextController(
-    mask: '00:00',
-  );
+  final TextEditingController _durationController = TextEditingController();
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   String? token = '';
@@ -193,6 +201,7 @@ class _DateTimePickerWithDropdownState
   void dispose() {
     _dateController.dispose();
     _timeController.dispose();
+    _durationController.dispose();
     super.dispose();
   }
 
@@ -201,8 +210,21 @@ class _DateTimePickerWithDropdownState
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Color(0xff4a7c59),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black87,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (pickedDate != null) {
       String formattedDate =
@@ -220,6 +242,19 @@ class _DateTimePickerWithDropdownState
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Color(0xff4a7c59),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black87,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedTime != null) {
@@ -232,179 +267,450 @@ class _DateTimePickerWithDropdownState
     }
   }
 
+
+  bool _isValidDuration(String duration) {
+    if (duration.isEmpty) return false;
+
+    final parts = duration.split(':');
+    if (parts.length != 2) return false;
+
+    final hours = int.tryParse(parts[0]);
+    final minutes = int.tryParse(parts[1]);
+
+    if (hours == null || minutes == null) return false;
+    if (hours < 0 || hours > 23) return false;
+    if (minutes < 0 || minutes > 59) return false;
+    if (hours == 0 && minutes == 0) return false;
+
+    return true;
+  }
+
+  Widget _buildInputCard({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    VoidCallback? onTap,
+    bool readOnly = false,
+    TextInputType? keyboardType,
+    Function(String)? onChanged,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+          SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: controller,
+              readOnly: readOnly,
+              keyboardType: keyboardType,
+              onTap: onTap,
+              onChanged: onChanged,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: TextStyle(
+                  color: Colors.grey[400],
+                  fontWeight: FontWeight.normal,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                suffixIcon: Container(
+                  margin: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Color(0xff4a7c59).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Color(0xff4a7c59),
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Date Picker Field
-        Text(context.loc.common_date),
-        SizedBox(height: 8),
-        TextField(
-          controller: _dateController,
-          decoration: InputDecoration(
-            hintText: 'dd/mm/yyyy',
-            hintStyle: TextStyle(color: Colors.grey),
-            border: OutlineInputBorder(),
-            suffixIcon: Icon(Icons.calendar_today),
-          ),
-          readOnly: true,
-          onTap: _selectDate,
-        ),
-        SizedBox(height: 16), // Space between fields
-        // Time Picker Field
-        Text(context.loc.common_hour),
-        SizedBox(height: 8),
-        TextField(
-          controller: _timeController,
-          decoration: InputDecoration(
-            hintText: 'hh:mm',
-            hintStyle: TextStyle(color: Colors.grey),
-            border: OutlineInputBorder(),
-            suffixIcon: Icon(Icons.access_time),
-          ),
-          readOnly: true,
-          onTap: _selectTime,
-        ),
-        SizedBox(height: 16), // Space between fields
-        // Dropdown Menu
-        TextField(
-          controller: _durationController,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: '${context.loc.reservations_duration_hint} (hh:mm)',
-          ),
-        ),
-        SizedBox(height: 8),
-
-        // Button to confirm the date, time, and dropdown selection
-        Center(
-          child: TextButton(
-            onPressed: () {
-              if (_dateController.text.isNotEmpty &&
-                  _timeController.text.isNotEmpty &&
-                  _durationController.text.isNotEmpty) {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext conext) {
-                    return AlertDialog(
-                      title: Text(conext.loc.edit_booking_confirm_reservation),
-                      content: Text(
-                        '${conext.loc.reservation_confirm_question}\n\n${conext.loc.common_date}: ${_dateController.text}\n${conext.loc.common_hour}: ${_timeController.text}\n${conext.loc.common_duration}: ${_durationController.text}',
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text(context.loc.common_cancel),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: EdgeInsets.all(20),
+            margin: EdgeInsets.only(bottom: 24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 15,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Color(0xff4a7c59).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.ev_station,
+                    color: Color(0xff4a7c59),
+                    size: 24,
+                  ),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Book Your Charging Session',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
-                        TextButton(
-                          onPressed: () {
-                            // Parse the selected date
-                            DateTime selectedDate = DateTime.parse(
-                              _dateController.text.isEmpty
-                                  ? DateTime.now().toString()
-                                  : _dateController.text
-                                      .split('/')
-                                      .reversed
-                                      .join('-'), // Convert to DateTime
-                            );
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Select date, time and duration',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
 
-                            // Parse the selected time
-                            List<String> timeParts = _timeController.text.split(
-                              ':',
-                            );
-                            TimeOfDay selectedTime = TimeOfDay(
-                              hour: int.parse(timeParts[0]),
-                              minute: int.parse(timeParts[1]),
-                            );
+          // Date Input
+          _buildInputCard(
+            label: context.loc.common_date,
+            controller: _dateController,
+            hint: 'dd/mm/yyyy',
+            icon: Icons.calendar_today,
+            onTap: _selectDate,
+            readOnly: true,
+          ),
 
-                            DateTime selectedDateTime = DateTime(
-                              selectedDate.year,
-                              selectedDate.month,
-                              selectedDate.day,
-                              selectedTime.hour,
-                              selectedTime.minute,
-                            );
+          // Time Input
+          _buildInputCard(
+            label: context.loc.common_hour,
+            controller: _timeController,
+            hint: 'hh:mm',
+            icon: Icons.access_time,
+            onTap: _selectTime,
+            readOnly: true,
+          ),
 
-                            // Check if the selected date and time are valid
-                            if (selectedDateTime.isBefore(DateTime.now())) {
-                              // Show the dialog if the selected date and time are invalid
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: Text(
-                                      context
-                                          .loc
-                                          .reservation_invalid_datetime_title,
-                                    ),
-                                    content: Text(
-                                      context
-                                          .loc
-                                          .reservation_invalid_datetime_message,
-                                    ),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text(context.loc.common_close),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            } else {
-                              // Proceed with reservation creation if valid
-                              createReservationWithCalendar(
-                                context,
-                                widget.idStation,
-                                _dateController.text,
-                                _timeController.text,
-                                _durationController.text,
-                              );
+          // Duration Input
+          _buildInputCard(
+            label: '${context.loc.reservations_duration_hint}',
+            controller: _durationController,
+            hint: 'hh:mm (e.g., 02:30)',
+            icon: Icons.timer,
+            keyboardType: TextInputType.text,
+          ),
 
-                              Navigator.of(context).pop(); // Close the dialog
-                              Navigator.pop(
-                                context,
-                              ); // Go back to the previous screen
-                            }
-                          },
-                          style: TextButton.styleFrom(
-                            backgroundColor: Color(0xffa610ad),
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
+          SizedBox(height: 32),
+
+          // Confirm Button
+          Container(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: () {
+                if (_dateController.text.isNotEmpty &&
+                    _timeController.text.isNotEmpty &&
+                    _durationController.text.isNotEmpty &&
+                    _isValidDuration(_durationController.text)) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        title: Row(
+                          children: [
+                            Icon(
+                              Icons.check_circle_outline,
+                              color: Color(0xff4a7c59),
+                              size: 24,
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              context.loc.edit_booking_confirm_reservation,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        content: Container(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                context.loc.reservation_confirm_question,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                              _buildDetailRow(Icons.calendar_today, context.loc.common_date, _dateController.text),
+                              _buildDetailRow(Icons.access_time, context.loc.common_hour, _timeController.text),
+                              _buildDetailRow(Icons.timer, context.loc.common_duration, _durationController.text),
+                            ],
+                          ),
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text(
+                              context.loc.common_cancel,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
-                          child: Text(
-                            conext.loc.edit_booking_confirm_reservation,
+                          ElevatedButton(
+                            onPressed: () {
+                              // Parse the selected date
+                              DateTime selectedDate = DateTime.parse(
+                                _dateController.text.isEmpty
+                                    ? DateTime.now().toString()
+                                    : _dateController.text
+                                    .split('/')
+                                    .reversed
+                                    .join('-'),
+                              );
+
+                              // Parse the selected time
+                              List<String> timeParts = _timeController.text.split(':');
+                              TimeOfDay selectedTime = TimeOfDay(
+                                hour: int.parse(timeParts[0]),
+                                minute: int.parse(timeParts[1]),
+                              );
+
+                              DateTime selectedDateTime = DateTime(
+                                selectedDate.year,
+                                selectedDate.month,
+                                selectedDate.day,
+                                selectedTime.hour,
+                                selectedTime.minute,
+                              );
+
+                              // Check if the selected date and time are valid
+                              if (selectedDateTime.isBefore(DateTime.now())) {
+                                Navigator.of(context).pop();
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      title: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.error_outline,
+                                            color: Colors.red,
+                                            size: 24,
+                                          ),
+                                          SizedBox(width: 12),
+                                          Text(
+                                            context.loc.reservation_invalid_datetime_title,
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      content: Text(
+                                        context.loc.reservation_invalid_datetime_message,
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                      actions: <Widget>[
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Color(0xff4a7c59),
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          child: Text(context.loc.common_close),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              } else {
+                                // Proceed with reservation creation if valid
+                                createReservationWithCalendar(
+                                  context,
+                                  widget.idStation,
+                                  _dateController.text,
+                                  _timeController.text,
+                                  _durationController.text,
+                                );
+
+                                Navigator.of(context).pop();
+                                Navigator.pop(context);
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xff4a7c59),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                            ),
+                            child: Text(
+                              context.loc.edit_booking_confirm_reservation,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(context.loc.edit_booking_missing_field),
-                  ),
-                );
-              }
-            },
-            style: TextButton.styleFrom(
-              backgroundColor: Color(0xffa610ad),
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  String errorMessage = context.loc.edit_booking_missing_field;
+                  if (_durationController.text.isNotEmpty && !_isValidDuration(_durationController.text)) {
+                    errorMessage = 'Please enter a valid duration (hh:mm format)';
+                  }
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(errorMessage),
+                      backgroundColor: Colors.red[400],
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xff4a7c59),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                context.loc.edit_booking_confirm_reservation,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-            child: Text(context.loc.edit_booking_confirm_reservation),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: Color(0xff4a7c59),
+          ),
+          SizedBox(width: 12),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[700],
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -415,7 +721,7 @@ class _DateTimePickerWithDropdownState
   @override
   void initState() {
     super.initState();
-    _initialize(); // just call the async function
+    _initialize();
   }
 
   Future<void> _initialize() async {
@@ -427,7 +733,7 @@ class _DateTimePickerWithDropdownState
     final url = Uri.parse(
       FrontendRoutes.build(
         FrontendRoutes.estacion(idStation),
-      ), // Ensure this URL is correct
+      ),
     );
     try {
       final response = await http.get(url);
@@ -435,18 +741,12 @@ class _DateTimePickerWithDropdownState
         String decodedResponse = utf8.decode(response.bodyBytes);
         Map<String, dynamic> data = jsonDecode(decodedResponse);
         return data['direccio'];
-
       } else {
-        print(
-          'Error: Received status code ${response.statusCode}',
-        ); // Print error if status code isn't 200
+        print('Error: Received status code ${response.statusCode}');
       }
     } catch (e) {
-      print(
-        'Error during HTTP request: $e',
-      ); // Catch any errors during the request
+      print('Error during HTTP request: $e');
     }
-
     return '';
   }
 
@@ -481,16 +781,10 @@ class _DateTimePickerWithDropdownState
       if (response.statusCode == 201) {
         print('Reservation created successfully');
 
-        // Then, save to Google Calendar
         final GoogleCalendarService calendarService = GoogleCalendarService();
-
-
         String? address = await _fetchStations(id);
-
-
         final title = "${context.loc.booking_title}";
         final description = "${context.loc.booking_description}\n${context.loc.booking_station_address}$address\n${context.loc.booking_date}$date\n${context.loc.booking_time}$hour\n${context.loc.booking_duration}$duration";
-
 
         await calendarService.saveBookingToGoogleCalendar(
           title: title,
@@ -502,14 +796,13 @@ class _DateTimePickerWithDropdownState
 
         addPoints();
       } else {
-        print(
-          'Failed to create reservation: ${response.statusCode} - ${response.body}',
-        );
+        print('Failed to create reservation: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('Error: $e');
     }
   }
+
   Future<void> _getInfo() async {
     final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
 
@@ -531,23 +824,21 @@ class _DateTimePickerWithDropdownState
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     }
   }
 
   Future<void> addPoints() async {
     await _getInfo();
 
-    final urlMe = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
-
     final url = Uri.parse(
       FrontendRoutes.build(FrontendRoutes.addPoints(myId)),
     );
 
     final Map<String, dynamic> data = {
-      'punts': 100,
+      'punts': 10,
     };
 
     try {
@@ -560,13 +851,10 @@ class _DateTimePickerWithDropdownState
         body: json.encode(data),
       );
 
-      if (response.statusCode == 20) {
+      if (response.statusCode == 200) {
         print('Se han sumado bien los puntos');
-
       } else {
-        print(
-          'Failed to create reservation: ${response.statusCode} - ${response.body}',
-        );
+        print('Failed to add points: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('Error: $e');
