@@ -249,5 +249,20 @@
   "emergency_details_time": "Hora",
   "emergency_details_google_maps": "Google Maps",
   "emergency_details_reject": "Rebutjar",
-  "emergency_details_accept": "Acceptar"
+  "emergency_details_accept": "Acceptar",
+
+  "bici_reservas_title": "Reserves de Bicis",
+"bici_reservas_no_reservas": "No tens reserves",
+"bici_reservas_activas": "Reserves actives",
+"bici_reservas_historial": "Historial de reserves",
+"bici_reservas_cancelar": "Cancel·lar reserva",
+"bici_reservas_confirm_cancel_title": "Cancel·lar reserva",
+"bici_reservas_confirm_cancel_content": "Segur que vols cancel·lar aquesta reserva?",
+"bici_reservas_confirm_cancel_no": "No",
+"bici_reservas_confirm_cancel_si": "Sí, cancel·lar",
+"bici_reservas_cancelada_ok": "Reserva cancel·lada correctament",
+"bici_reserva_tipo_bicicleta": "Tipus de bicicleta:",
+"bici_reserva_creada_en": "Creada el:",
+"bici_reserva_expira": "Expira:",
+"bici_reserva_activa": "Activa:"
 }
