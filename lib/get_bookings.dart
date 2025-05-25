@@ -15,6 +15,7 @@ class Booking {
   final String hora;
   final String duracion;
   final int id;
+  String? direccion; // Add this field to store the address
 
   Booking({
     required this.estacion,
@@ -22,6 +23,7 @@ class Booking {
     required this.hora,
     required this.duracion,
     required this.id,
+    this.direccion,
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
@@ -132,7 +134,14 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
       if (response.statusCode == 200) {
         List<dynamic> jsonList = jsonDecode(response.body);
-        return jsonList.map((json) => Booking.fromJson(json)).toList();
+        List<Booking> bookings = jsonList.map((json) => Booking.fromJson(json)).toList();
+
+        // Fetch addresses for all bookings
+        for (Booking booking in bookings) {
+          booking.direccion = await _fetchAdress(booking.estacion);
+        }
+
+        return bookings;
       } else {
         throw Exception('Failed to load data: ${response.statusCode}');
       }
@@ -145,25 +154,21 @@ class _BookingsScreenState extends State<BookingsScreen> {
     final url = Uri.parse(
       FrontendRoutes.build(
         FrontendRoutes.estacion(id),
-      ), // Ensure this URL is correct
+      ),
     );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         String decodedResponse = utf8.decode(response.bodyBytes);
         Map<String, dynamic> data = jsonDecode(decodedResponse);
-        return data['direccio'];
+        return data['direccio'] ?? 'Dirección no disponible';
       } else {
-        print(
-          'Error: Received status code ${response.statusCode}',
-        ); // Print error if status code isn't 200
+        print('Error: Received status code ${response.statusCode}');
       }
     } catch (e) {
-      print(
-        'Error during HTTP request: $e',
-      ); // Catch any errors during the request
+      print('Error during HTTP request: $e');
     }
-    return '';
+    return 'Dirección no disponible';
   }
 
   void _filterBookings(String query) {
@@ -173,7 +178,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
         filteredBookings = allBookings;
       } else {
         filteredBookings = allBookings.where((booking) {
-          return booking.estacion.toLowerCase().contains(query.toLowerCase()) ||
+          return (booking.direccion?.toLowerCase().contains(query.toLowerCase()) ?? false) ||
+              booking.estacion.toLowerCase().contains(query.toLowerCase()) ||
               booking.fecha.contains(query) ||
               booking.hora.contains(query);
         }).toList();
@@ -224,7 +230,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 child: TextField(
                   onChanged: _filterBookings,
                   decoration: InputDecoration(
-                    hintText: 'Buscar por estación, fecha o hora...',
+                    hintText: context.loc.search_booking,
                     prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -291,7 +297,6 @@ class _BookingsScreenState extends State<BookingsScreen> {
             ),
           );
         },
-
         child: const Icon(Icons.calendar_month),
       ),
     );
@@ -335,7 +340,6 @@ class _BookingsScreenState extends State<BookingsScreen> {
   }
 
   Widget _buildBookingCard(Booking booking) {
-    //String adress = _fetchAdress(booking.estacion);
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -382,13 +386,26 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 ),
                 SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    booking.estacion,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        booking.direccion ?? 'Cargando dirección...',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      if (booking.direccion != null)
+                        Text(
+                          'ID: ${booking.estacion}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.8),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ],
@@ -405,7 +422,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                     Expanded(
                       child: _buildDetailItem(
                         Icons.calendar_today,
-                        'Fecha',
+                        context.loc.common_date,
                         booking.formattedDate,
                       ),
                     ),
@@ -413,7 +430,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                     Expanded(
                       child: _buildDetailItem(
                         Icons.access_time,
-                        'Hora',
+                        context.loc.common_hour,
                         booking.hora,
                       ),
                     ),
@@ -422,7 +439,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 SizedBox(height: 12),
                 _buildDetailItem(
                   Icons.timer,
-                  'Duración',
+                  context.loc.common_duration,
                   '${booking.duracion} hora${booking.duracion != '1' ? 's' : ''}',
                 ),
                 SizedBox(height: 16),
@@ -434,7 +451,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () => _editBooking(booking),
                         icon: Icon(Icons.edit, size: 18),
-                        label: Text('Editar'),
+                        label: Text(context.loc.reservations_edit),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.blue[600],
                           side: BorderSide(color: Colors.blue[600]!),
@@ -450,7 +467,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                       child: ElevatedButton.icon(
                         onPressed: () => deleteBooking(booking.id),
                         icon: Icon(Icons.delete, size: 18),
-                        label: Text('Eliminar'),
+                        label: Text(context.loc.reservations_delete),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red[600],
                           foregroundColor: Colors.white,
@@ -532,7 +549,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
       final response = await http.delete(
         url,
         headers: {'Content-Type': 'application/json',
-         'Authorization': 'Bearer $token'},
+          'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
