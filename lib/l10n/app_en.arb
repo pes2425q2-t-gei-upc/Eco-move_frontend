@@ -262,5 +262,17 @@
 "bici_reserva_expira": "Expires:",
 "bici_reserva_activa": "Active:",
 "alert_emergency_points_subtitle": "Here you can see the emergency points reported near your location.",
-"how_to_arrive": "How to arrive"
+"how_to_arrive": "How to arrive",
+
+"shelter_error_loading": "Error loading shelter: {error}",
+"shelter_error_request": "Error in shelter request: {error}",
+
+"bici_reserva_ok": "Reservation made successfully",
+"bici_reserva_error": "Error making reservation",
+"bici_reserva_error_conexion": "Connection error",
+"bici_reserva_selecciona_tipo": "Select the type of bike",
+"bici_tipo_mecanica": "Mechanical",
+"bici_tipo_electrica": "Electric",
+"bici_detail_error_loading": "Error loading station: {error}",
+"bici_detail_error_request": "Error in station request: {error}"
 }

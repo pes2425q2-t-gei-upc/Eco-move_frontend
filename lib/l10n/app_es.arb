@@ -262,5 +262,16 @@
 "bici_reserva_activa": "Activa:",
 
 "alert_emergency_points_subtitle": "Aquí puedes ver los puntos de emergencia reportados cerca de tu ubicación.",
-"how_to_arrive": "Cómo llegar"
+"how_to_arrive": "Cómo llegar",
+"shelter_error_loading": "Error al cargar refugio: {error}",
+"shelter_error_request": "Error en la solicitud de refugio: {error}",
+
+"bici_reserva_ok": "Reserva realizada con éxito",
+"bici_reserva_error": "Error al reservar",
+"bici_reserva_error_conexion": "Error de conexión",
+"bici_reserva_selecciona_tipo": "Selecciona el tipo de bicicleta",
+"bici_tipo_mecanica": "Mecánica",
+"bici_tipo_electrica": "Eléctrica",
+"bici_detail_error_loading": "Error al cargar la estación: {error}",
+"bici_detail_error_request": "Error en la solicitud de la estación: {error}"
 }

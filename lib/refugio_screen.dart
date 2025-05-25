@@ -18,6 +18,7 @@ class RefugioScreen extends StatefulWidget {
 class _RefugioScreenState extends State<RefugioScreen> {
   Map<String, dynamic>? refugio;
   bool _isLoading = true;
+  String? _errorMsg;
 
   @override
   void initState() {
@@ -36,17 +37,18 @@ class _RefugioScreenState extends State<RefugioScreen> {
         setState(() {
           refugio = json.decode(decodedResponse);
           _isLoading = false;
+          _errorMsg = null;
         });
       } else {
-        print('Error al cargar refugio: ${response.statusCode}');
         setState(() {
           _isLoading = false;
+          _errorMsg = context.loc.shelter_error_loading(response.statusCode.toString());
         });
       }
     } catch (e) {
-      print('Error en la solicitud de refugio: $e');
       setState(() {
         _isLoading = false;
+        _errorMsg = context.loc.shelter_error_request(e.toString());
       });
     }
   }
@@ -72,98 +74,108 @@ Widget build(BuildContext context) {
       title: Text(context.loc.shelter_shelter_details),
       backgroundColor: azulRefugio,
       foregroundColor: Colors.white,
-    ),
-    body: _isLoading
+      ),
+      body: _isLoading
         ? const Center(child: CircularProgressIndicator())
-        : refugio == null
-            ? Center(
-                child: Text(context.loc.shelter_shelter_could_not_be_loaded),
-              )
-            : Padding(
-                padding: EdgeInsets.all(isSmallScreen ? 8.0 : 24.0),
-                child: ListView(
-                  children: [
-                    Center(
-                      child: Text(
-                        refugio!['nombre'] ??
-                            context.loc.shelter_shelter_unknown_name,
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? 16 : 22,
-                          fontWeight: FontWeight.bold,
-                          color: azulRefugio,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, color: azulRefugio),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            '${context.loc.station_address}: ${refugio!['direccio'] ?? 'N/A'}, ${refugio!['numero_calle'] ?? ''}',
-                            style: const TextStyle(
-                              fontSize: 17,
-                              color: Colors.black87,
-                            ),
+        : _errorMsg != null
+          ? Center(
+              child: Text(
+                _errorMsg!,
+                style: const TextStyle(color: Colors.red, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            )
+          : refugio == null
+              ? Center(
+                  child: Text(context.loc.shelter_shelter_could_not_be_loaded),
+                )
+              : Padding(
+                  padding: EdgeInsets.all(isSmallScreen ? 8.0 : 24.0),
+                  child: ListView(
+                    children: [
+                      Center(
+                        child: Text(
+                          refugio!['nombre'] ??
+                              context.loc.shelter_shelter_unknown_name,
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 16 : 22,
+                            fontWeight: FontWeight.bold,
+                            color: azulRefugio,
                           ),
+                          textAlign: TextAlign.center,
                         ),
-                      ],
-                    ),
-                    if (widget.distanciaKm != null) ...[
-                      const SizedBox(height: 18),
+                      ),
+                      const SizedBox(height: 20),
                       Row(
                         children: [
-                          Icon(Icons.directions_walk, color: azulRefugio),
+                          Icon(Icons.location_on, color: azulRefugio),
                           const SizedBox(width: 10),
-                          Text(
-                            '${context.loc.shelter_distance}: ${widget.distanciaKm!.toStringAsFixed(2)} km',
-                            style: const TextStyle(
-                              fontSize: 17,
-                              color: Colors.black87,
+                          Expanded(
+                            child: Text(
+                              '${context.loc.station_address}: ${refugio!['direccio'] ?? 'N/A'}, ${refugio!['numero_calle'] ?? ''}',
+                              style: const TextStyle(
+                                fontSize: 17,
+                                color: Colors.black87,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ],
-                    const SizedBox(height: 32),
-                    Center(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          if (refugio != null &&
-                              refugio!['lat'] != null &&
-                              refugio!['lng'] != null) {
-                            _openGoogleMaps(
-                              refugio!['lat'],
-                              refugio!['lng'],
-                            );
-                          }
-                        },
-                        icon: const Icon(
-                          Icons.directions,
-                          color: Colors.white,
+                      if (widget.distanciaKm != null) ...[
+                        const SizedBox(height: 18),
+                        Row(
+                          children: [
+                            Icon(Icons.directions_walk, color: azulRefugio),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                '${context.loc.shelter_distance}: ${widget.distanciaKm!.toStringAsFixed(2)} km',
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        label: Text(
-                          context.loc.how_to_arrive,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: azulRefugio,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isSmallScreen ? 8 : 24,
-                            vertical: isSmallScreen ? 8 : 14,
+                      ],
+                      const SizedBox(height: 32),
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            if (refugio != null &&
+                                refugio!['lat'] != null &&
+                                refugio!['lng'] != null) {
+                              _openGoogleMaps(
+                                refugio!['lat'],
+                                refugio!['lng'],
+                              );
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.directions,
+                            color: Colors.white,
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                          label: Text(
+                            context.loc.how_to_arrive,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: azulRefugio,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 8 : 24,
+                              vertical: isSmallScreen ? 8 : 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-  );
-}
+      );
+    }
 }
