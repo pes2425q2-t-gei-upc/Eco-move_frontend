@@ -40,6 +40,7 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   List<Booking> _bookings = [];
+  Map<DateTime, List<Booking>> _monthlyBookings = {};
   bool _isLoading = false;
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
@@ -52,18 +53,61 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
   @override
   void initState() {
     super.initState();
-    _initialize(); // just call the async function
+    _initialize();
   }
 
   Future<void> _initialize() async {
     token = await getAccessToken();
-    print('Token: $token'); // token should now be available
+    print('Token: $token');
     if (token != null && token!.isNotEmpty) {
       _selectedDay = _focusedDay;
-      _fetchBookings(_selectedDay!); // move this here, after token is ready
+      await _fetchMonthlyBookings(_focusedDay);
+      _fetchBookings(_selectedDay!);
     } else {
-      // handle token being null or empty
       print('Token is null or empty');
+    }
+  }
+
+  Future<void> _fetchMonthlyBookings(DateTime month) async {
+    try {
+      // Get first and last day of the month
+      final firstDay = DateTime(month.year, month.month, 1);
+      final lastDay = DateTime(month.year, month.month + 1, 0);
+
+      Map<DateTime, List<Booking>> monthlyBookings = {};
+
+      // Fetch bookings for each day of the month
+      for (int day = 1; day <= lastDay.day; day++) {
+        final currentDate = DateTime(month.year, month.month, day);
+        final formattedDate = "${currentDate.day.toString().padLeft(2, '0')}/${currentDate.month.toString().padLeft(2, '0')}/${currentDate.year}";
+
+        try {
+          final response = await http.get(
+            Uri.parse(
+              FrontendRoutes.build(FrontendRoutes.reservasDia(formattedDate)),
+            ),
+            headers: {'Authorization': 'Bearer $token'},
+          );
+
+          if (response.statusCode == 200) {
+            final List<dynamic> data = json.decode(response.body);
+            if (data.isNotEmpty) {
+              final bookings = await Future.wait(
+                data.map((item) => Booking.fromJson(item)),
+              );
+              monthlyBookings[DateTime(currentDate.year, currentDate.month, currentDate.day)] = bookings;
+            }
+          }
+        } catch (e) {
+          print('Error fetching bookings for $formattedDate: $e');
+        }
+      }
+
+      setState(() {
+        _monthlyBookings = monthlyBookings;
+      });
+    } catch (e) {
+      print('Error fetching monthly bookings: $e');
     }
   }
 
@@ -109,17 +153,23 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
     }
   }
 
+  List<Booking> _getBookingsForDay(DateTime day) {
+    final normalizedDay = DateTime(day.year, day.month, day.day);
+    return _monthlyBookings[normalizedDay] ?? [];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Calendario')),
       body: Column(
         children: [
-          TableCalendar(
+          TableCalendar<Booking>(
             firstDay: DateTime.utc(2020, 1, 1),
             lastDay: DateTime.utc(2030, 12, 31),
             focusedDay: _focusedDay,
             calendarFormat: _calendarFormat,
+            eventLoader: _getBookingsForDay,
             selectedDayPredicate: (day) {
               return isSameDay(_selectedDay, day);
             },
@@ -137,6 +187,7 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
             },
             onPageChanged: (focusedDay) {
               _focusedDay = focusedDay;
+              _fetchMonthlyBookings(focusedDay);
             },
             calendarStyle: CalendarStyle(
               todayDecoration: BoxDecoration(
@@ -145,12 +196,37 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
                 color: Colors.transparent,
               ),
               todayTextStyle: const TextStyle(
-                color: Colors.black, // same color as border so it matches
+                color: Colors.black,
               ),
               selectedDecoration: BoxDecoration(
                 color: Color(0xE278A879),
                 shape: BoxShape.circle,
               ),
+              markersMaxCount: 1,
+              markerDecoration: BoxDecoration(
+                color: Color(0xE278A879),
+                shape: BoxShape.circle,
+              ),
+              markerMargin: const EdgeInsets.symmetric(horizontal: 1.5),
+              markersAlignment: Alignment.bottomCenter,
+            ),
+            calendarBuilders: CalendarBuilders(
+              markerBuilder: (context, date, events) {
+                if (events.isNotEmpty) {
+                  return Positioned(
+                    bottom: 1,
+                    child: Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: Color(0xE278A879),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  );
+                }
+                return null;
+              },
             ),
           ),
           const Divider(),
@@ -159,7 +235,7 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
             _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _bookings.isEmpty
-                ? const Center(child: Text('No hay reservas para este dia'))
+                ? Center(child: Text(context.loc.no_bookings))
                 : ListView.builder(
               itemCount: _bookings.length,
               itemBuilder: (context, index) {
@@ -187,6 +263,7 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
       ),
     );
   }
+
   Future<void> showStationDialog({
     required BuildContext context,
     required String station,
@@ -315,9 +392,10 @@ class _BookingCalendarPageState extends State<BookingCalendarPage> {
           isSuccess: true,
         );
 
-        // Refresh the bookings list
+        // Refresh the bookings list and monthly bookings
         if (_selectedDay != null) {
           await _fetchBookings(_selectedDay!);
+          await _fetchMonthlyBookings(_focusedDay);
         }
       } else if (response.statusCode == 404) {
         _showDialog(

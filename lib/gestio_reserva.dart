@@ -94,9 +94,9 @@ class _EstacionScreenState extends State<EstacionScreen> {
       return context.loc.out_of_service ?? 'Out of Service';
     }
     if (stationData['nplaces'] != null && int.tryParse(stationData['nplaces'])! > 0) {
-      return 'Disponible';
+      return context.loc.disponible;
     }
-    return 'Ocupat';
+    return context.loc.busy;
   }
 
   Widget _buildStatusCard() {
@@ -212,7 +212,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
                 Icon(Icons.info_outline, color: Theme.of(context).primaryColor, size: 24),
                 const SizedBox(width: 8),
                 Text(
-                  'Información de la Estación',
+                  context.loc.station_info,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -460,7 +460,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
               ] else ...[
                 // Full actions for working stations
                 Text(
-                  'Acciones Disponibles',
+                  context.loc.available_actions,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -508,7 +508,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
                 const SizedBox(height: 20),
 
                 Text(
-                  'Valoraciones',
+                  context.loc.ratings,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -547,7 +547,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
                 const SizedBox(height: 20),
 
                 Text(
-                  'Otras opciones',
+                  context.loc.other_options,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

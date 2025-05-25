@@ -10,6 +10,8 @@
 
   "home_welcome": "Bienvenido a ECO-MOVE",
   "home_my_reservations": "Mis reservas",
+  "home_bicis": "Bicis reservadas",
+  "home_emergency": "Emergencias",
 
   "reservations_none": "No hay reservas",
   "reservations_none_for_this_day": "No hay reservas para este día",
@@ -281,5 +283,20 @@
 "bici_reservas_error_cancelar": "Error al cancelar: {error}",
 
 "filter_by_car": "Filtrar por mi coche",
-"filter_show_only_car_compatible": "Mostrar cargadores compatibles con mi coche"
+"filter_show_only_car_compatible": "Mostrar cargadores compatibles con mi coche",
+
+"disponible": "Disponible",
+"busy": "Ocupado",
+"station_info": "Información de la estación",
+"available_actions": "Acciones disponibles",
+"ratings": "Valoraciones",
+"other_options": "Otras opciones",
+"search_booking": "Buscar por estación, dia o hora...",
+"no_bookings": "No hay reservas para este dia",
+"no_chats": "No hay chats",
+
+"charging_stations": "Estaciones de carga",
+"climate_shelters": "Refugios climáticos",
+"bike_stations": "Estaciones de bici"
+
 }

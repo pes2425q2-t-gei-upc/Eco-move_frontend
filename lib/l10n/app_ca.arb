@@ -10,6 +10,8 @@
 
   "home_welcome": "Benvingut a ECO-MOVE",
   "home_my_reservations": "Les meves reserves",
+  "home_bicis": "Bicicletes reservades",
+  "home_emergency": "Emergències",
 
   "reservations_none": "No hi ha reserves",
   "reservations_none_for_this_day": "No hi ha reserves per a aquest dia",
@@ -284,5 +286,19 @@
 "bici_reservas_error_cancelar": "Error en cancel·lar: {error}",
 
 "filter_by_car": "Filtrar pel meu cotxe",
-"filter_show_only_car_compatible": "Mostrar carregadors compatibles amb el meu cotxe"
+"filter_show_only_car_compatible": "Mostrar carregadors compatibles amb el meu cotxe",
+"disponible": "Disponible",
+"busy": "Ocupat",
+"station_info": "Informació de l'estació",
+"available_actions": "Accions disponibles",
+"ratings": "Valoracions",
+"other_options": "Altres opcions",
+"search_booking": "Buscar per estació, dia o hora...",
+"no_bookings": "No hi ha reserves per aquest dia",
+"no_chats": "No hi ha xats",
+
+"charging_stations": "Estacions de càrrega",
+"climate_shelters": "Refugis climàtics",
+"bike_stations": "Estacions de bici"
+
 }

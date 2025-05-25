@@ -10,6 +10,8 @@
 
   "home_welcome": "Welcome to ECO-MOVE",
   "home_my_reservations": "My Reservations",
+  "home_bicis": "Booked bikes",
+  "home_emergency": "Emergencies",
 
   "reservations_none": "There are no reservations",
   "reservations_none_for_this_day": "There are no reservations for this day",
@@ -262,7 +264,7 @@
 "bici_reserva_expira": "Expires:",
 "bici_reserva_activa": "Active:",
 "alert_emergency_points_subtitle": "Here you can see the emergency points reported near your location.",
-"how_to_arrive": "How to arrive",
+"how_to_arrive": "Get directions",
 
 "shelter_error_loading": "Error loading shelter: {error}",
 "shelter_error_request": "Error in shelter request: {error}",
@@ -283,5 +285,19 @@
 "bici_reservas_error_cancelar": "Error cancelling: {error}",
 
 "filter_by_car": "Filter by my car",
-"filter_show_only_car_compatible": "Show chargers compatible with my car"
+"filter_show_only_car_compatible": "Show chargers compatible with my car",
+"disponible": "Available",
+"busy": "Busy",
+"station_info": "Station information",
+"available_actions": "Available actions",
+"ratings": "Ratings",
+"other_options": "Other options",
+"search_booking": "Seach for station, date, time...",
+"no_bookings": "There are no bookings for this day",
+"no_chats": "There are no chats",
+
+"charging_stations": "Charging stations",
+"climate_shelters": "Climate shelters",
+"bike_stations": "Bike stations"
+
 }
