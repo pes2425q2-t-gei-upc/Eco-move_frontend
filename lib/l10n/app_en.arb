@@ -53,7 +53,6 @@
   "station_available": "Available",
   "station_occupied": "Occupied",
   "station_not_available": "Not Available",
-  "station_how_to_arrive": "How to arrive",
   "station_calculate_price": "Calculate Price",
   "station_reserve": "Reserve",
   "station_loading": "Loading...",
@@ -140,7 +139,7 @@
   "shelter_shelter_details": "Shelter details",
   "shelter_shelter_could_not_be_loaded": "The shelter could not be loaded",
   "shelter_shelter_unknown_name": "Unknown name",
-  "shelter_view_in_map": "View in map",
+  "shelter_distance": "Distance",
 
   "common_hello": "Hello",
   "common_cancel": "Cancel",
@@ -202,7 +201,6 @@
 "bici_detail_ride_code_support": "Ride code support",
 "bici_detail_nearby_distance": "Nearby distance",
 "bici_detail_physical_configuration": "Station type",
-"bici_detail_how_to_arrive": "How to arrive",
 "bici_detail_reserve": "Reserve",
 "bici_detail_yes": "Yes",
 "bici_detail_no": "No",
@@ -214,7 +212,6 @@
 "bici_detail_num_docks_disponibles": "Free docks",
 "bici_detail_estado": "Status",
 "bici_detail_ultima_actualizacion": "Last update",
-"bici_detail_how_to_arrive": "How to arrive",
 "bici_detail_reserve": "Reserve",
 
   "notificar_error_title": "Report error",
@@ -263,5 +260,7 @@
 "bici_reserva_tipo_bicicleta": "Bike type:",
 "bici_reserva_creada_en": "Created at:",
 "bici_reserva_expira": "Expires:",
-"bici_reserva_activa": "Active:"
+"bici_reserva_activa": "Active:",
+"alert_emergency_points_subtitle": "Here you can see the emergency points reported near your location.",
+"how_to_arrive": "How to arrive"
 }

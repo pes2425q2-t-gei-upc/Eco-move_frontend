@@ -471,7 +471,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
 
                 _buildActionButton(
                   icon: Icons.navigation,
-                  text: context.loc.station_how_to_arrive,
+                  text: context.loc.how_to_arrive,
                   backgroundColor: Colors.green,
                   onPressed: () => _openGoogleMaps(stationData['lat'], stationData['lng']),
                 ),

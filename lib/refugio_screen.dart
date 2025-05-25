@@ -7,8 +7,9 @@ import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 class RefugioScreen extends StatefulWidget {
   final String idRefugio;
+  final double? distanciaKm;
 
-  const RefugioScreen({Key? key, required this.idRefugio}) : super(key: key);
+  const RefugioScreen({Key? key, required this.idRefugio, this.distanciaKm}) : super(key: key);
 
   @override
   State<RefugioScreen> createState() => _RefugioScreenState();
@@ -31,8 +32,9 @@ class _RefugioScreenState extends State<RefugioScreen> {
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
+         final decodedResponse = utf8.decode(response.bodyBytes);
         setState(() {
-          refugio = json.decode(response.body);
+          refugio = json.decode(decodedResponse);
           _isLoading = false;
         });
       } else {
@@ -60,126 +62,108 @@ class _RefugioScreenState extends State<RefugioScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.loc.shelter_shelter_details),
-        backgroundColor: Colors.green,
-      ),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : refugio == null
-              ? Center(
+@override
+Widget build(BuildContext context) {
+  final Color azulRefugio = Colors.lightBlueAccent;
+  final isSmallScreen = MediaQuery.of(context).size.width < 350;
+
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(context.loc.shelter_shelter_details),
+      backgroundColor: azulRefugio,
+      foregroundColor: Colors.white,
+    ),
+    body: _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : refugio == null
+            ? Center(
                 child: Text(context.loc.shelter_shelter_could_not_be_loaded),
               )
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Card(
-                  elevation: 5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            : Padding(
+                padding: EdgeInsets.all(isSmallScreen ? 8.0 : 24.0),
+                child: ListView(
+                  children: [
+                    Center(
+                      child: Text(
+                        refugio!['nombre'] ??
+                            context.loc.shelter_shelter_unknown_name,
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 16 : 22,
+                          fontWeight: FontWeight.bold,
+                          color: azulRefugio,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
                       children: [
-                        Center(
+                        Icon(Icons.location_on, color: azulRefugio),
+                        const SizedBox(width: 10),
+                        Expanded(
                           child: Text(
-                            refugio!['nombre'] ??
-                                context.loc.shelter_shelter_unknown_name,
+                            '${context.loc.station_address}: ${refugio!['direccio'] ?? 'N/A'}, ${refugio!['numero_calle'] ?? ''}',
                             style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on, color: Colors.green),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                '${context.loc.station_address}: ${refugio!['direccio'] ?? 'N/A'}, ${refugio!['numero_calle'] ?? ''}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        Row(
-                          children: [
-                            const Icon(Icons.map, color: Colors.green),
-                            const SizedBox(width: 10),
-                            Text(
-                              '${context.loc.common_latitude}: ${refugio!['lat'] ?? 'N/A'}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            const Icon(Icons.map_outlined, color: Colors.green),
-                            const SizedBox(width: 10),
-                            Text(
-                              '${context.loc.common_longitude}: ${refugio!['lng'] ?? 'N/A'}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        Center(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              if (refugio != null &&
-                                  refugio!['lat'] != null &&
-                                  refugio!['lng'] != null) {
-                                _openGoogleMaps(
-                                  refugio!['lat'],
-                                  refugio!['lng'],
-                                );
-                              }
-                            },
-                            icon: const Icon(
-                              Icons.directions,
-                              color: Colors.white,
-                            ),
-                            label: Text(
-                              context.loc.shelter_view_in_map,
-                              style: TextStyle(fontSize: 16),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
+                              fontSize: 17,
+                              color: Colors.black87,
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
+                    if (widget.distanciaKm != null) ...[
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          Icon(Icons.directions_walk, color: azulRefugio),
+                          const SizedBox(width: 10),
+                          Text(
+                            '${context.loc.shelter_distance}: ${widget.distanciaKm!.toStringAsFixed(2)} km',
+                            style: const TextStyle(
+                              fontSize: 17,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 32),
+                    Center(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          if (refugio != null &&
+                              refugio!['lat'] != null &&
+                              refugio!['lng'] != null) {
+                            _openGoogleMaps(
+                              refugio!['lat'],
+                              refugio!['lng'],
+                            );
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.directions,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          context.loc.how_to_arrive,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: azulRefugio,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isSmallScreen ? 8 : 24,
+                            vertical: isSmallScreen ? 8 : 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-    );
-  }
+  );
+}
 }

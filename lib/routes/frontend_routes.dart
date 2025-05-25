@@ -46,8 +46,7 @@ class FrontendRoutes {
       '/api_punts_carrega/reservas/?dia=$date';
 
   // Shelters
-  static const String refugios =
-      '/api_punts_carrega/refugios/';
+  static const String refugios ='/api_punts_carrega/refugios_mas_cercanos/';
   static String refugio(String id) => '/api_punts_carrega/refugios/$id/';
 
   // Chat

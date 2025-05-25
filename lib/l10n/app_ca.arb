@@ -53,7 +53,6 @@
   "station_available": "Disponible",
   "station_occupied": "Ocupat",
   "station_not_available": "No disponible",
-  "station_how_to_arrive": "Com arribar-hi",
   "station_calculate_price": "Calcular preu",
   "station_reserve": "Reservar",
   "station_loading": "Carregant...",
@@ -140,7 +139,7 @@
   "shelter_shelter_details": "Detalls del Refugi",
   "shelter_shelter_could_not_be_loaded": "No es va poder carregar el refugi",
   "shelter_shelter_unknown_name": "Nom desconegut",
-  "shelter_view_in_map": "Veure al mapa",
+  "shelter_distance": "Distància",
 
   "common_hello": "Hola",
   "common_cancel": "Cancel·la",
@@ -202,7 +201,6 @@
   "bici_detail_ride_code_support": "Suporta codi de viatge",
   "bici_detail_nearby_distance": "Distància propera",
   "bici_detail_physical_configuration": "Tipus d'estació",
-  "bici_detail_how_to_arrive": "Com arribar",
   "bici_detail_reserve": "Reservar",
   "bici_detail_yes": "Sí",
   "bici_detail_no": "No",
@@ -214,7 +212,6 @@
   "bici_detail_num_docks_disponibles": "Places lliures",
   "bici_detail_estado": "Estat",
   "bici_detail_ultima_actualizacion": "Última actualització",
-  "bici_detail_how_to_arrive": "Com arribar-hi",
   "bici_detail_reserve": "Reservar",
 
   "notificar_error_title": "Notificar error",
@@ -264,5 +261,8 @@
 "bici_reserva_tipo_bicicleta": "Tipus de bicicleta:",
 "bici_reserva_creada_en": "Creada el:",
 "bici_reserva_expira": "Expira:",
-"bici_reserva_activa": "Activa:"
+"bici_reserva_activa": "Activa:",
+
+"alert_emergency_points_subtitle": "Aquí pots veure els punts d’emergència reportats a prop de la teva ubicació.",
+ "how_to_arrive": "Com arribar-hi"
 }

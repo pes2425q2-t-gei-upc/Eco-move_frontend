@@ -330,7 +330,7 @@ Widget build(BuildContext context) {
                     },
                     icon: const Icon(Icons.directions, color: Colors.white),
                     label: Text(
-                      loc.bici_detail_how_to_arrive,
+                      loc.how_to_arrive,
                       style: const TextStyle(color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(
