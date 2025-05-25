@@ -278,5 +278,8 @@
 "bici_reservas_error_historial": "Error al cargar historial de reservas: {error}",
 "bici_reservas_error_conexion": "Error de conexión: {error}",
 "bici_reservas_cancelada_ok": "Reserva cancelada correctamente",
-"bici_reservas_error_cancelar": "Error al cancelar: {error}"
+"bici_reservas_error_cancelar": "Error al cancelar: {error}",
+
+"filter_by_car": "Filtrar por mi coche",
+"filter_show_only_car_compatible": "Mostrar cargadores compatibles con mi coche"
 }

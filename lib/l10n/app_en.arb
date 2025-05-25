@@ -280,5 +280,8 @@
 "bici_reservas_error_historial": "Error loading reservation history: {error}",
 "bici_reservas_error_conexion": "Connection error: {error}",
 "bici_reservas_cancelada_ok": "Reservation cancelled successfully",
-"bici_reservas_error_cancelar": "Error cancelling: {error}"
+"bici_reservas_error_cancelar": "Error cancelling: {error}",
+
+"filter_by_car": "Filter by my car",
+"filter_show_only_car_compatible": "Show chargers compatible with my car"
 }
