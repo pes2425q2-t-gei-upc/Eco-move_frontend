@@ -53,7 +53,6 @@
   "station_available": "Disponible",
   "station_occupied": "Ocupado",
   "station_not_available": "No disponible",
-  "station_how_to_arrive": "Cómo llegar",
   "station_calculate_price": "Calcular precio",
   "station_reserve": "Reservar",
   "station_loading": "Cargando...",
@@ -140,7 +139,7 @@
   "shelter_shelter_details": "Detalles del Refugio",
   "shelter_shelter_could_not_be_loaded": "No se pudo cargar el refugio",
   "shelter_shelter_unknown_name": "Nombre desconocido",
-  "shelter_view_in_map": "Ver en el mapa",
+  "shelter_distance": "Distancia",
 
   "common_hello": "Hola",
   "common_cancel": "Cancelar",
@@ -201,7 +200,6 @@
 "bici_detail_ride_code_support": "Soporta código de viaje",
 "bici_detail_nearby_distance": "Distancia cercana",
 "bici_detail_physical_configuration": "Tipo estación",
-"bici_detail_how_to_arrive": "Cómo llegar",
 "bici_detail_reserve": "Reservar",
 "bici_detail_yes": "Sí",
 "bici_detail_no": "No",
@@ -213,7 +211,6 @@
 "bici_detail_num_docks_disponibles": "Plazas libres",
 "bici_detail_estado": "Estado",
 "bici_detail_ultima_actualizacion": "Última actualización",
-"bici_detail_how_to_arrive": "Cómo llegar",
 "bici_detail_reserve": "Reservar",
 
   "notificar_error_title": "Notificar error",
@@ -247,5 +244,34 @@
   "emergency_details_time": "Hora",
   "emergency_details_google_maps": "Google Maps",
   "emergency_details_reject": "Rechazar",
-  "emergency_details_accept": "Aceptar"
+  "emergency_details_accept": "Aceptar",
+  "bici_reservas_title": "Reservas de Bicis",
+
+"bici_reservas_no_reservas": "No tienes reservas",
+"bici_reservas_activas": "Reservas activas",
+"bici_reservas_historial": "Historial de reservas",
+"bici_reservas_cancelar": "Cancelar reserva",
+"bici_reservas_confirm_cancel_title": "Cancelar reserva",
+"bici_reservas_confirm_cancel_content": "¿Seguro que quieres cancelar esta reserva?",
+"bici_reservas_confirm_cancel_no": "No",
+"bici_reservas_confirm_cancel_si": "Sí, cancelar",
+"bici_reservas_cancelada_ok": "Reserva cancelada correctamente",
+"bici_reserva_tipo_bicicleta": "Tipo bicicleta:",
+"bici_reserva_creada_en": "Creada en:",
+"bici_reserva_expira": "Expira:",
+"bici_reserva_activa": "Activa:",
+
+"alert_emergency_points_subtitle": "Aquí puedes ver los puntos de emergencia reportados cerca de tu ubicación.",
+"how_to_arrive": "Cómo llegar",
+"shelter_error_loading": "Error al cargar refugio: {error}",
+"shelter_error_request": "Error en la solicitud de refugio: {error}",
+
+"bici_reserva_ok": "Reserva realizada con éxito",
+"bici_reserva_error": "Error al reservar",
+"bici_reserva_error_conexion": "Error de conexión",
+"bici_reserva_selecciona_tipo": "Selecciona el tipo de bicicleta",
+"bici_tipo_mecanica": "Mecánica",
+"bici_tipo_electrica": "Eléctrica",
+"bici_detail_error_loading": "Error al cargar la estación: {error}",
+"bici_detail_error_request": "Error en la solicitud de la estación: {error}"
 }

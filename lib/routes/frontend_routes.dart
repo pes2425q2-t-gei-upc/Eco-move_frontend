@@ -46,8 +46,7 @@ class FrontendRoutes {
       '/api_punts_carrega/reservas/?dia=$date';
 
   // Shelters
-  static const String refugios =
-      '/api_punts_carrega/refugios/';
+  static const String refugios ='/api_punts_carrega/refugios_mas_cercanos/';
   static String refugio(String id) => '/api_punts_carrega/refugios/$id/';
 
   // Chat
@@ -70,6 +69,9 @@ class FrontendRoutes {
   static const String biciDetailBase = '/api/bicing/estaciones/';
   static String biciDetailById(String id) => '/api/bicing/estaciones/$id';
   static const String biciReserva = '/api/bicing/reservas/';
+  static const String biciReservasActivas = '/api/bicing/reservas/mis_reservas/';
+  static const String biciReservasHistorial = '/api/bicing/reservas/historial/';
+  static String biciReservaCancelar(String id) => '/api/bicing/reservas/$id/';
 
   // Throphies
   static String usuariGetPunts(int userId) => '/api_punts_carrega/usuari/$userId/getPunts/';

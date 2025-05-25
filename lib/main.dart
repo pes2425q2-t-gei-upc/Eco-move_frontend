@@ -184,6 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final url = Uri.parse(
       '${FrontendRoutes.build(FrontendRoutes.refugios)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
+    print('Llamando a endpoint: $url');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -213,7 +214,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _fetchBicis() async {
   final url = Uri.parse(
-    'http://127.0.0.1:8000/api/bicing/estaciones/',
+    FrontendRoutes.build(FrontendRoutes.biciDetailBase),
   );
   try {
     final response = await http.get(url);
@@ -413,10 +414,10 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _abrirRefugioScreen(BuildContext context, String idRefugio) {
+  void _abrirRefugioScreen(BuildContext context, String idRefugio, double? distanciaKm) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => RefugioScreen(idRefugio: idRefugio),
+        builder: (context) => RefugioScreen(idRefugio: idRefugio,distanciaKm: distanciaKm,),
       ),
     );
   }
@@ -626,49 +627,70 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
     );
   }
 
-  MarkerLayer _buildMarkersLayer() {
-    List<dynamic> data;
-    if (_tipoMapa == 'refugios') {
-      data = refugios;
-    } else if (_tipoMapa == 'bicis') {
-      data = _bicis;
-    } else {
-     data = estaciones;
-    }
-    return MarkerLayer(
-      markers:
-          data
-              .map((estacion) {
-                final lat = estacion['lat'];
-                final lng = estacion['lng'];
-                return Marker(
-                  width: 40.0,
-                  height: 40.0,
-                  point: LatLng(lat, lng),
-                  builder:
-                      (ctx) => IconButton(
-                          icon: Icon(
-                           _tipoMapa == 'refugios'
-                ? Icons.ac_unit
-                : _tipoMapa == 'bicis'
-                    ? Icons.pedal_bike
-                    : Icons.location_on,
-          ),
-          color: _tipoMapa == 'refugios'
-              ? Colors.blue
-              : _tipoMapa == 'bicis'
-                  ? Colors.orange
-                  : Colors.green,
-          iconSize: 25,
-          onPressed: () {
+ MarkerLayer _buildMarkersLayer() {
+  List<dynamic> data;
+  if (_tipoMapa == 'refugios') {
+    data = refugios;
+  } else if (_tipoMapa == 'bicis') {
+    data = _bicis;
+  } else {
+    data = estaciones;
+  }
+  return MarkerLayer(
+    markers: data.map((estacion) {
+      final lat = estacion['lat'];
+      final lng = estacion['lng'];
+      IconData iconData;
+      Color borderColor;
+
+      if (_tipoMapa == 'refugios') {
+        iconData = Icons.ac_unit;
+        borderColor = Colors.lightBlueAccent;
+      } else if (_tipoMapa == 'bicis') {
+        iconData = Icons.pedal_bike;
+        borderColor = Colors.orange;
+      } else {
+        iconData = Icons.ev_station;
+        borderColor = Colors.green;
+      }
+
+      return Marker(
+        width: 28.0,
+        height: 28.0,
+        point: LatLng(lat, lng),
+        builder: (ctx) => GestureDetector(
+          onTap: () {
             if (_tipoMapa == 'refugios') {
-              _abrirRefugioScreen(context, estacion['id_punt'].toString());
+              _abrirRefugioScreen(context, estacion['id_punt'].toString(), estacion['distancia_km']);
             } else if (_tipoMapa == 'bicis') {
               _abrirBiciScreen(context, estacion['id'].toString());
             } else {
               _abrirEstacionScreen(context, estacion['id_punt'].toString());
             }
           },
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: borderColor, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Icon(
+                iconData,
+                color: borderColor,
+                size: 15,
+              ),
+            ),
+          ),
         ),
       );
     }).toList(),
@@ -878,12 +900,12 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
   // Update _showFilterBottomSheet to allow multiple charger types selection
   void _showFilterBottomSheet() {
     TextEditingController ciudadController = TextEditingController(
-      text: ciudadSeleccionada, // Pre-fill with the selected city
+      text: ciudadSeleccionada,
     );
 
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Allow the bottom sheet to expand dynamically
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -907,6 +929,17 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
               child: Wrap(
                 alignment: WrapAlignment.center, // Center the content
                 children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 6,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[400],
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
                   Center(
                     child: Text(
                       context.loc.filter_by_proximity,
@@ -1179,11 +1212,6 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
           child: const Icon(Icons.filter_list, color: Color(0xff4a7c59)),
         ),
         const SizedBox(width: 12),
-        Text(
-          "Ver:",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(width: 8),
         SizedBox(
           height: 36,
           child: SingleChildScrollView(
