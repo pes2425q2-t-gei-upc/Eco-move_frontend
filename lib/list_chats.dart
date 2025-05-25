@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'chat.dart';
+import 'package:eco_move_frontend/l10n/context_ext.dart';
 
 void main() {
   runApp(const MyApp());
@@ -374,7 +375,7 @@ class ChatListScreenState extends State<ChatListScreen> {
         ],
       ),
       body: chatsList.isEmpty
-          ? const Center(child: Text('No hay chats'))
+          ?  Center(child: Text(context.loc.no_chats))
           : RefreshIndicator(
         onRefresh: _refreshChats,
         child: ListView.builder(

@@ -822,7 +822,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                   Icon(Icons.eco, color: Color(0xff4a7c59), size: 60),
                   const SizedBox(height: 24),
                   Text(
-                    '¡Bienvenido a ECO-MOVE!',
+                    context.loc.home_welcome,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: Color(0xff4a7c59),
                           fontWeight: FontWeight.bold,
@@ -837,7 +837,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                       );
                     },
                     icon: const Icon(Icons.pedal_bike),
-                    label: const Text('Bicis reservadas'),
+                    label: Text(context.loc.home_bicis),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                       foregroundColor: Colors.white,
@@ -876,7 +876,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                       );
                     },
                     icon: const Icon(Icons.notifications, color: Colors.white),
-                    label: const Text('Emergencias'),
+                    label:  Text(context.loc.home_emergency),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.redAccent,
                       foregroundColor: Colors.white,
@@ -1180,21 +1180,21 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
       'icon': Icons.ev_station,
       'tooltip': 'Estaciones de carga',
       'color': Color(0xff4a7c59),
-      'label': 'Estaciones de carga'
+      'label': context.loc.charging_stations
     },
     {
       'value': 'refugios',
       'icon': Icons.ac_unit,
       'tooltip': 'Refugios climáticos',
       'color': Colors.lightBlueAccent,
-      'label': 'Refugios climáticos'
+      'label': context.loc.climate_shelters
     },
     {
       'value': 'bicis',
       'icon': Icons.pedal_bike,
       'tooltip': 'Bicing',
       'color': Colors.orange,
-      'label': 'Estaciones de bicis'
+      'label': context.loc.bike_stations
     },
   ];
 
