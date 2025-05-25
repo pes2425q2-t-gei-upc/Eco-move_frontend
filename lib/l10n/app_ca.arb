@@ -275,5 +275,11 @@
 "bici_tipo_mecanica": "Mecànica",
 "bici_tipo_electrica": "Elèctrica",
 "bici_detail_error_loading": "Error en carregar l'estació: {error}",
-"bici_detail_error_request": "Error en la sol·licitud de l'estació: {error}"
+"bici_detail_error_request": "Error en la sol·licitud de l'estació: {error}",
+
+"bici_reservas_error_activas": "Error en carregar reserves actives: {error}",
+"bici_reservas_error_historial": "Error en carregar l'historial de reserves: {error}",
+"bici_reservas_error_conexion": "Error de connexió: {error}",
+"bici_reservas_cancelada_ok": "Reserva cancel·lada correctament",
+"bici_reservas_error_cancelar": "Error en cancel·lar: {error}"
 }

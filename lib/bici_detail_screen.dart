@@ -89,7 +89,9 @@ class _BiciDetailScreenState extends State<BiciDetailScreen> {
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.loc.bici_reserva_ok)),
+          
         );
+        fetchBici();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${context.loc.bici_reserva_error}: ${response.body}')),
