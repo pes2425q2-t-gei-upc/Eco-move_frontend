@@ -12,7 +12,7 @@ class EmergencyPoint {
   final double lat;
   final double lng;
   final String timestamp;
-  final int sender;
+  final String sender;
 
   EmergencyPoint({
     required this.id,
@@ -32,7 +32,7 @@ class EmergencyPoint {
       lat: json['lat'],
       lng: json['lng'],
       timestamp: json['timestamp'],
-      sender: json['sender'],
+      sender: json['sender_email'],
     );
   }
 }

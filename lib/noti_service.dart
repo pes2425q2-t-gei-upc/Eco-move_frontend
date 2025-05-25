@@ -76,6 +76,7 @@ class NotiService {
     if (payload.startsWith("navigate_to_screen")) {
       // Extraer los datos de la emergencia del payload
       final parts = payload.split('|');
+      print(parts);
       if (parts.length == 7) { // Cambiar a 7 partes
         try {
           final title = parts[1];
@@ -83,6 +84,7 @@ class NotiService {
           final lat = double.tryParse(parts[3]) ?? 0.0;
           final lng = double.tryParse(parts[4]) ?? 0.0;
           final timestamp = parts[5];
+          final sender = parts[6];
 
           // Navegar a la pantalla de detalles de emergencia
           navigatorKey.currentState?.push(
@@ -93,6 +95,7 @@ class NotiService {
                 lat: lat,
                 lng: lng,
                 timestamp: timestamp,
+                sender: sender,
               ),
             ),
           );

@@ -21,7 +21,7 @@
   "reservation_duration_hint": "Durada estimada (hh:mm)",
   "reservation_confirm_question": "Estàs segur que vols reservar?",
   "reservation_invalid_datetime_title": "Data i hora no vàlides",
-  "reservation_invalid_datetime_message": "Si us plau, selecciona una data i hora vàlides.",
+  "reservation_invalid_datetime_message": "Si us plau, selecciona una data i hora posteriors a ara",
   "reservation_fill_all_fields": "Si us plau, selecciona data, hora i durada estimada",
 
   "settings_language": "Canvia l'idioma",

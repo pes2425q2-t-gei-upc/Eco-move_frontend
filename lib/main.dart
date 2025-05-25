@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:eco_move_frontend/calendar.dart';
+import 'package:eco_move_frontend/get_bookings.dart';
 import 'package:eco_move_frontend/l10n/l10n.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'package:eco_move_frontend/list_chats.dart';
@@ -60,7 +61,11 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey, // Configura el GlobalKey aquí
       title: 'ECO-MOVE',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green[300]!),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Color(0xff4a7c59),
+          foregroundColor: Colors.white,
+        ),
       ),
       locale: provider.locale,
       supportedLocales: L10n.all,
@@ -328,6 +333,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   "potencia": estacion["potencia"],
                   "tipus_velocitat": estacion["tipus_velocitat"],
                   "tipus_carregador": estacion["tipus_carregador"],
+                  "fuera_de_servicio": estacion["fuera_de_servicio"],
+
                 };
               }).toList();
           _isLoading = false;
@@ -364,8 +371,7 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       final response = await http.get(uri);
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
         setState(() {
           estaciones =
               data.map((item) {
@@ -450,7 +456,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
             mini: true,
             onPressed: _showFilterBottomSheet,
             backgroundColor: Colors.white,
-            child: const Icon(Icons.filter_list, color: Colors.green),
+            child: const Icon(Icons.filter_list, color: Color(0xff4a7c59)),
           ),
         ),
       ],
@@ -462,12 +468,16 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
 
     return InkWell(
       onTap: () {
+        if (fueraDeServicio) {
+          return;
+        }
         _abrirEstacionScreen(context, estacion['id_punt'].toString());
       },
       child: Card(
         elevation: 5,
         margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        color: fueraDeServicio ? Colors.grey.shade200 : Colors.white,
         child: Stack(
           children: [
             Padding(
@@ -484,7 +494,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                     ),
                     child: Icon(
                       Icons.ev_station,
-                      color: fueraDeServicio ? Colors.red : Colors.green,
+                      color: fueraDeServicio ? Colors.red :Color(0xff4a7c59),
                       size: 30,
                     ),
                   ),
@@ -566,8 +576,14 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                   ),
                   const SizedBox(width: 10),
                   IconButton(
-                    icon: const Icon(Icons.arrow_forward, color: Colors.green),
+                    icon: Icon(Icons.arrow_forward, 
+                    color: fueraDeServicio ? Colors.grey : Colors.green
+                    ),
+                    tooltip: fueraDeServicio ? context.loc.out_of_service : null,
                     onPressed: () {
+                      if (fueraDeServicio) {
+                        return;
+                      }
                       _abrirEstacionScreen(context, estacion['id_punt'].toString());
                     },
                   ),
@@ -763,7 +779,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
   void _navigateToBookingsScreen() {
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (context) => BookingCalendarPage()));
+    ).push(MaterialPageRoute(builder: (context) => BookingsScreen()));
   }
 
   Widget _buildHomePage() {
@@ -781,12 +797,12 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.eco, color: Colors.green, size: 60),
+                  Icon(Icons.eco, color: Color(0xff4a7c59), size: 60),
                   const SizedBox(height: 24),
                   Text(
                     '¡Bienvenido a ECO-MOVE!',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.green,
+                          color: Color(0xff4a7c59),
                           fontWeight: FontWeight.bold,
                         ),
                     textAlign: TextAlign.center,
@@ -816,7 +832,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                     icon: const Icon(Icons.calendar_month),
                     label: Text(context.loc.home_my_reservations),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: Color(0xff4a7c59),
                       foregroundColor: Colors.white,
                       minimumSize: const Size(double.infinity, 48),
                       textStyle: const TextStyle(fontSize: 18),
@@ -897,7 +913,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
-                        color: Colors.green,
+                        color: Color(0xff4a7c59),
                       ),
                     ),
                   ),
@@ -918,7 +934,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                         }
                       });
                     },
-                    activeColor: Colors.green,
+                    activeColor: Color(0xff4a7c59),
                   ),
                   if (!filtrarPorCercanas) ...[
                     const SizedBox(height: 20),
@@ -928,7 +944,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
-                          color: Colors.green,
+                          color: Color(0xff4a7c59),
                         ),
                       ),
                     ),
@@ -958,7 +974,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                               labelStyle: TextStyle(
                                 color:
                                     velocidadesSeleccionadas.contains(velocidad)
-                                        ? Colors.green
+                                        ? Color(0xff4a7c59)
                                         : Colors.black,
                               ),
                             );
@@ -971,7 +987,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
-                          color: Colors.green,
+                          color: Color(0xff4a7c59),
                         ),
                       ),
                     ),
@@ -1001,7 +1017,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                               labelStyle: TextStyle(
                                 color:
                                     tiposCargadorSeleccionados.contains(tipo)
-                                        ? Colors.green
+                                        ? Color(0xff4a7c59)
                                         : Colors.black,
                               ),
                             );
@@ -1014,7 +1030,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
-                          color: Colors.green,
+                          color: Color(0xff4a7c59),
                         ),
                       ),
                     ),
@@ -1036,7 +1052,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                           potenciaMaxSeleccionada = values.end.round();
                         });
                       },
-                      activeColor: Colors.green,
+                      activeColor:Color(0xff4a7c59),
                       inactiveColor: Colors.grey.shade300,
                     ),
                     Row(
@@ -1059,7 +1075,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
-                          color: Colors.green,
+                          color: Color(0xff4a7c59),
                         ),
                       ),
                     ),
@@ -1097,7 +1113,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor: Color(0xff4a7c59),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 30,
                           vertical: 15,
@@ -1130,19 +1146,22 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
       'value': 'estaciones',
       'icon': Icons.ev_station,
       'tooltip': 'Estaciones de carga',
-      'color': Colors.green
+      'color': Color(0xff4a7c59),
+      'label': 'Estaciones de carga'
     },
     {
       'value': 'refugios',
       'icon': Icons.ac_unit,
       'tooltip': 'Refugios climáticos',
-      'color': Colors.lightBlueAccent
+      'color': Colors.lightBlueAccent,
+      'label': 'Refugios climáticos'
     },
     {
       'value': 'bicis',
       'icon': Icons.pedal_bike,
       'tooltip': 'Bicing',
-      'color': Colors.orange
+      'color': Colors.orange,
+      'label': 'Estaciones de bicis'
     },
   ];
 
@@ -1157,7 +1176,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
           mini: true,
           onPressed: _showFilterBottomSheet,
           backgroundColor: Colors.white,
-          child: const Icon(Icons.filter_list, color: Colors.green),
+          child: const Icon(Icons.filter_list, color: Color(0xff4a7c59)),
         ),
         const SizedBox(width: 12),
         Text(
@@ -1177,12 +1196,35 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                   child: ChoiceChip(
                     label: Tooltip(
                       message: opcion['tooltip'] as String,
-                      child: Icon(
-                        opcion['icon'] as IconData,
-                        size: 22,
-                        color: selected
-                            ? opcion['color'] as Color
-                            : Colors.black45,
+                      child: IntrinsicWidth(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              opcion['icon'] as IconData,
+                              size: 22,
+                              color: selected
+                                  ? opcion['color'] as Color
+                                  : Colors.black45,
+                            ),
+                            if (selected) ...[
+                              SizedBox(height: 1),
+                              Flexible(
+                                child: Text(
+                                  opcion['label'] as String, // Add 'label' field to your opciones data
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w500,
+                                    color: opcion['color'] as Color,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
                     ),
                     selected: selected,
@@ -1204,7 +1246,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                       }
                     },
                     elevation: 2,
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                   ),
                 );
               }).toList(),
@@ -1325,7 +1367,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                 ),
                 const SizedBox(height: 10), // Space between the buttons
                 CircleAvatar(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Color(0xff4a7c59),
                   radius: 20,
                   child: IconButton(
                     icon: const Icon(Icons.chat, color: Colors.white),
@@ -1359,7 +1401,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
         ),
       ],
       currentIndex: _selectedIndex,
-      selectedItemColor: Colors.green,
+      selectedItemColor: Color(0xff4a7c59),
       onTap: _onItemTapped,
     ),
   );

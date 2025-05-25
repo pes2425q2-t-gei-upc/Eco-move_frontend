@@ -55,10 +55,6 @@ class _CreateVehiclePageState extends State<CreateVehiclePage> {
    // fetchUserInfo();
   }
 
-  void fetchUserInfo() {
-    
-  }
-
   Future<String?> getAccessToken() async {
     return await _secureStorage.read(key: 'access');
   }
@@ -108,7 +104,8 @@ class _CreateVehiclePageState extends State<CreateVehiclePage> {
 
     final response = await http.post(
       url,
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ3MDQ4Nzk0LCJpYXQiOjE3NDY5NjIzOTQsImp0aSI6ImFlZGUwNTljODAzMDQzYmJiMzcwOTdkZGZlZWFjMzE3IiwidXNlcl9pZCI6Mn0.qSZ2d3BnOB9_HWlAL-FX71hdTh0fSClVTw_TdDTxPD8'},
+      headers: {'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'},
       body: jsonEncode(vehicle.toJson()),
     );
 
