@@ -184,24 +184,25 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final url = Uri.parse(
-      '${FrontendRoutes.build(FrontendRoutes.refugios)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
+      'http://nattech.fib.upc.edu:40430/api/refugios/listar_cercania/${myPosition!.latitude}/${myPosition!.longitude}/'
     );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
+        print(data);
         setState(() {
           refugios =
               data.map((item) {
-                final refugio = item['refugio'];
+                final refugio = item;
                 return {
-                  "id_punt": refugio["id_punt"],
-                  "lat": refugio["lat"],
-                  "lng": refugio["lng"],
+                  "id_punt": refugio["id"],
+                  "lat": refugio["latitud"],
+                  "lng": refugio["longitud"],
                   "nombre": refugio["nombre"],
-                  "direccio": refugio["direccio"],
+                  "direccio": refugio["direccion"],
                   "numero_calle": refugio["numero_calle"],
-                  "distancia_km": item["distancia_km"],
+                  "distancia_km": item["distancia"],
                 };
               }).toList();
         });
@@ -688,7 +689,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
       return Marker(
         width: 28.0,
         height: 28.0,
-        point: LatLng(lat, lng),
+        point: LatLng(double.tryParse(estacion['lat'].toString()) ?? 0.0, double.tryParse(estacion['lng'].toString()) ?? 0.0),
         builder: (ctx) => GestureDetector(
           onTap: () {
             if (_tipoMapa == 'refugios') {

@@ -801,7 +801,7 @@ void initState() {
 
       if (response.statusCode == 201) {
         print('Reservation created successfully');
-
+        addPoints();
         final GoogleCalendarService calendarService = GoogleCalendarService();
         String? address = await _fetchStations(id);
         final title = "${context.loc.booking_title}";
@@ -815,7 +815,7 @@ void initState() {
           description: description,
         );
 
-        addPoints();
+
       } else {
         print('Failed to create reservation: ${response.statusCode} - ${response.body}');
       }

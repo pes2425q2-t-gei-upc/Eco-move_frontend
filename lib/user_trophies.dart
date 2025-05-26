@@ -111,7 +111,8 @@ class _UserTrophiesPageState extends State<UserTrophiesPage> {
   Widget _buildTrophyCard(Map<String, dynamic> trofeo, {bool earned = false}) {
     final trophyName = trofeo['nombre_traducido'] ?? trofeo['nombre'];
     final trophyDesc = trofeo['descripcion_traducida'] ?? trofeo['descripcion'];
-
+    print('trofeo val');
+    print(trofeo);
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
