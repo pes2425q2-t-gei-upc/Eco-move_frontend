@@ -149,13 +149,10 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_isPollingStarted) return; // Evita múltiples inicios
     _isPollingStarted = true;
 
-    print("Iniciando polling para emergencias...");
     _emergencyService
         .pollForNewEmergencyPointsStream(() => _pollingPosition) // Usa una función para obtener la posición actualizada
         .listen((newPoint) {
       if (newPoint != null) {
-        print("Llamando a showNotification para IDDDDD: ${newPoint.id}");
-        print("Llamando a showNotification para: ${newPoint.title}");
         _notiService.showNotification(
           title: "Nuevo Punto de Emergencia",
           body: "Se ha detectado un nuevo punto de emergencia: ${newPoint.title}",
@@ -191,7 +188,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final url = Uri.parse(
       '${FrontendRoutes.build(FrontendRoutes.refugios)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
-    print('Llamando a endpoint: $url');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -353,14 +349,11 @@ Future<List<String>> fetchCargadoresCoche() async {
 
     final uri = Uri.parse(FrontendRoutes.build(FrontendRoutes.filtrarEstacions))
       .replace(queryParameters: queryParameters);
-    
-    print(uri);
 
     try {
       final response = await http.get(uri);
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
-        print('fetch estaciones devuelve ${data}');
 
         setState(() {
           estaciones =
@@ -408,7 +401,6 @@ Future<List<String>> fetchCargadoresCoche() async {
     final uri = Uri.parse(
       '${FrontendRoutes.build(FrontendRoutes.puntmesproper)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
-    print(uri);
 
     try {
       final response = await http.get(uri);

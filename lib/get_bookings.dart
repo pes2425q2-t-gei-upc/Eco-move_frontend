@@ -199,10 +199,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              '/',
-              (route) => false,
-            );
+           Navigator.of(context).popUntil((route) => route.isFirst);
           },
         ),
         title: Text(
