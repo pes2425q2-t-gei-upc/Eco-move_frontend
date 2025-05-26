@@ -29,7 +29,11 @@ class MyApp extends StatelessWidget {
 }
 
 class ChatListScreen extends StatefulWidget {
-  ChatListScreen({Key? key}) : super(key: key);
+  final int? openChatId;
+  final String? openChatName;
+  final String? openChatLastName;
+
+    ChatListScreen({Key? key, this.openChatId, this.openChatName, this.openChatLastName}) : super(key: key);
 
   @override
   ChatListScreenState createState() => ChatListScreenState();
@@ -49,11 +53,27 @@ class ChatListScreenState extends State<ChatListScreen> {
     return await _secureStorage.read(key: 'access');
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _initialize();
+@override
+void initState() {
+  super.initState();
+  _initialize();
+
+  // Si hay que abrir un chat, hazlo tras el primer frame
+  if (widget.openChatId != null) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            chatId: widget.openChatId!,
+            name: widget.openChatName ?? '',
+            lastName: widget.openChatLastName ?? '',
+          ),
+        ),
+      );
+    });
   }
+}
 
   @override
   void dispose() {
