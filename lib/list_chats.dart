@@ -325,6 +325,15 @@ class ChatListScreenState extends State<ChatListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+          leading: IconButton(
+    icon: Icon(Icons.arrow_back),
+    onPressed: () {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/', // Ruta de la página principal
+        (route) => false,
+      );
+    },
+  ),
         title: Row(
           children: [
             const Text('Chats'),

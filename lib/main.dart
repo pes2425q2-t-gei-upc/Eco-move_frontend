@@ -78,6 +78,10 @@ class MyApp extends StatelessWidget {
       ],
       home: const LoginScreen(),
       debugShowCheckedModeBanner: false,
+      routes: {
+        '/list-chats': (context) => ChatListScreen(),
+        // ...otras rutas...
+      },
     );
   }
 }
