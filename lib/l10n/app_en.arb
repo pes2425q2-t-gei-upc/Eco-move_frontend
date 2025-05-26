@@ -298,6 +298,8 @@
 
 "charging_stations": "Charging stations",
 "climate_shelters": "Climate shelters",
-"bike_stations": "Bike stations"
+"bike_stations": "Bike stations",
+
+"send_message": "Send a message"
 
 }

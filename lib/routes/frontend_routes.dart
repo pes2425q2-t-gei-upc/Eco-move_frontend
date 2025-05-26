@@ -16,6 +16,8 @@ class FrontendRoutes {
   static const String users = '/api_punts_carrega/usuari/';
   static const String profilePhoto = '/profile/foto/';
 
+  static String profilePhotoUsername(String username) =>'/profile/$username/';
+
   static const String price = '/api_punts_carrega/preu_kwh/';
   static String user(int id) => '/api_punts_carrega/usuari/$id/';
 

@@ -4,6 +4,9 @@ import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:intl/intl.dart';
+
 
 
 class ChatScreen extends StatefulWidget {
@@ -25,6 +28,9 @@ class _ChatScreenState extends State<ChatScreen> {
   String? token = '';
   bool _isLoading = true;
   bool _isSendingMessage = false;
+  String? myProfilePhoto;
+  String? otherUserProfilePhoto;
+  String? otherUserUsername;
 
   final int _pollingIntervalSeconds = 5;
   Timer? _pollingTimer;
@@ -46,6 +52,11 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     token = await getAccessToken();
     await _getMyInfo();
+    await _getChatInfo();
+    await _fetchMyProfilePhoto();
+    if (otherUserUsername != null) {
+      await _fetchOtherUserProfilePhoto(otherUserUsername!);
+    }
     await _fetchMessages();
 
     setState(() {
@@ -56,7 +67,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _startPolling() {
-
     _pollingTimer?.cancel();
 
     _pollingTimer = Timer.periodic(
@@ -67,7 +77,6 @@ class _ChatScreenState extends State<ChatScreen> {
           }
         }
     );
-
   }
 
   @override
@@ -88,6 +97,8 @@ class _ChatScreenState extends State<ChatScreen> {
         ChatMessage(
           text: text,
           isMe: true,
+          myProfilePhoto: myProfilePhoto,
+          otherUserProfilePhoto: otherUserProfilePhoto,
         ),
       );
     });
@@ -131,9 +142,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
 
       if (response.statusCode == 201) {
-
         await Future.delayed(Duration(milliseconds: 300));
-
         await _fetchMessages();
       } else {
         print('Failed to send message: ${response.statusCode} - ${response.body}');
@@ -180,6 +189,117 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _getChatInfo() async {
+    try {
+      final response = await http.get(
+        Uri.parse(FrontendRoutes.build(FrontendRoutes.myChats)),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final chatsList = json.decode(utf8.decode(response.bodyBytes));
+
+        // Find the current chat
+        for (var chat in chatsList) {
+          if (chat['id'] == widget.chatId) {
+            // Determine the other user's username
+            if (my_id == chat['receptor']) {
+              otherUserUsername = chat['creador_username'];
+            } else {
+              otherUserUsername = chat['receptor_username'];
+            }
+            break;
+          }
+        }
+      } else {
+        print('Failed to get chat info: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error getting chat info: $e');
+    }
+  }
+
+  Future<void> _fetchMyProfilePhoto() async {
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhoto));
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final bodyJson = json.decode(response.body);
+        final foto = bodyJson['foto'];
+
+        if (mounted) {
+          setState(() {
+            myProfilePhoto = foto;
+          });
+        }
+      } else {
+        print('Failed to fetch my profile photo: ${response.statusCode} - ${response.body}');
+        if (mounted) {
+          setState(() {
+            myProfilePhoto = null;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching my profile photo: $e');
+      if (mounted) {
+        setState(() {
+          myProfilePhoto = null;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchOtherUserProfilePhoto(String username) async {
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhotoUsername(username)));
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final bodyJson = json.decode(response.body);
+        final foto = bodyJson['foto'];
+
+        if (mounted) {
+          setState(() {
+            otherUserProfilePhoto = foto;
+          });
+        }
+      } else {
+        print('Failed to fetch other user profile photo: ${response.statusCode} - ${response.body}');
+        if (mounted) {
+          setState(() {
+            otherUserProfilePhoto = null;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching other user profile photo: $e');
+      if (mounted) {
+        setState(() {
+          otherUserProfilePhoto = null;
+        });
+      }
+    }
+  }
+
   Future<void> _fetchMessages() async {
     if (my_id == null) {
       await _getMyInfo();
@@ -209,6 +329,8 @@ class _ChatScreenState extends State<ChatScreen> {
               ChatMessage(
                 text: message['content'],
                 isMe: message['sender'] == my_id,
+                myProfilePhoto: myProfilePhoto,
+                otherUserProfilePhoto: otherUserProfilePhoto,
               ),
             );
           }
@@ -248,30 +370,63 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        elevation: 1,
+        backgroundColor: Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () {
-           Navigator.of(context).pop();
+            Navigator.of(context).pop();
           },
         ),
-        title: Text('${widget.name} ${widget.lastName}'),
+        title: Row(
+          children: [
+            _buildAppBarAvatar(),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${widget.name} ${widget.lastName}',
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Colors.green))
           : Column(
         children: [
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               itemCount: _messages.length,
               itemBuilder: (_, int index) => _messages[index],
             ),
           ),
-          const Divider(height: 1.0),
           Container(
-            decoration: BoxDecoration(color: Theme.of(context).cardColor),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  offset: const Offset(0, -1),
+                  blurRadius: 4,
+                  color: Colors.black.withOpacity(0.1),
+                ),
+              ],
+            ),
             child: _buildTextComposer(),
           ),
         ],
@@ -279,31 +434,81 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Widget _buildAppBarAvatar() {
+    if (otherUserProfilePhoto == null || otherUserProfilePhoto!.isEmpty) {
+      return CircleAvatar(
+        radius: 18,
+        backgroundColor: Colors.grey[300],
+        child: const Icon(
+          Icons.person,
+          color: Colors.grey,
+          size: 20,
+        ),
+      );
+    }
+
+    return CircleAvatar(
+      radius: 18,
+      backgroundColor: Colors.grey[300],
+      child: ClipOval(
+        child: Image.network(
+          otherUserProfilePhoto!,
+          width: 36,
+          height: 36,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(
+              Icons.person,
+              color: Colors.grey,
+              size: 20,
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildTextComposer() {
-    return IconTheme(
-      data: IconThemeData(color: Theme.of(context).colorScheme.secondary),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Row(
-          children: [
-            Flexible(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
               child: TextField(
                 controller: _textController,
                 onSubmitted: _handleSubmitted,
-                decoration: const InputDecoration.collapsed(
-                  hintText: 'Envía un mensaje',
+                maxLines: null,
+                decoration: InputDecoration(
+                  hintText: '${context.loc.send_message}',
+                  hintStyle: TextStyle(color: Colors.grey),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
               ),
             ),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: IconButton(
-                icon: const Icon(Icons.send),
-                onPressed: () => _handleSubmitted(_textController.text),
-              ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.green[600],
+              shape: BoxShape.circle,
             ),
-          ],
-        ),
+            child: IconButton(
+              icon: Icon(
+                _isSendingMessage ? Icons.hourglass_empty : Icons.send,
+                color: Colors.white,
+                size: 20,
+              ),
+              onPressed: _isSendingMessage ? null : () => _handleSubmitted(_textController.text),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -312,50 +517,107 @@ class _ChatScreenState extends State<ChatScreen> {
 class ChatMessage extends StatelessWidget {
   final String text;
   final bool isMe;
+  final String? myProfilePhoto;
+  final String? otherUserProfilePhoto;
 
   const ChatMessage({
     Key? key,
     required this.text,
     required this.isMe,
+    this.myProfilePhoto,
+    this.otherUserProfilePhoto,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10.0),
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isMe)
-            Container(
-              margin: const EdgeInsets.only(right: 16.0),
-              child: CircleAvatar(
-                backgroundColor: Colors.grey,
-                foregroundColor: Colors.white,
-                child: Text('X'),
-              ),
-            ),
+          if (!isMe) ...[
+            _buildAvatar(otherUserProfilePhoto),
+            const SizedBox(width: 8),
+          ],
           Flexible(
             child: Container(
-              padding: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                color: isMe ? Colors.lightGreen[100]: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8.0),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.75,
               ),
-              child: Text(text),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              decoration: BoxDecoration(
+                color: isMe ? Colors.green[500] : Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isMe ? 20 : 4),
+                  bottomRight: Radius.circular(isMe ? 4 : 20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    offset: const Offset(0, 1),
+                    blurRadius: 2,
+                    color: Colors.black.withOpacity(0.1),
+                  ),
+                ],
+              ),
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: isMe ? Colors.white : Colors.black87,
+                  fontSize: 16,
+                ),
+              ),
             ),
           ),
-          if (isMe)
-            Container(
-              margin: const EdgeInsets.only(left: 16.0),
-              child: const CircleAvatar(
-                backgroundColor: Colors.grey,
-                foregroundColor: Colors.white,
-                child: Text('Me'),
-              ),
-            ),
+          if (isMe) ...[
+            const SizedBox(width: 8),
+            _buildAvatar(myProfilePhoto),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildAvatar(String? profilePhotoUrl) {
+    if (profilePhotoUrl == null || profilePhotoUrl.isEmpty) {
+      return CircleAvatar(
+        radius: 16,
+        backgroundColor: Colors.grey[300],
+        child: const Icon(
+          Icons.person,
+          color: Colors.grey,
+          size: 18,
+        ),
+      );
+    }
+
+    return CircleAvatar(
+      radius: 16,
+      backgroundColor: Colors.grey[300],
+      child: ClipOval(
+        child: Image.network(
+          profilePhotoUrl,
+          width: 32,
+          height: 32,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(
+              Icons.person,
+              color: Colors.grey,
+              size: 18,
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const Icon(
+              Icons.person,
+              color: Colors.grey,
+              size: 18,
+            );
+          },
+        ),
       ),
     );
   }

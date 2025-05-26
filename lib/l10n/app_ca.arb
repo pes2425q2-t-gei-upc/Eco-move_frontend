@@ -299,6 +299,8 @@
 
 "charging_stations": "Estacions de càrrega",
 "climate_shelters": "Refugis climàtics",
-"bike_stations": "Estacions de bici"
+"bike_stations": "Estacions de bici",
+
+"send_message": "Envia un missatge"
 
 }

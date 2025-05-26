@@ -29,11 +29,7 @@ class MyApp extends StatelessWidget {
 }
 
 class ChatListScreen extends StatefulWidget {
-  final int? openChatId;
-  final String? openChatName;
-  final String? openChatLastName;
-
-    ChatListScreen({Key? key, this.openChatId, this.openChatName, this.openChatLastName}) : super(key: key);
+  ChatListScreen({Key? key}) : super(key: key);
 
   @override
   ChatListScreenState createState() => ChatListScreenState();
@@ -44,8 +40,9 @@ class ChatListScreenState extends State<ChatListScreen> {
   String? token = '';
   List<dynamic> chatsList = [];
   Map<int, Map<String, String>> lastMessages = {};
+  Map<String, String?> profilePhotos = {}; // Cache for profile photos using username as key
   late int my_id;
-  bool _isRefreshing = false;
+  bool _isRefreshing = true;
   Timer? _pollingTimer;
   bool _isPollingActive = false;
 
@@ -53,27 +50,11 @@ class ChatListScreenState extends State<ChatListScreen> {
     return await _secureStorage.read(key: 'access');
   }
 
-@override
-void initState() {
-  super.initState();
-  _initialize();
-
-  // Si hay que abrir un chat, hazlo tras el primer frame
-  if (widget.openChatId != null) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChatScreen(
-            chatId: widget.openChatId!,
-            name: widget.openChatName ?? '',
-            lastName: widget.openChatLastName ?? '',
-          ),
-        ),
-      );
-    });
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
   }
-}
 
   @override
   void dispose() {
@@ -87,6 +68,7 @@ void initState() {
     await _getMyInfo();
     await _fetchChats();
     await _fetchAllLastMessages();
+    await _fetchAllProfilePhotos();
 
     // Start polling after initial load
     _startPolling();
@@ -116,6 +98,7 @@ void initState() {
     try {
       await _fetchChats();
       await _fetchAllLastMessages();
+      await _fetchAllProfilePhotos();
     } catch (e) {
       print('Error during silent refresh: $e');
       // Don't show snackbar for silent refresh errors to avoid spam
@@ -131,6 +114,7 @@ void initState() {
     try {
       await _fetchChats();
       await _fetchAllLastMessages();
+      await _fetchAllProfilePhotos();
     } catch (e) {
       print('Error refreshing chats: $e');
       if (mounted) {
@@ -156,6 +140,22 @@ void initState() {
             lastMessages[chat['id']] = lastMessage;
           });
         }
+      }
+    }
+  }
+
+  Future<void> _fetchAllProfilePhotos() async {
+    for (var chat in chatsList) {
+      String username;
+
+      if (my_id == chat['receptor']) {
+        username = chat['creador_username'] ?? '';
+      } else {
+        username = chat['receptor_username'] ?? '';
+      }
+
+      if (username.isNotEmpty && !profilePhotos.containsKey(username)) {
+        await _fetchProfilePhoto(username);
       }
     }
   }
@@ -239,6 +239,7 @@ void initState() {
         // After creating a new chat, refresh immediately
         await _fetchChats();
         await _fetchAllLastMessages();
+        await _fetchAllProfilePhotos();
       } else {
         print('Error ${response.statusCode}: ${response.body}');
         if (mounted) {
@@ -284,6 +285,45 @@ void initState() {
       }
     } catch (e) {
       print('Error: $e');
+    }
+  }
+
+  Future<void> _fetchProfilePhoto(String username) async {
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhotoUsername(username)));
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final bodyJson = json.decode(response.body);
+        final foto = bodyJson['foto'];
+
+        if (mounted) {
+          setState(() {
+            profilePhotos[username] = foto;
+          });
+        }
+      } else {
+        print('Failed to fetch photo for $username: ${response.statusCode} - ${response.body}');
+        if (mounted) {
+          setState(() {
+            profilePhotos[username] = null;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching photo for $username: $e');
+      if (mounted) {
+        setState(() {
+          profilePhotos[username] = null;
+        });
+      }
     }
   }
 
@@ -337,12 +377,15 @@ void initState() {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          leading: IconButton(
-    icon: Icon(Icons.arrow_back),
-    onPressed: () {
-Navigator.of(context).pop();
-    },
-  ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              '/', // Ruta de la página principal
+                  (route) => false,
+            );
+          },
+        ),
         title: Row(
           children: [
             const Text('Chats'),
@@ -401,12 +444,21 @@ Navigator.of(context).pop();
           itemBuilder: (context, index) {
             final chat = chatsList[index];
 
+            // Determine which user's username to use for profile photo
+            String username;
+            if (my_id == chat['receptor']) {
+              username = chat['creador_username'] ?? '';
+            } else {
+              username = chat['receptor_username'] ?? '';
+            }
+
             return ChatListItem(
               userName: my_id == chat['receptor']
                   ? '${chat['creador_first_name']} ${chat['creador_last_name']}'
                   : '${chat['receptor_first_name']} ${chat['receptor_last_name']}',
               lastMessage: lastMessages[chat['id']]?['content'] ?? 'No content',
               lastMessageTime: _parseDateTime(lastMessages[chat['id']]?['timestamp']),
+              profilePhotoUrl: profilePhotos[username],
               onTap: () {
                 // Pause polling while in chat
                 _stopPolling();
@@ -452,6 +504,7 @@ class ChatListItem extends StatelessWidget {
   final String userName;
   final String lastMessage;
   final DateTime lastMessageTime;
+  final String? profilePhotoUrl;
   final Function() onTap;
 
   const ChatListItem({
@@ -459,6 +512,7 @@ class ChatListItem extends StatelessWidget {
     required this.userName,
     required this.lastMessage,
     required this.lastMessageTime,
+    this.profilePhotoUrl,
     required this.onTap,
   }) : super(key: key);
 
@@ -535,13 +589,45 @@ class ChatListItem extends StatelessWidget {
   }
 
   Widget _buildAvatar() {
+    // If profile photo URL is null or empty, show default avatar
+    if (profilePhotoUrl == null || profilePhotoUrl!.isEmpty) {
+      return CircleAvatar(
+        radius: 24,
+        backgroundColor: Colors.grey,
+        child: const Icon(
+          Icons.person,
+          color: Colors.white,
+          size: 30,
+        ),
+      );
+    }
+
+    // Show profile photo with fallback to default avatar on error
     return CircleAvatar(
       radius: 24,
       backgroundColor: Colors.grey,
-      child: const Icon(
-        Icons.person,
-        color: Colors.white,
-        size: 30,
+      child: ClipOval(
+        child: Image.network(
+          profilePhotoUrl!,
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(
+              Icons.person,
+              color: Colors.white,
+              size: 30,
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const Icon(
+              Icons.person,
+              color: Colors.white,
+              size: 30,
+            );
+          },
+        ),
       ),
     );
   }
