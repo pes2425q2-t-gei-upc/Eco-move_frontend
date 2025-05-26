@@ -29,11 +29,7 @@ class MyApp extends StatelessWidget {
 }
 
 class ChatListScreen extends StatefulWidget {
-  final int? openChatId;
-  final String? openChatName;
-  final String? openChatLastName;
-
-    ChatListScreen({Key? key, this.openChatId, this.openChatName, this.openChatLastName}) : super(key: key);
+  ChatListScreen({Key? key}) : super(key: key);
 
   @override
   ChatListScreenState createState() => ChatListScreenState();
@@ -44,9 +40,9 @@ class ChatListScreenState extends State<ChatListScreen> {
   String? token = '';
   List<dynamic> chatsList = [];
   Map<int, Map<String, String>> lastMessages = {};
-  Map<String, String?> profilePhotos = {}; // Cache for profile photos
+  Map<String, String?> profilePhotos = {}; // Cache for profile photos using username as key
   late int my_id;
-  bool _isRefreshing = false;
+  bool _isRefreshing = true;
   Timer? _pollingTimer;
   bool _isPollingActive = false;
 
@@ -54,25 +50,10 @@ class ChatListScreenState extends State<ChatListScreen> {
     return await _secureStorage.read(key: 'access');
   }
 
-@override
-void initState() {
-  super.initState();
-  _initialize();
-
-  // Si hay que abrir un chat, hazlo tras el primer frame
-  if (widget.openChatId != null) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChatScreen(
-            chatId: widget.openChatId!,
-            name: widget.openChatName ?? '',
-            lastName: widget.openChatLastName ?? '',
-          ),
-        ),
-      );
-    });
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
   }
 
   @override
@@ -165,15 +146,16 @@ void initState() {
 
   Future<void> _fetchAllProfilePhotos() async {
     for (var chat in chatsList) {
-      String email;
+      String username;
+
       if (my_id == chat['receptor']) {
-        email = chat['creador_email'] ?? '';
+        username = chat['creador_username'] ?? '';
       } else {
-        email = chat['receptor_email'] ?? '';
+        username = chat['receptor_username'] ?? '';
       }
 
-      if (email.isNotEmpty && !profilePhotos.containsKey(email)) {
-        await _fetchProfilePhoto(email);
+      if (username.isNotEmpty && !profilePhotos.containsKey(username)) {
+        await _fetchProfilePhoto(username);
       }
     }
   }
@@ -203,9 +185,7 @@ void initState() {
           TextButton(
             onPressed: () {
               if (inputText != null && inputText!.isNotEmpty) {
-                // Clean the email - remove spaces and forward slashes
-                String cleanEmail = inputText!.replaceAll(' ', '').replaceAll('/', '');
-                newChat(cleanEmail);
+                newChat(inputText!);
               }
               Navigator.pop(context);
             },
@@ -216,11 +196,6 @@ void initState() {
     );
 
     return inputText;
-  }
-
-  String _cleanEmail(String email) {
-    // Remove spaces and forward slashes from email
-    return email.replaceAll(' ', '').replaceAll('/', '');
   }
 
   Future<void> _fetchChats() async {
@@ -313,11 +288,8 @@ void initState() {
     }
   }
 
-  Future<void> _fetchProfilePhoto(String email) async {
-    // Clean the email before making the API call
-    String cleanEmail = _cleanEmail(email);
-
-    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhotoEmail(cleanEmail)));
+  Future<void> _fetchProfilePhoto(String username) async {
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhotoUsername(username)));
 
     try {
       final response = await http.get(
@@ -334,22 +306,22 @@ void initState() {
 
         if (mounted) {
           setState(() {
-            profilePhotos[email] = foto; // Store with original email as key
+            profilePhotos[username] = foto;
           });
         }
       } else {
-        print('Failed to fetch foto for $cleanEmail: ${response.statusCode} - ${response.body}');
+        print('Failed to fetch photo for $username: ${response.statusCode} - ${response.body}');
         if (mounted) {
           setState(() {
-            profilePhotos[email] = null; // Store null for failed requests
+            profilePhotos[username] = null;
           });
         }
       }
     } catch (e) {
-      print('Error fetching photo for $cleanEmail: $e');
+      print('Error fetching photo for $username: $e');
       if (mounted) {
         setState(() {
-          profilePhotos[email] = null; // Store null for errors
+          profilePhotos[username] = null;
         });
       }
     }
@@ -405,12 +377,15 @@ void initState() {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          leading: IconButton(
-    icon: Icon(Icons.arrow_back),
-    onPressed: () {
-Navigator.of(context).pop();
-    },
-  ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              '/', // Ruta de la página principal
+                  (route) => false,
+            );
+          },
+        ),
         title: Row(
           children: [
             const Text('Chats'),
@@ -469,12 +444,12 @@ Navigator.of(context).pop();
           itemBuilder: (context, index) {
             final chat = chatsList[index];
 
-            // Determine which user's email to use for profile photo
-            String userEmail;
+            // Determine which user's username to use for profile photo
+            String username;
             if (my_id == chat['receptor']) {
-              userEmail = chat['creador_email'] ?? '';
+              username = chat['creador_username'] ?? '';
             } else {
-              userEmail = chat['receptor_email'] ?? '';
+              username = chat['receptor_username'] ?? '';
             }
 
             return ChatListItem(
@@ -483,7 +458,7 @@ Navigator.of(context).pop();
                   : '${chat['receptor_first_name']} ${chat['receptor_last_name']}',
               lastMessage: lastMessages[chat['id']]?['content'] ?? 'No content',
               lastMessageTime: _parseDateTime(lastMessages[chat['id']]?['timestamp']),
-              profilePhotoUrl: profilePhotos[userEmail],
+              profilePhotoUrl: profilePhotos[username],
               onTap: () {
                 // Pause polling while in chat
                 _stopPolling();
@@ -618,7 +593,7 @@ class ChatListItem extends StatelessWidget {
     if (profilePhotoUrl == null || profilePhotoUrl!.isEmpty) {
       return CircleAvatar(
         radius: 24,
-        backgroundColor: Colors.grey[400],
+        backgroundColor: Colors.grey,
         child: const Icon(
           Icons.person,
           color: Colors.white,
@@ -630,7 +605,7 @@ class ChatListItem extends StatelessWidget {
     // Show profile photo with fallback to default avatar on error
     return CircleAvatar(
       radius: 24,
-      backgroundColor: Colors.grey[400],
+      backgroundColor: Colors.grey,
       child: ClipOval(
         child: Image.network(
           profilePhotoUrl!,
