@@ -327,6 +327,8 @@ class _DateTimePickerWithDropdownState
               keyboardType: keyboardType,
               onTap: onTap,
               onChanged: onChanged,
+              maxLength: 5,
+              buildCounter: (_, {required currentLength, required isFocused, required maxLength}) => null,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -456,7 +458,7 @@ class _DateTimePickerWithDropdownState
             controller: _durationController,
             hint: 'hh:mm (e.g., 02:30)',
             icon: Icons.timer,
-            keyboardType: TextInputType.text,
+            keyboardType: TextInputType.number,
           ),
 
           SizedBox(height: 32),
@@ -718,11 +720,30 @@ class _DateTimePickerWithDropdownState
     return await _secureStorage.read(key: 'access');
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _initialize();
-  }
+@override
+void initState() {
+  super.initState();
+  _initialize();
+
+  _durationController.addListener(() {
+    String text = _durationController.text.replaceAll(':', '').replaceAll('.', '');
+
+    if (text.length > 4) text = text.substring(0, 4); // Máximo 4 dígitos
+
+    String formatted = text;
+    if (text.length > 2) {
+      // Siempre pone los dos puntos tras el segundo dígito desde la izquierda
+      formatted = text.substring(0, 2) + ':' + text.substring(2);
+    } else {
+      formatted = text;
+    }
+
+    _durationController.value = _durationController.value.copyWith(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  });
+}
 
   Future<void> _initialize() async {
     token = await getAccessToken();

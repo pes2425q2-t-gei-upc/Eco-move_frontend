@@ -36,7 +36,7 @@ class _BiciReservasScreenState extends State<BiciReservasScreen> {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Token no disponible')),
+        SnackBar(content: Text(context.loc.notificar_error_token_missing)),
       );
       return;
     }
@@ -68,12 +68,12 @@ class _BiciReservasScreenState extends State<BiciReservasScreen> {
 
       if (responseActivas.statusCode != 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error activas: ${responseActivas.body}')),
+          SnackBar(content: Text(context.loc.bici_reservas_error_activas(responseActivas.body))),
         );
       }
       if (responseHistorial.statusCode != 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error historial: ${responseHistorial.body}')),
+          SnackBar(content: Text(context.loc.bici_reservas_error_historial(responseHistorial.body))),
         );
       }
     } catch (e) {
@@ -81,46 +81,46 @@ class _BiciReservasScreenState extends State<BiciReservasScreen> {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error de conexión: $e')),
+        SnackBar(content:  Text(context.loc.bici_reservas_error_conexion(e.toString()))),
       );
     }
   }
 
   Future<void> cancelarReserva(dynamic reservaId) async {
-  final token = await getAccessToken();
-  if (token == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Token no disponible')),
-    );
-    return;
-  }
-
-  final urlCancelar = Uri.parse(
-    FrontendRoutes.build(FrontendRoutes.biciReservaCancelar(reservaId.toString()))
-  );
-  try {
-    final response = await http.delete(
-      urlCancelar,
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    if (response.statusCode == 200) {
+    final token = await getAccessToken();
+    if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reserva cancelada correctamente')),
+        SnackBar(content: Text(context.loc.notificar_error_token_missing)),
       );
-      fetchReservas(); // Refresca la lista
-    } else {
+      return;
+    }
+
+    final urlCancelar = Uri.parse(
+      FrontendRoutes.build(FrontendRoutes.biciReservaCancelar(reservaId.toString()))
+    );
+    try {
+      final response = await http.delete(
+        urlCancelar,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.loc.bici_reservas_cancelada_ok)),
+        );
+        fetchReservas(); 
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.loc.bici_reservas_error_cancelar(response.body))),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cancelar: ${response.body}')),
+        SnackBar(content: Text(context.loc.bici_reservas_error_conexion(e.toString()))),
       );
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error de conexión: $e')),
-    );
   }
-}
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(

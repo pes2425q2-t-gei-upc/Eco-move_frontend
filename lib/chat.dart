@@ -44,14 +44,9 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       _isLoading = true;
     });
-
-    print('entra');
     token = await getAccessToken();
-    print('agafa el token');
     await _getMyInfo();
-    print('agafa la meva info');
     await _fetchMessages();
-    print('afaga els missatges');
 
     setState(() {
       _isLoading = false;
@@ -68,9 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
         Duration(seconds: _pollingIntervalSeconds),
             (timer) {
           if (!_isSendingMessage) {
-            print('polling');
             _fetchMessages();
-            print('surt del polling');
           }
         }
     );
@@ -138,7 +131,6 @@ class _ChatScreenState extends State<ChatScreen> {
       );
 
       if (response.statusCode == 201) {
-        print('Message sent');
 
         await Future.delayed(Duration(milliseconds: 300));
 
@@ -180,7 +172,6 @@ class _ChatScreenState extends State<ChatScreen> {
         setState(() {
           my_id = bodyJson['id'];
         });
-        print('My ID: $my_id');
       } else {
         print('Failed to get user info: ${response.statusCode} - ${response.body}');
       }
@@ -258,6 +249,15 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              '/list-chats', // Cambia esta ruta si usas otra para tu lista de chats
+              (route) => false,
+            );
+          },
+        ),
         title: Text('${widget.name} ${widget.lastName}'),
       ),
       body: _isLoading

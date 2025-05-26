@@ -196,6 +196,12 @@ class _BookingsScreenState extends State<BookingsScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+           Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+        ),
         title: Text(
           context.loc.home_my_reservations,
           style: TextStyle(fontWeight: FontWeight.w600),

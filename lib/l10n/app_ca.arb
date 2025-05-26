@@ -279,6 +279,14 @@
 "bici_detail_error_loading": "Error en carregar l'estació: {error}",
 "bici_detail_error_request": "Error en la sol·licitud de l'estació: {error}",
 
+"bici_reservas_error_activas": "Error en carregar reserves actives: {error}",
+"bici_reservas_error_historial": "Error en carregar l'historial de reserves: {error}",
+"bici_reservas_error_conexion": "Error de connexió: {error}",
+"bici_reservas_cancelada_ok": "Reserva cancel·lada correctament",
+"bici_reservas_error_cancelar": "Error en cancel·lar: {error}",
+
+"filter_by_car": "Filtrar pel meu cotxe",
+"filter_show_only_car_compatible": "Mostrar carregadors compatibles amb el meu cotxe",
 "disponible": "Disponible",
 "busy": "Ocupat",
 "station_info": "Informació de l'estació",

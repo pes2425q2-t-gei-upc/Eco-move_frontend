@@ -63,15 +63,10 @@ class ChatListScreenState extends State<ChatListScreen> {
   }
 
   Future<void> _initialize() async {
-    print('entra');
     token = await getAccessToken();
-    print('te el token');
     await _getMyInfo();
-    print('te la meva info');
     await _fetchChats();
-    print('te els chats');
     await _fetchAllLastMessages();
-    print('surt');
 
     // Start polling after initial load
     _startPolling();
@@ -221,7 +216,6 @@ class ChatListScreenState extends State<ChatListScreen> {
       );
 
       if (response.statusCode == 201) {
-        print(response.bodyBytes);
         // After creating a new chat, refresh immediately
         await _fetchChats();
         await _fetchAllLastMessages();
@@ -262,7 +256,6 @@ class ChatListScreenState extends State<ChatListScreen> {
       );
 
       if (response.statusCode == 200) {
-        print('el body es ${response.body}');
         final bodyJson = json.decode(response.body);
         my_id = bodyJson['id'];
         print(my_id);
@@ -292,7 +285,6 @@ class ChatListScreenState extends State<ChatListScreen> {
 
           if (messagesList.isNotEmpty) {
             final lastMessage = messagesList.first;
-            print('last message es ${lastMessage}');
 
             String content = lastMessage['content'] ?? 'No content';
             String timestamp = lastMessage['timestamp'] ?? 'No timestamp';
@@ -325,6 +317,15 @@ class ChatListScreenState extends State<ChatListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+          leading: IconButton(
+    icon: Icon(Icons.arrow_back),
+    onPressed: () {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/', // Ruta de la página principal
+        (route) => false,
+      );
+    },
+  ),
         title: Row(
           children: [
             const Text('Chats'),

@@ -22,11 +22,12 @@ import 'package:provider/provider.dart';
 import 'l10n/locale_provider.dart';
 import 'settings-menu.dart';
 import 'noti_service.dart';
-import 'alertManager.dart'; // Importa AlertManager
+import 'alertManager.dart';
 import 'EmergencyScreen.dart';
 import 'EmergencyService.dart';
 import 'bici_detail_screen.dart';
 import 'bici_reservas_screen.dart'; 
+import 'config.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
@@ -77,6 +78,10 @@ class MyApp extends StatelessWidget {
       ],
       home: const LoginScreen(),
       debugShowCheckedModeBanner: false,
+      routes: {
+        '/list-chats': (context) => ChatListScreen(),
+        // ...otras rutas...
+      },
     );
   }
 }
@@ -129,6 +134,8 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isPollingStarted = false; // Variable de control para evitar múltiples inicios
   LatLng? _pollingPosition; // Posición utilizada en el polling
 
+  bool filtrarPorCoche = false;
+  
   @override
   void initState() {
     super.initState();
@@ -142,13 +149,10 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_isPollingStarted) return; // Evita múltiples inicios
     _isPollingStarted = true;
 
-    print("Iniciando polling para emergencias...");
     _emergencyService
         .pollForNewEmergencyPointsStream(() => _pollingPosition) // Usa una función para obtener la posición actualizada
         .listen((newPoint) {
       if (newPoint != null) {
-        print("Llamando a showNotification para IDDDDD: ${newPoint.id}");
-        print("Llamando a showNotification para: ${newPoint.title}");
         _notiService.showNotification(
           title: "Nuevo Punto de Emergencia",
           body: "Se ha detectado un nuevo punto de emergencia: ${newPoint.title}",
@@ -184,7 +188,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final url = Uri.parse(
       '${FrontendRoutes.build(FrontendRoutes.refugios)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
-    print('Llamando a endpoint: $url');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -236,6 +239,40 @@ class _MyHomePageState extends State<MyHomePage> {
     print('Error en la solicitud de bicis: $e');
   }
 }
+
+Future<List<String>> fetchCargadoresCoche() async {
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final String? token = await _secureStorage.read(key: 'access');
+  if (token == null) {
+    print('Token no disponible');
+    return [];
+  }
+
+    final url = Uri.parse('${AppConfig.apiBase}/api_punts_carrega/vehicles/');
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        // Extrae todos los cargadores de todos los coches y los pone en una sola lista (sin duplicados)
+        final Set<String> cargadores = {};
+        for (var coche in data) {
+          if (coche['tipus_carregador'] != null) {
+            cargadores.addAll(List<String>.from(coche['tipus_carregador']));
+          }
+        }
+        return cargadores.toList();
+      } else {
+        print('Error al cargar vehículos: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error en la solicitud de vehículos: $e');
+      return [];
+    }
+  }
 
   Future<void> _fetchFiltros() async {
     final url = Uri.parse(
@@ -312,14 +349,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
     final uri = Uri.parse(FrontendRoutes.build(FrontendRoutes.filtrarEstacions))
       .replace(queryParameters: queryParameters);
-    
-    print(uri);
 
     try {
       final response = await http.get(uri);
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
-        print('fetch estaciones devuelve ${data}');
 
         setState(() {
           estaciones =
@@ -367,7 +401,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final uri = Uri.parse(
       '${FrontendRoutes.build(FrontendRoutes.puntmesproper)}?lat=${myPosition!.latitude}&lng=${myPosition!.longitude}',
     );
-    print(uri);
 
     try {
       final response = await http.get(uri);
@@ -912,7 +945,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
       builder: (BuildContext context) {
         return DraggableScrollableSheet(
           expand: false,
-          initialChildSize: 0.8, // Porcentaje de pantalla que ocupa al abrirse
+          initialChildSize: 0.8,
           minChildSize: 0.4,
           maxChildSize: 0.95,
           builder: (context, scrollController) {
@@ -927,7 +960,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
               ),
               child: SingleChildScrollView(
               child: Wrap(
-                alignment: WrapAlignment.center, // Center the content
+                alignment: WrapAlignment.center,
                 children: [
                   Center(
                     child: Container(
@@ -940,14 +973,22 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 20),
                   Center(
-                    child: Text(
-                      context.loc.filter_by_proximity,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xff4a7c59),
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.place, color: Color(0xff4a7c59)),
+                        const SizedBox(width: 8),
+                        Text(
+                          context.loc.filter_by_proximity,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xff4a7c59),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -963,7 +1004,8 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                           potenciaMinSeleccionada = potenciaMin;
                           potenciaMaxSeleccionada = potenciaMax;
                           ciudadController.clear();
-                          ciudadSeleccionada = ''; // Clear city filter
+                          ciudadSeleccionada = '';
+                          filtrarPorCoche = false;
                         }
                       });
                     },
@@ -971,6 +1013,50 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
                   ),
                   if (!filtrarPorCercanas) ...[
                     const SizedBox(height: 20),
+                    Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.directions_car, color: Color(0xff4a7c59)),
+                        const SizedBox(width: 8),
+                        Text(
+                          context.loc.filter_by_car,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xff4a7c59),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SwitchListTile(
+                    title: Text(context.loc.filter_show_only_car_compatible),
+                    value: filtrarPorCoche,
+                    onChanged: (bool value) async {
+                      setModalState(() {
+                        filtrarPorCoche = value;
+                      });
+                      if (value) {
+                        final cargadores = await fetchCargadoresCoche();
+                        setModalState(() {
+                          for (final cargador in cargadores) {
+                            if (!tiposCargadorSeleccionados.contains(cargador)) {
+                              tiposCargadorSeleccionados.add(cargador);
+                            }
+                          }
+                        });
+                      }
+                      else {
+                        final cargadores = await fetchCargadoresCoche();
+                        setModalState(() {
+                          tiposCargadorSeleccionados.removeWhere((cargador) => cargadores.contains(cargador));
+                        });
+                      }
+                    },
+                    activeColor: Color(0xff4a7c59),
+                  ),
                     Center(
                       child: Text(
                         context.loc.filter_by_speed,
