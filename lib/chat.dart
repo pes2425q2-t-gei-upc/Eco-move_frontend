@@ -25,6 +25,9 @@ class _ChatScreenState extends State<ChatScreen> {
   String? token = '';
   bool _isLoading = true;
   bool _isSendingMessage = false;
+  String? myProfilePhoto;
+  String? otherUserProfilePhoto;
+  String? otherUserUsername;
 
   final int _pollingIntervalSeconds = 5;
   Timer? _pollingTimer;
@@ -46,6 +49,11 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     token = await getAccessToken();
     await _getMyInfo();
+    await _getChatInfo();
+    await _fetchMyProfilePhoto();
+    if (otherUserUsername != null) {
+      await _fetchOtherUserProfilePhoto(otherUserUsername!);
+    }
     await _fetchMessages();
 
     setState(() {
@@ -56,7 +64,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _startPolling() {
-
     _pollingTimer?.cancel();
 
     _pollingTimer = Timer.periodic(
@@ -67,7 +74,6 @@ class _ChatScreenState extends State<ChatScreen> {
           }
         }
     );
-
   }
 
   @override
@@ -88,6 +94,8 @@ class _ChatScreenState extends State<ChatScreen> {
         ChatMessage(
           text: text,
           isMe: true,
+          myProfilePhoto: myProfilePhoto,
+          otherUserProfilePhoto: otherUserProfilePhoto,
         ),
       );
     });
@@ -131,9 +139,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
 
       if (response.statusCode == 201) {
-
         await Future.delayed(Duration(milliseconds: 300));
-
         await _fetchMessages();
       } else {
         print('Failed to send message: ${response.statusCode} - ${response.body}');
@@ -180,6 +186,117 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _getChatInfo() async {
+    try {
+      final response = await http.get(
+        Uri.parse(FrontendRoutes.build(FrontendRoutes.myChats)),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final chatsList = json.decode(utf8.decode(response.bodyBytes));
+
+        // Find the current chat
+        for (var chat in chatsList) {
+          if (chat['id'] == widget.chatId) {
+            // Determine the other user's username
+            if (my_id == chat['receptor']) {
+              otherUserUsername = chat['creador_username'];
+            } else {
+              otherUserUsername = chat['receptor_username'];
+            }
+            break;
+          }
+        }
+      } else {
+        print('Failed to get chat info: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error getting chat info: $e');
+    }
+  }
+
+  Future<void> _fetchMyProfilePhoto() async {
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhoto));
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final bodyJson = json.decode(response.body);
+        final foto = bodyJson['foto'];
+
+        if (mounted) {
+          setState(() {
+            myProfilePhoto = foto;
+          });
+        }
+      } else {
+        print('Failed to fetch my profile photo: ${response.statusCode} - ${response.body}');
+        if (mounted) {
+          setState(() {
+            myProfilePhoto = null;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching my profile photo: $e');
+      if (mounted) {
+        setState(() {
+          myProfilePhoto = null;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchOtherUserProfilePhoto(String username) async {
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhotoUsername(username)));
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final bodyJson = json.decode(response.body);
+        final foto = bodyJson['foto'];
+
+        if (mounted) {
+          setState(() {
+            otherUserProfilePhoto = foto;
+          });
+        }
+      } else {
+        print('Failed to fetch other user profile photo: ${response.statusCode} - ${response.body}');
+        if (mounted) {
+          setState(() {
+            otherUserProfilePhoto = null;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching other user profile photo: $e');
+      if (mounted) {
+        setState(() {
+          otherUserProfilePhoto = null;
+        });
+      }
+    }
+  }
+
   Future<void> _fetchMessages() async {
     if (my_id == null) {
       await _getMyInfo();
@@ -209,6 +326,8 @@ class _ChatScreenState extends State<ChatScreen> {
               ChatMessage(
                 text: message['content'],
                 isMe: message['sender'] == my_id,
+                myProfilePhoto: myProfilePhoto,
+                otherUserProfilePhoto: otherUserProfilePhoto,
               ),
             );
           }
@@ -252,7 +371,7 @@ class _ChatScreenState extends State<ChatScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-           Navigator.of(context).pop();
+            Navigator.of(context).pop();
           },
         ),
         title: Text('${widget.name} ${widget.lastName}'),
@@ -312,11 +431,15 @@ class _ChatScreenState extends State<ChatScreen> {
 class ChatMessage extends StatelessWidget {
   final String text;
   final bool isMe;
+  final String? myProfilePhoto;
+  final String? otherUserProfilePhoto;
 
   const ChatMessage({
     Key? key,
     required this.text,
     required this.isMe,
+    this.myProfilePhoto,
+    this.otherUserProfilePhoto,
   }) : super(key: key);
 
   @override
@@ -330,11 +453,7 @@ class ChatMessage extends StatelessWidget {
           if (!isMe)
             Container(
               margin: const EdgeInsets.only(right: 16.0),
-              child: CircleAvatar(
-                backgroundColor: Colors.grey,
-                foregroundColor: Colors.white,
-                child: Text('X'),
-              ),
+              child: _buildAvatar(otherUserProfilePhoto),
             ),
           Flexible(
             child: Container(
@@ -349,13 +468,53 @@ class ChatMessage extends StatelessWidget {
           if (isMe)
             Container(
               margin: const EdgeInsets.only(left: 16.0),
-              child: const CircleAvatar(
-                backgroundColor: Colors.grey,
-                foregroundColor: Colors.white,
-                child: Text('Me'),
-              ),
+              child: _buildAvatar(myProfilePhoto),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAvatar(String? profilePhotoUrl) {
+    // If profile photo URL is null or empty, show default avatar
+    if (profilePhotoUrl == null || profilePhotoUrl.isEmpty) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.grey,
+        child: const Icon(
+          Icons.person,
+          color: Colors.white,
+          size: 24,
+        ),
+      );
+    }
+
+    // Show profile photo with fallback to default avatar on error
+    return CircleAvatar(
+      radius: 20,
+      backgroundColor: Colors.grey,
+      child: ClipOval(
+        child: Image.network(
+          profilePhotoUrl,
+          width: 40,
+          height: 40,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(
+              Icons.person,
+              color: Colors.white,
+              size: 24,
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const Icon(
+              Icons.person,
+              color: Colors.white,
+              size: 24,
+            );
+          },
+        ),
       ),
     );
   }
