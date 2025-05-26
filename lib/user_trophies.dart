@@ -91,10 +91,13 @@ class _UserTrophiesPageState extends State<UserTrophiesPage> {
   }
 
   Future<void> _fetchTrophies() async {
+    final locale = Localizations.localeOf(context).languageCode;
+    
     final response = await http.get(Uri.parse(FrontendRoutes.build(FrontendRoutes.usuariTrofeos(_userId!))),
       headers: {
         'Authorization': 'Bearer $_token',
         'Content-Type': 'application/json',
+        'Accept-Language': locale,
       },
     );
     if (response.statusCode == 200) {
