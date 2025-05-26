@@ -4,6 +4,9 @@ import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:intl/intl.dart';
+
 
 
 class ChatScreen extends StatefulWidget {
@@ -367,30 +370,63 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        elevation: 1,
+        backgroundColor: Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
-        title: Text('${widget.name} ${widget.lastName}'),
+        title: Row(
+          children: [
+            _buildAppBarAvatar(),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${widget.name} ${widget.lastName}',
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Colors.green))
           : Column(
         children: [
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               itemCount: _messages.length,
               itemBuilder: (_, int index) => _messages[index],
             ),
           ),
-          const Divider(height: 1.0),
           Container(
-            decoration: BoxDecoration(color: Theme.of(context).cardColor),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  offset: const Offset(0, -1),
+                  blurRadius: 4,
+                  color: Colors.black.withOpacity(0.1),
+                ),
+              ],
+            ),
             child: _buildTextComposer(),
           ),
         ],
@@ -398,31 +434,81 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Widget _buildAppBarAvatar() {
+    if (otherUserProfilePhoto == null || otherUserProfilePhoto!.isEmpty) {
+      return CircleAvatar(
+        radius: 18,
+        backgroundColor: Colors.grey[300],
+        child: const Icon(
+          Icons.person,
+          color: Colors.grey,
+          size: 20,
+        ),
+      );
+    }
+
+    return CircleAvatar(
+      radius: 18,
+      backgroundColor: Colors.grey[300],
+      child: ClipOval(
+        child: Image.network(
+          otherUserProfilePhoto!,
+          width: 36,
+          height: 36,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(
+              Icons.person,
+              color: Colors.grey,
+              size: 20,
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildTextComposer() {
-    return IconTheme(
-      data: IconThemeData(color: Theme.of(context).colorScheme.secondary),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Row(
-          children: [
-            Flexible(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
               child: TextField(
                 controller: _textController,
                 onSubmitted: _handleSubmitted,
-                decoration: const InputDecoration.collapsed(
-                  hintText: 'Envía un mensaje',
+                maxLines: null,
+                decoration: InputDecoration(
+                  hintText: '${context.loc.send_message}',
+                  hintStyle: TextStyle(color: Colors.grey),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
               ),
             ),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: IconButton(
-                icon: const Icon(Icons.send),
-                onPressed: () => _handleSubmitted(_textController.text),
-              ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.green[600],
+              shape: BoxShape.circle,
             ),
-          ],
-        ),
+            child: IconButton(
+              icon: Icon(
+                _isSendingMessage ? Icons.hourglass_empty : Icons.send,
+                color: Colors.white,
+                size: 20,
+              ),
+              onPressed: _isSendingMessage ? null : () => _handleSubmitted(_textController.text),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -445,73 +531,90 @@ class ChatMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10.0),
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isMe)
-            Container(
-              margin: const EdgeInsets.only(right: 16.0),
-              child: _buildAvatar(otherUserProfilePhoto),
-            ),
+          if (!isMe) ...[
+            _buildAvatar(otherUserProfilePhoto),
+            const SizedBox(width: 8),
+          ],
           Flexible(
             child: Container(
-              padding: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                color: isMe ? Colors.lightGreen[100]: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8.0),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.75,
               ),
-              child: Text(text),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              decoration: BoxDecoration(
+                color: isMe ? Colors.green[500] : Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isMe ? 20 : 4),
+                  bottomRight: Radius.circular(isMe ? 4 : 20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    offset: const Offset(0, 1),
+                    blurRadius: 2,
+                    color: Colors.black.withOpacity(0.1),
+                  ),
+                ],
+              ),
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: isMe ? Colors.white : Colors.black87,
+                  fontSize: 16,
+                ),
+              ),
             ),
           ),
-          if (isMe)
-            Container(
-              margin: const EdgeInsets.only(left: 16.0),
-              child: _buildAvatar(myProfilePhoto),
-            ),
+          if (isMe) ...[
+            const SizedBox(width: 8),
+            _buildAvatar(myProfilePhoto),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildAvatar(String? profilePhotoUrl) {
-    // If profile photo URL is null or empty, show default avatar
     if (profilePhotoUrl == null || profilePhotoUrl.isEmpty) {
       return CircleAvatar(
-        radius: 20,
-        backgroundColor: Colors.grey,
+        radius: 16,
+        backgroundColor: Colors.grey[300],
         child: const Icon(
           Icons.person,
-          color: Colors.white,
-          size: 24,
+          color: Colors.grey,
+          size: 18,
         ),
       );
     }
 
-    // Show profile photo with fallback to default avatar on error
     return CircleAvatar(
-      radius: 20,
-      backgroundColor: Colors.grey,
+      radius: 16,
+      backgroundColor: Colors.grey[300],
       child: ClipOval(
         child: Image.network(
           profilePhotoUrl,
-          width: 40,
-          height: 40,
+          width: 32,
+          height: 32,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             return const Icon(
               Icons.person,
-              color: Colors.white,
-              size: 24,
+              color: Colors.grey,
+              size: 18,
             );
           },
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) return child;
             return const Icon(
               Icons.person,
-              color: Colors.white,
-              size: 24,
+              color: Colors.grey,
+              size: 18,
             );
           },
         ),
