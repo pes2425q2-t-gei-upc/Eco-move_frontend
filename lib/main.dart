@@ -22,7 +22,6 @@ import 'package:provider/provider.dart';
 import 'l10n/locale_provider.dart';
 import 'settings-menu.dart';
 import 'noti_service.dart';
-import 'alertManager.dart';
 import 'EmergencyScreen.dart';
 import 'EmergencyService.dart';
 import 'bici_detail_screen.dart';
@@ -43,7 +42,6 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AlertManager()), // Inicializa AlertManager
         ChangeNotifierProvider(create: (_) => LocaleProvider()..setLocale(Locale(langCode))), // Inicializa LocaleProvider
       ],
       child: const MyApp(),

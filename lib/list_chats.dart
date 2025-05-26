@@ -29,7 +29,11 @@ class MyApp extends StatelessWidget {
 }
 
 class ChatListScreen extends StatefulWidget {
-  ChatListScreen({Key? key}) : super(key: key);
+  final int? openChatId;
+  final String? openChatName;
+  final String? openChatLastName;
+
+    ChatListScreen({Key? key, this.openChatId, this.openChatName, this.openChatLastName}) : super(key: key);
 
   @override
   ChatListScreenState createState() => ChatListScreenState();
@@ -50,10 +54,25 @@ class ChatListScreenState extends State<ChatListScreen> {
     return await _secureStorage.read(key: 'access');
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _initialize();
+@override
+void initState() {
+  super.initState();
+  _initialize();
+
+  // Si hay que abrir un chat, hazlo tras el primer frame
+  if (widget.openChatId != null) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            chatId: widget.openChatId!,
+            name: widget.openChatName ?? '',
+            lastName: widget.openChatLastName ?? '',
+          ),
+        ),
+      );
+    });
   }
 
   @override
@@ -341,6 +360,7 @@ class ChatListScreenState extends State<ChatListScreen> {
       final response = await http.get(
         Uri.parse(FrontendRoutes.build(FrontendRoutes.chatMessages(chatId))),
         headers: {
+          'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
@@ -385,15 +405,12 @@ class ChatListScreenState extends State<ChatListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              '/', // Ruta de la página principal
-                  (route) => false,
-            );
-          },
-        ),
+          leading: IconButton(
+    icon: Icon(Icons.arrow_back),
+    onPressed: () {
+Navigator.of(context).pop();
+    },
+  ),
         title: Row(
           children: [
             const Text('Chats'),
