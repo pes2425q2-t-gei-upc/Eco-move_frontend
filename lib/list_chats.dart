@@ -40,6 +40,7 @@ class ChatListScreenState extends State<ChatListScreen> {
   String? token = '';
   List<dynamic> chatsList = [];
   Map<int, Map<String, String>> lastMessages = {};
+  Map<String, String?> profilePhotos = {}; // Cache for profile photos
   late int my_id;
   bool _isRefreshing = false;
   Timer? _pollingTimer;
@@ -67,6 +68,7 @@ class ChatListScreenState extends State<ChatListScreen> {
     await _getMyInfo();
     await _fetchChats();
     await _fetchAllLastMessages();
+    await _fetchAllProfilePhotos();
 
     // Start polling after initial load
     _startPolling();
@@ -96,6 +98,7 @@ class ChatListScreenState extends State<ChatListScreen> {
     try {
       await _fetchChats();
       await _fetchAllLastMessages();
+      await _fetchAllProfilePhotos();
     } catch (e) {
       print('Error during silent refresh: $e');
       // Don't show snackbar for silent refresh errors to avoid spam
@@ -111,6 +114,7 @@ class ChatListScreenState extends State<ChatListScreen> {
     try {
       await _fetchChats();
       await _fetchAllLastMessages();
+      await _fetchAllProfilePhotos();
     } catch (e) {
       print('Error refreshing chats: $e');
       if (mounted) {
@@ -140,6 +144,21 @@ class ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
+  Future<void> _fetchAllProfilePhotos() async {
+    for (var chat in chatsList) {
+      String email;
+      if (my_id == chat['receptor']) {
+        email = chat['creador_email'] ?? '';
+      } else {
+        email = chat['receptor_email'] ?? '';
+      }
+
+      if (email.isNotEmpty && !profilePhotos.containsKey(email)) {
+        await _fetchProfilePhoto(email);
+      }
+    }
+  }
+
   Future<String?> getEmail() async {
     String? inputText;
 
@@ -165,7 +184,9 @@ class ChatListScreenState extends State<ChatListScreen> {
           TextButton(
             onPressed: () {
               if (inputText != null && inputText!.isNotEmpty) {
-                newChat(inputText!);
+                // Clean the email - remove spaces and forward slashes
+                String cleanEmail = inputText!.replaceAll(' ', '').replaceAll('/', '');
+                newChat(cleanEmail);
               }
               Navigator.pop(context);
             },
@@ -176,6 +197,11 @@ class ChatListScreenState extends State<ChatListScreen> {
     );
 
     return inputText;
+  }
+
+  String _cleanEmail(String email) {
+    // Remove spaces and forward slashes from email
+    return email.replaceAll(' ', '').replaceAll('/', '');
   }
 
   Future<void> _fetchChats() async {
@@ -219,6 +245,7 @@ class ChatListScreenState extends State<ChatListScreen> {
         // After creating a new chat, refresh immediately
         await _fetchChats();
         await _fetchAllLastMessages();
+        await _fetchAllProfilePhotos();
       } else {
         print('Error ${response.statusCode}: ${response.body}');
         if (mounted) {
@@ -267,12 +294,53 @@ class ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
+  Future<void> _fetchProfilePhoto(String email) async {
+    // Clean the email before making the API call
+    String cleanEmail = _cleanEmail(email);
+
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.profilePhotoEmail(cleanEmail)));
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final bodyJson = json.decode(response.body);
+        final foto = bodyJson['foto'];
+
+        if (mounted) {
+          setState(() {
+            profilePhotos[email] = foto; // Store with original email as key
+          });
+        }
+      } else {
+        print('Failed to fetch foto for $cleanEmail: ${response.statusCode} - ${response.body}');
+        if (mounted) {
+          setState(() {
+            profilePhotos[email] = null; // Store null for failed requests
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching photo for $cleanEmail: $e');
+      if (mounted) {
+        setState(() {
+          profilePhotos[email] = null; // Store null for errors
+        });
+      }
+    }
+  }
+
   Future<Map<String, String>> _fetchLastMessage(int chatId) async {
     try {
       final response = await http.get(
         Uri.parse(FrontendRoutes.build(FrontendRoutes.chatMessages(chatId))),
         headers: {
-          'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
@@ -317,15 +385,15 @@ class ChatListScreenState extends State<ChatListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          leading: IconButton(
-    icon: Icon(Icons.arrow_back),
-    onPressed: () {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/', // Ruta de la página principal
-        (route) => false,
-      );
-    },
-  ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              '/', // Ruta de la página principal
+                  (route) => false,
+            );
+          },
+        ),
         title: Row(
           children: [
             const Text('Chats'),
@@ -384,12 +452,21 @@ class ChatListScreenState extends State<ChatListScreen> {
           itemBuilder: (context, index) {
             final chat = chatsList[index];
 
+            // Determine which user's email to use for profile photo
+            String userEmail;
+            if (my_id == chat['receptor']) {
+              userEmail = chat['creador_email'] ?? '';
+            } else {
+              userEmail = chat['receptor_email'] ?? '';
+            }
+
             return ChatListItem(
               userName: my_id == chat['receptor']
                   ? '${chat['creador_first_name']} ${chat['creador_last_name']}'
                   : '${chat['receptor_first_name']} ${chat['receptor_last_name']}',
               lastMessage: lastMessages[chat['id']]?['content'] ?? 'No content',
               lastMessageTime: _parseDateTime(lastMessages[chat['id']]?['timestamp']),
+              profilePhotoUrl: profilePhotos[userEmail],
               onTap: () {
                 // Pause polling while in chat
                 _stopPolling();
@@ -435,6 +512,7 @@ class ChatListItem extends StatelessWidget {
   final String userName;
   final String lastMessage;
   final DateTime lastMessageTime;
+  final String? profilePhotoUrl;
   final Function() onTap;
 
   const ChatListItem({
@@ -442,6 +520,7 @@ class ChatListItem extends StatelessWidget {
     required this.userName,
     required this.lastMessage,
     required this.lastMessageTime,
+    this.profilePhotoUrl,
     required this.onTap,
   }) : super(key: key);
 
@@ -518,13 +597,45 @@ class ChatListItem extends StatelessWidget {
   }
 
   Widget _buildAvatar() {
+    // If profile photo URL is null or empty, show default avatar
+    if (profilePhotoUrl == null || profilePhotoUrl!.isEmpty) {
+      return CircleAvatar(
+        radius: 24,
+        backgroundColor: Colors.grey[400],
+        child: const Icon(
+          Icons.person,
+          color: Colors.white,
+          size: 30,
+        ),
+      );
+    }
+
+    // Show profile photo with fallback to default avatar on error
     return CircleAvatar(
       radius: 24,
-      backgroundColor: Colors.grey,
-      child: const Icon(
-        Icons.person,
-        color: Colors.white,
-        size: 30,
+      backgroundColor: Colors.grey[400],
+      child: ClipOval(
+        child: Image.network(
+          profilePhotoUrl!,
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(
+              Icons.person,
+              color: Colors.white,
+              size: 30,
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const Icon(
+              Icons.person,
+              color: Colors.white,
+              size: 30,
+            );
+          },
+        ),
       ),
     );
   }
