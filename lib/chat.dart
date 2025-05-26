@@ -252,10 +252,7 @@ class _ChatScreenState extends State<ChatScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              '/list-chats', // Cambia esta ruta si usas otra para tu lista de chats
-              (route) => false,
-            );
+           Navigator.of(context).pop();
           },
         ),
         title: Text('${widget.name} ${widget.lastName}'),

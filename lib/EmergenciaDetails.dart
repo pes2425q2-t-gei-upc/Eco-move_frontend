@@ -66,16 +66,17 @@ class EmergenciaDetails extends StatelessWidget {
 
         final data = jsonDecode(response.body);
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatScreen(
-              chatId: data['id'],
-              name: data['receptor_first_name'],
-              lastName: data['receptor_last_name'],
-            ),
-          ),
-        );
+ // Limpia la pila hasta la principal y navega a la lista de chats
+Navigator.of(context).pushAndRemoveUntil(
+  MaterialPageRoute(
+    builder: (context) => ChatListScreen(
+      openChatId: data['id'],
+      openChatName: data['receptor_first_name'],
+      openChatLastName: data['receptor_last_name'],
+    ),
+  ),
+  (route) => route.isFirst,
+);
 
         return true;
       } else {
