@@ -320,10 +320,7 @@ class ChatListScreenState extends State<ChatListScreen> {
           leading: IconButton(
     icon: Icon(Icons.arrow_back),
     onPressed: () {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/', // Ruta de la página principal
-        (route) => false,
-      );
+Navigator.of(context).pop();
     },
   ),
         title: Row(

@@ -66,16 +66,16 @@ class EmergenciaDetails extends StatelessWidget {
 
         final data = jsonDecode(response.body);
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatScreen(
-              chatId: data['id'],
-              name: data['receptor_first_name'],
-              lastName: data['receptor_last_name'],
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(
+                chatId: data['id'],
+                name: data['receptor_first_name'],
+                lastName: data['receptor_last_name'],
+              ),
             ),
-          ),
-        );
+            (route) => route.isFirst,
+          );
 
         return true;
       } else {
