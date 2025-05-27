@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'EmergencyService.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'EmergenciaDetails.dart';
+import 'package:intl/intl.dart';
 
 class EmergencyScreen extends StatefulWidget {
   final double userLat;
@@ -20,6 +21,13 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   void initState() {
     super.initState();
     _emergencyPointsFuture = EmergencyService().fetchEmergencyPoints(widget.userLat, widget.userLng);
+  }
+
+  String formatFechaHora(String fechaIso) {
+    final date = DateTime.parse(fechaIso).toLocal();
+    final fecha = DateFormat('dd/MM/yyyy').format(date);
+    final hora = DateFormat('HH:mm').format(date);
+    return '$fecha $hora h';
   }
 
   @override
@@ -55,11 +63,11 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                   child: Text(
                     loc.alert_emergency_points_subtitle,
-                       style: const TextStyle(
-      fontSize: 14,
-      color: Color.fromARGB(255, 0, 0, 0), // Más negro y visible
-      fontWeight: FontWeight.w500,
-    ),
+                      style: const TextStyle(
+                      fontSize: 14,
+                      color: Color.fromARGB(255, 0, 0, 0), // Más negro y visible
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -89,7 +97,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                               Text(point.description),
                               const SizedBox(height: 4),
                               Text(
-                                point.timestamp,
+                                formatFechaHora(point.timestamp),
                                 style: const TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                             ],

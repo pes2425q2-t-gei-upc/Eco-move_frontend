@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
 import 'routes/frontend_routes.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 
 class BiciDetailScreen extends StatefulWidget {
   final String idBici;
@@ -53,6 +54,13 @@ class _BiciDetailScreenState extends State<BiciDetailScreen> {
         SnackBar(content: Text(context.loc.bici_detail_error_request(e.toString()))),
       );
     }
+  }
+
+  String formatFechaHora(String fechaIso) {
+    final date = DateTime.parse(fechaIso).toLocal();
+    final fecha = DateFormat('dd/MM/yyyy').format(date);
+    final hora = DateFormat('HH:mm').format(date);
+    return '$fecha $hora h';
   }
 
   Future<String?> getAccessToken() async {
@@ -290,7 +298,7 @@ class _BiciDetailScreenState extends State<BiciDetailScreen> {
             _buildInfoRow(
               icon: Icons.update,
               label: loc.bici_detail_ultima_actualizacion,
-              value: estado['ultima_actualizacion_global'] ?? '',
+              value: formatFechaHora(estado['ultima_actualizacion_global'] ?? ''),
               color: Colors.orange,
               valueBelow: true,
             ),
