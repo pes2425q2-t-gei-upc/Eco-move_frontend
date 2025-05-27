@@ -28,7 +28,7 @@ class _RefugioScreenState extends State<RefugioScreen> {
 
   Future<void> _fetchRefugio() async {
     final url = Uri.parse(
-      FrontendRoutes.build(FrontendRoutes.refugio(widget.idRefugio)),
+        'http://nattech.fib.upc.edu:40430/api/refugios/${widget.idRefugio}',
     );
     try {
       final response = await http.get(url);
@@ -112,7 +112,7 @@ Widget build(BuildContext context) {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              '${context.loc.station_address}: ${refugio!['direccio'] ?? 'N/A'}, ${refugio!['numero_calle'] ?? ''}',
+                              '${context.loc.station_address}: ${refugio!['direccion'] ?? 'N/A'}, ${refugio!['numero_calle'] ?? ''}',
                               style: const TextStyle(
                                 fontSize: 17,
                                 color: Colors.black87,
@@ -144,11 +144,11 @@ Widget build(BuildContext context) {
                         child: ElevatedButton.icon(
                           onPressed: () {
                             if (refugio != null &&
-                                refugio!['lat'] != null &&
-                                refugio!['lng'] != null) {
+                                refugio!['latitud'] != null &&
+                                refugio!['longitud'] != null) {
                               _openGoogleMaps(
-                                refugio!['lat'],
-                                refugio!['lng'],
+                                refugio!['latitud'],
+                                refugio!['longitud'],
                               );
                             }
                           },

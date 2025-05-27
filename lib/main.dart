@@ -693,7 +693,7 @@ void _abrirBiciScreen(BuildContext context, String idBici) {
         builder: (ctx) => GestureDetector(
           onTap: () {
             if (_tipoMapa == 'refugios') {
-              _abrirRefugioScreen(context, estacion['id_punt'].toString(), estacion['distancia_km']);
+              _abrirRefugioScreen(context, estacion['id_punt'].toString(), (estacion['distancia_km'] as num?)?.toDouble());
             } else if (_tipoMapa == 'bicis') {
               _abrirBiciScreen(context, estacion['id'].toString());
             } else {
