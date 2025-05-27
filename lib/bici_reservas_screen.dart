@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'routes/frontend_routes.dart';
 import 'bici_detail_screen.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:intl/intl.dart';
 
 class BiciReservasScreen extends StatefulWidget {
   const BiciReservasScreen({super.key});
@@ -23,6 +24,13 @@ class _BiciReservasScreenState extends State<BiciReservasScreen> {
   void initState() {
     super.initState();
     fetchReservas();
+  }
+
+  String formatFechaHora(String fechaIso) {
+    final date = DateTime.parse(fechaIso).toLocal();
+    final fecha = DateFormat('dd/MM/yyyy').format(date);
+    final hora = DateFormat('HH:mm').format(date);
+    return '$fecha $hora h';
   }
 
   Future<String?> getAccessToken() async {
@@ -190,8 +198,8 @@ class _BiciReservasScreenState extends State<BiciReservasScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text('${context.loc.bici_reserva_tipo_bicicleta} ${reserva['tipo_bicicleta']}'),
-                                    Text('${context.loc.bici_reserva_creada_en} ${reserva['creada_en']}'),
-                                    Text('${context.loc.bici_reserva_expira} ${reserva['expiracion']}'),
+                                    Text('${context.loc.bici_reserva_creada_en} ${formatFechaHora(reserva['creada_en'])}'),
+                                    Text('${context.loc.bici_reserva_expira} ${formatFechaHora(reserva['expiracion'])}'),
                                     Text('${context.loc.bici_reserva_activa} ${reserva['activa']}'),
                                   ],
                                 ),
@@ -295,8 +303,8 @@ class _BiciReservasScreenState extends State<BiciReservasScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text('${context.loc.bici_reserva_tipo_bicicleta} ${reserva['tipo_bicicleta']}'),
-                                    Text('${context.loc.bici_reserva_creada_en} ${reserva['creada_en']}'),
-                                    Text('${context.loc.bici_reserva_expira} ${reserva['expiracion']}'),
+                                    Text('${context.loc.bici_reserva_creada_en} ${formatFechaHora(reserva['creada_en'])}'),
+                                    Text('${context.loc.bici_reserva_expira} ${formatFechaHora(reserva['expiracion'])}'),
                                     Text('${context.loc.bici_reserva_activa} ${reserva['activa']}'),
                                   ]
                                 ),

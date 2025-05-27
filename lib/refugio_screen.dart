@@ -129,7 +129,7 @@ Widget build(BuildContext context) {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                '${context.loc.shelter_distance}: ${widget.distanciaKm!.toStringAsFixed(2)} km',
+                                '${context.loc.shelter_distance}: ${widget.distanciaKm!.toStringAsFixed(2)} m',
                                 style: const TextStyle(
                                   fontSize: 17,
                                   color: Colors.black87,
