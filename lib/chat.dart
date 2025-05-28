@@ -164,6 +164,90 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _reportChat(int id, String comment) async {
+
+    final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.reportChat));
+
+    final Map<String, dynamic> data = {
+      'chat_id': id,
+      'descripcio': comment,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(data),
+      );
+
+      if (response.statusCode == 201) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(context.loc.report_chat_ok),
+              content: Text(context.loc.report_chat_ok_text),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        print('Failed to send message: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  void _showReportDialog() {
+    final TextEditingController reportController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(context.loc.report_chat),
+          content: TextField(
+            controller: reportController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: context.loc.report_chat_motive,
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (reportController.text.trim().isNotEmpty) {
+                  _reportChat(widget.chatId, reportController.text.trim());
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Text('Report'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   Future<void> _getMyInfo() async {
     final url = Uri.parse(FrontendRoutes.build(FrontendRoutes.me));
 
@@ -403,6 +487,12 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_vert, color: Colors.black87),
+            onPressed: _showReportDialog,
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.green))

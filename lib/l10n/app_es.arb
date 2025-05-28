@@ -299,6 +299,16 @@
 "climate_shelters": "Refugios climáticos",
 "bike_stations": "Estaciones de bici",
 
-"send_message": "Envía un mensaje"
+"send_message": "Envía un mensaje",
+
+"save_calendar": "Google Calendar",
+"save_calendar_quest": "Quiere guardar la reserva en Google Calendar?",
+"yes": "Si",
+"no": "No",
+"station": "Estación",
+"report_chat": "Reportar chat",
+"report_chat_motive": "Especifica el motivo para reportar el chat",
+"report_chat_ok": "Chat reportado correctamente",
+"report_chat_ok_text": "El chat ha sido reportado correctamente"
 
 }

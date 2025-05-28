@@ -300,6 +300,17 @@
 "climate_shelters": "Climate shelters",
 "bike_stations": "Bike stations",
 
-"send_message": "Send a message"
+"send_message": "Send a message",
+
+"save_calendar": "Google Calendar",
+"save_calendar_quest": "Would you like to save the booking to Google Calendar?",
+"yes": "Yes",
+"no": "No",
+"station": "Station",
+"report_chat": "Report chat",
+"report_chat_motive": "Enter the motive to report the chat",
+"report_chat_ok": "Report successful",
+"report_chat_ok_text": "The chat has been reported successfully"
+
 
 }

@@ -3,8 +3,43 @@ import 'dart:convert';
 import 'package:eco_move_frontend/routes/frontend_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:eco_move_frontend/l10n/context_ext.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+
+import 'config.dart';
+
+class Vehicle {
+  final String matricula;
+  final double cargaActual;
+  final double capacitatBateria;
+  final String model;
+  final String marca;
+  final int anyModel;
+  final List<String> tipusCarregador;
+
+  Vehicle({
+    required this.matricula,
+    required this.cargaActual,
+    required this.capacitatBateria,
+    required this.model,
+    required this.marca,
+    required this.anyModel,
+    required this.tipusCarregador,
+  });
+
+  factory Vehicle.fromJson(Map<String, dynamic> json) {
+    return Vehicle(
+      matricula: json['matricula'] ?? '',
+      cargaActual: (json['carrega_actual'] ?? 0).toDouble(),
+      capacitatBateria: (json['capacitat_bateria'] ?? 0).toDouble(),
+      model: json['model'] ?? '',
+      marca: json['marca'] ?? '',
+      anyModel: json['any_model'] ?? 0,
+      tipusCarregador: List<String>.from(json['tipus_carregador'] ?? []),
+    );
+  }
+}
 
 class ChargeCalculatorScreen extends StatefulWidget {
   final List<dynamic> tipoCarga;
@@ -29,6 +64,15 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
   double? pricePerKWh = -1;
   bool isLoadingPrice = true;
   bool isCalculating = false;
+  bool _isLoadingVehicles = true;
+  List<Vehicle> _vehicles = [];
+  String? _errorMessage;
+  Vehicle? _selectedVehicle;
+  String? token = '';
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+
+
+
 
   @override
   void initState() {
@@ -36,8 +80,69 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
     _initialize();
   }
 
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: 'access');
+  }
+
   Future<void> _initialize() async {
-    await _fetchPrice();
+    token = await getAccessToken();
+    await Future.wait([
+      _fetchPrice(),
+      _fetchVehicles(),
+    ]);
+  }
+
+  Future<void> _fetchVehicles() async {
+    setState(() {
+      _isLoadingVehicles = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final url = Uri.parse('${AppConfig.apiBase}/api_punts_carrega/vehicles/');
+      print(url);
+      final response = await http.get(url,
+        headers: {'Authorization': 'Bearer ${token}'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        print(data);
+        setState(() {
+          _vehicles = data.map((item) => Vehicle.fromJson(item)).toList();
+          _isLoadingVehicles = false;
+          // Auto-select first vehicle and populate fields if available
+          if (_vehicles.isNotEmpty) {
+            _selectedVehicle = _vehicles.first;
+            _populateVehicleData();
+          }
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Failed to load vehicles: ${response.statusCode}';
+          _isLoadingVehicles = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error connecting to server: $e';
+        _isLoadingVehicles = false;
+      });
+    }
+  }
+
+  void _populateVehicleData() {
+    if (_selectedVehicle != null) {
+      batteryCapacityController.text = _selectedVehicle!.capacitatBateria.toString();
+      currentPercentageController.text = _selectedVehicle!.cargaActual.toString();
+    }
+  }
+
+  void _onVehicleChanged(Vehicle? vehicle) {
+    setState(() {
+      _selectedVehicle = vehicle;
+    });
+    _populateVehicleData();
   }
 
   void _showPriceDialog(double price) {
@@ -260,6 +365,73 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Vehicle Selection Card (only show if vehicles are available)
+            if (_vehicles.isNotEmpty) ...[
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.directions_car,
+                            color: Theme.of(context).primaryColor,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Select Vehicle', // Add to your localization
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<Vehicle>(
+                        value: _selectedVehicle,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                        items: _vehicles.map((Vehicle vehicle) {
+                          return DropdownMenuItem<Vehicle>(
+                            value: vehicle,
+                            child: Text('${vehicle.marca} ${vehicle.model} (${vehicle.matricula})'),
+                          );
+                        }).toList(),
+                        onChanged: _onVehicleChanged,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
             // Info Card
             Card(
               elevation: 2,
@@ -382,12 +554,13 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Input Fields
+            // Input Fields - Now both battery capacity and current percentage are editable
             _buildInputField(
               context.loc.calc_capacity_label,
               batteryCapacityController,
               'Ej: 60',
               Icons.battery_charging_full,
+              //showAutoPopulated: _selectedVehicle != null,
             ),
             const SizedBox(height: 20),
             _buildInputField(
@@ -395,6 +568,7 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
               currentPercentageController,
               'Ej: 20',
               Icons.battery_2_bar,
+              //showAutoPopulated: _selectedVehicle != null,
             ),
             const SizedBox(height: 20),
             _buildInputField(
@@ -409,7 +583,7 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
             SizedBox(
               height: 56,
               child: ElevatedButton(
-                onPressed: isCalculating || isLoadingPrice ? null : _calculatePrice,
+                onPressed: isCalculating || isLoadingPrice || _isLoadingVehicles ? null : _calculatePrice,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).primaryColor,
                   foregroundColor: Colors.white,
@@ -463,8 +637,9 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
       String label,
       TextEditingController controller,
       String hintText,
-      IconData icon,
-      ) {
+      IconData icon, {
+        bool showAutoPopulated = false,
+      }) {
     return Card(
       elevation: 1,
       shape: RoundedRectangleBorder(
@@ -490,6 +665,24 @@ class ChargeCalculatorScreenState extends State<ChargeCalculatorScreen> {
                     fontSize: 16,
                   ),
                 ),
+                if (showAutoPopulated) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Auto-filled',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 12),

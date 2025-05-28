@@ -11,8 +11,6 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 
-
-
 class GoogleCalendarService {
   // Set up Google Sign-In with required scopes
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -32,60 +30,88 @@ class GoogleCalendarService {
     String? description,
   }) async {
     try {
-      // Authenticate with Google
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      // Check if user is already signed in
+      GoogleSignInAccount? googleUser = _googleSignIn.currentUser;
+
+      // If not signed in, attempt to sign in
       if (googleUser == null) {
-        print('Google Sign-In was canceled');
-        return false;
+        googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) {
+          print('Google Sign-In was canceled by user');
+          return false;
+        }
       }
 
       // Get the authenticated client
-      final httpClient = await _googleSignIn.authenticatedClient();
-      if (httpClient == null) {
-        print('Failed to get authenticated client');
-        return false;
-      }
+      final auth = await googleUser.authentication;
+      final httpClient = GoogleHttpClient(await googleUser.authHeaders);
 
       // Create a Calendar API client
       final calendarApi = calendar.CalendarApi(httpClient);
 
       // Parse the date (format: dd/mm/yyyy)
       final dateParts = startDate.split('/');
-      final day = int.parse(dateParts[0]);
-      final month = int.parse(dateParts[1]);
-      final year = int.parse(dateParts[2]);
+      if (dateParts.length != 3) {
+        print('Invalid date format. Expected dd/mm/yyyy');
+        return false;
+      }
+
+      final day = int.tryParse(dateParts[0]);
+      final month = int.tryParse(dateParts[1]);
+      final year = int.tryParse(dateParts[2]);
+
+      if (day == null || month == null || year == null) {
+        print('Invalid date values');
+        return false;
+      }
 
       // Parse the time (format: hh:mm)
       final timeParts = startTime.split(':');
-      final hour = int.parse(timeParts[0]);
-      final minute = int.parse(timeParts[1]);
+      if (timeParts.length != 2) {
+        print('Invalid time format. Expected hh:mm');
+        return false;
+      }
 
-      // Create start datetime
+      final hour = int.tryParse(timeParts[0]);
+      final minute = int.tryParse(timeParts[1]);
+
+      if (hour == null || minute == null) {
+        print('Invalid time values');
+        return false;
+      }
+
+      // Create start datetime in local timezone
       final startDateTime = DateTime(year, month, day, hour, minute);
 
       // Parse duration (format: hh:mm)
       final durationParts = duration.split(':');
-      final durationHours = int.parse(durationParts[0]);
-      final durationMinutes = int.parse(durationParts[1]);
+      if (durationParts.length != 2) {
+        print('Invalid duration format. Expected hh:mm');
+        return false;
+      }
+
+      final durationHours = int.tryParse(durationParts[0]);
+      final durationMinutes = int.tryParse(durationParts[1]);
+
+      if (durationHours == null || durationMinutes == null) {
+        print('Invalid duration values');
+        return false;
+      }
 
       // Calculate end datetime
       final endDateTime = startDateTime.add(
         Duration(hours: durationHours, minutes: durationMinutes),
       );
 
-      // Create the calendar event
-      final start = calendar.EventDateTime()
-        ..dateTime = startDateTime.toUtc()
-        ..timeZone = 'Europe/Madrid'; // or another valid IANA time zone
-
-      final end = calendar.EventDateTime()
-        ..dateTime = endDateTime.toUtc()
-        ..timeZone = 'Europe/Madrid';
-
+      // Create the calendar event with proper timezone handling
       final event = calendar.Event()
         ..summary = title
-        ..start = start
-        ..end = end;
+        ..start = (calendar.EventDateTime()
+          ..dateTime = startDateTime
+          ..timeZone = 'Europe/Madrid')
+        ..end = (calendar.EventDateTime()
+          ..dateTime = endDateTime
+          ..timeZone = 'Europe/Madrid');
 
       // Add optional fields if provided
       if (location != null && location.isNotEmpty) {
@@ -98,55 +124,49 @@ class GoogleCalendarService {
 
       // Insert the event to the user's primary calendar
       final createdEvent = await calendarApi.events.insert(event, 'primary');
-      print('Event created: ${createdEvent.htmlLink}');
+      print('Event created successfully: ${createdEvent.htmlLink}');
       return true;
+
     } catch (e) {
       print('Error saving event to Google Calendar: $e');
+
+      // Handle specific error cases
+      if (e.toString().contains('insufficient authentication scopes')) {
+        print('Insufficient permissions. User needs to re-authenticate.');
+        await _googleSignIn.signOut();
+      }
+
       return false;
     }
   }
+
+  // Method to sign out
+  Future<void> signOut() async {
+    await _googleSignIn.signOut();
+  }
+
+  // Method to check if user is signed in
+  bool get isSignedIn => _googleSignIn.currentUser != null;
 }
 
-// Extension for the existing _DateTimePickerWithDropdownState class
-extension GoogleCalendarExtension on _DateTimePickerWithDropdownState {
-  // Function to save booking to Google Calendar
-  Future<void> saveBookingToGoogleCalendar(String stationId, String date, String time, String duration) async {
-    final GoogleCalendarService calendarService = GoogleCalendarService();
+// Custom HTTP Client for Google APIs
+class GoogleHttpClient extends http.BaseClient {
+  final Map<String, String> _headers;
+  final http.Client _client = http.Client();
 
-    // Create a meaningful title and description for the event
-    final title = "${context.loc.booking_title}";
-    final description = "${context.loc.booking_description}\n${context.loc.booking_station_address}$stationId\n${context.loc.booking_date}$date\n${context.loc.booking_time}$time\n${context.loc.booking_duration}$duration";
+  GoogleHttpClient(this._headers);
 
-    // Try to get station location info (if available in your app)
-    String? location;
-    // If you have a way to get station address/location, add it here
-    // location = await getStationLocation(stationId);
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    request.headers.addAll(_headers);
+    return _client.send(request);
+  }
 
-    final success = await calendarService.saveBookingToGoogleCalendar(
-      title: title,
-      startDate: date,
-      startTime: time,
-      duration: duration,
-      location: location,
-      description: description,
-    );
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Guardat')),
-      );
-    } else {
-      // Only show error if user didn't cancel the sign-in process
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error')),
-      );
-    }
+  @override
+  void close() {
+    _client.close();
   }
 }
-
-
-
-
 
 class BookChargerScreen extends StatelessWidget {
   final String idStation;
@@ -194,8 +214,11 @@ class _DateTimePickerWithDropdownState
   final TextEditingController _durationController = TextEditingController();
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final GoogleCalendarService _calendarService = GoogleCalendarService();
+
   String? token = '';
   int myId = -1;
+  bool _isCreatingReservation = false;
 
   @override
   void dispose() {
@@ -266,7 +289,6 @@ class _DateTimePickerWithDropdownState
       });
     }
   }
-
 
   bool _isValidDuration(String duration) {
     if (duration.isEmpty) return false;
@@ -468,182 +490,12 @@ class _DateTimePickerWithDropdownState
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: _isCreatingReservation ? null : () {
                 if (_dateController.text.isNotEmpty &&
                     _timeController.text.isNotEmpty &&
                     _durationController.text.isNotEmpty &&
                     _isValidDuration(_durationController.text)) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        title: Row(
-                          children: [
-                            Icon(
-                              Icons.check_circle_outline,
-                              color: Color(0xff4a7c59),
-                              size: 24,
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              context.loc.edit_booking_confirm_reservation,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        content: Container(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                context.loc.reservation_confirm_question,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              SizedBox(height: 20),
-                              _buildDetailRow(Icons.calendar_today, context.loc.common_date, _dateController.text),
-                              _buildDetailRow(Icons.access_time, context.loc.common_hour, _timeController.text),
-                              _buildDetailRow(Icons.timer, context.loc.common_duration, _durationController.text),
-                            ],
-                          ),
-                        ),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text(
-                              context.loc.common_cancel,
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              // Parse the selected date
-                              DateTime selectedDate = DateTime.parse(
-                                _dateController.text.isEmpty
-                                    ? DateTime.now().toString()
-                                    : _dateController.text
-                                    .split('/')
-                                    .reversed
-                                    .join('-'),
-                              );
-
-                              // Parse the selected time
-                              List<String> timeParts = _timeController.text.split(':');
-                              TimeOfDay selectedTime = TimeOfDay(
-                                hour: int.parse(timeParts[0]),
-                                minute: int.parse(timeParts[1]),
-                              );
-
-                              DateTime selectedDateTime = DateTime(
-                                selectedDate.year,
-                                selectedDate.month,
-                                selectedDate.day,
-                                selectedTime.hour,
-                                selectedTime.minute,
-                              );
-
-                              // Check if the selected date and time are valid
-                              if (selectedDateTime.isBefore(DateTime.now())) {
-                                Navigator.of(context).pop();
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      title: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.error_outline,
-                                            color: Colors.red,
-                                            size: 24,
-                                          ),
-                                          SizedBox(width: 12),
-                                          Text(
-                                            context.loc.reservation_invalid_datetime_title,
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      content: Text(
-                                        context.loc.reservation_invalid_datetime_message,
-                                        style: TextStyle(fontSize: 16),
-                                      ),
-                                      actions: <Widget>[
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Color(0xff4a7c59),
-                                            foregroundColor: Colors.white,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                          ),
-                                          child: Text(context.loc.common_close),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              } else {
-                                // Proceed with reservation creation if valid
-                                createReservationWithCalendar(
-                                  context,
-                                  widget.idStation,
-                                  _dateController.text,
-                                  _timeController.text,
-                                  _durationController.text,
-                                );
-
-                                Navigator.of(context).pop();
-                                Navigator.pop(context);
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xff4a7c59),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
-                              ),
-                            ),
-                            child: Text(
-                              context.loc.edit_booking_confirm_reservation,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                  _showConfirmationDialog();
                 } else {
                   String errorMessage = context.loc.edit_booking_missing_field;
                   if (_durationController.text.isNotEmpty && !_isValidDuration(_durationController.text)) {
@@ -670,7 +522,11 @@ class _DateTimePickerWithDropdownState
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text(
+              child: _isCreatingReservation
+                  ? CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              )
+                  : Text(
                 context.loc.edit_booking_confirm_reservation,
                 style: TextStyle(
                   fontSize: 16,
@@ -681,6 +537,285 @@ class _DateTimePickerWithDropdownState
           ),
         ],
       ),
+    );
+  }
+
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.check_circle_outline,
+                color: Color(0xff4a7c59),
+                size: 24,
+              ),
+              SizedBox(width: 12),
+              Text(
+                context.loc.edit_booking_confirm_reservation,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          content: Container(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.loc.reservation_confirm_question,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: 20),
+                _buildDetailRow(Icons.calendar_today, context.loc.common_date, _dateController.text),
+                _buildDetailRow(Icons.access_time, context.loc.common_hour, _timeController.text),
+                _buildDetailRow(Icons.timer, context.loc.common_duration, _durationController.text),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                context.loc.common_cancel,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _processReservation();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xff4a7c59),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+              child: Text(
+                context.loc.edit_booking_confirm_reservation,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool?> showCalendarSaveDialog(BuildContext context) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title:  Row(
+            children: [
+              Icon(Icons.calendar_today, size: 24),
+              SizedBox(width: 8),
+              Text(context.loc.save_calendar),
+            ],
+          ),
+          content: Text(context.loc.save_calendar_quest),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child:  Text(context.loc.no),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await _addToGoogleCalendar();
+                Navigator.of(context).pop(true);
+              },
+              child:  Text(context.loc.yes),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  Future<void> _processReservation() async {
+    // Validate date and time
+    DateTime selectedDate = DateTime.parse(
+      _dateController.text.isEmpty
+          ? DateTime.now().toString()
+          : _dateController.text
+          .split('/')
+          .reversed
+          .join('-'),
+    );
+
+    List<String> timeParts = _timeController.text.split(':');
+    TimeOfDay selectedTime = TimeOfDay(
+      hour: int.parse(timeParts[0]),
+      minute: int.parse(timeParts[1]),
+    );
+
+    DateTime selectedDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+
+    // Check if the selected date and time are valid
+    if (selectedDateTime.isBefore(DateTime.now())) {
+      _showErrorDialog(
+        context.loc.reservation_invalid_datetime_title,
+        context.loc.reservation_invalid_datetime_message,
+      );
+      return;
+    }
+
+    setState(() {
+      _isCreatingReservation = true;
+    });
+
+    try {
+      // Create reservation first
+      bool reservationSuccess = await _createReservation(
+        widget.idStation,
+        _dateController.text,
+        _timeController.text,
+        _durationController.text,
+      );
+
+      if (reservationSuccess) {
+        // Try to add to Google Calendar (optional)
+        await showCalendarSaveDialog(context);
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Reservation created successfully!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+
+        // Navigate back
+        Navigator.pop(context);
+      } else {
+        _showErrorDialog('Error', 'Failed to create reservation. Please try again.');
+      }
+    } catch (e) {
+      _showErrorDialog('Error', 'An unexpected error occurred: $e');
+    } finally {
+      setState(() {
+        _isCreatingReservation = false;
+      });
+    }
+  }
+
+  Future<void> _addToGoogleCalendar() async {
+    try {
+      String? address = await _fetchStations(widget.idStation);
+      final title = "${context.loc.booking_title}";
+      final description = "${context.loc.booking_description}\n${context.loc.booking_station_address}${address ?? ''}\n${context.loc.booking_date}${_dateController.text}\n${context.loc.booking_time}${_timeController.text}\n${context.loc.booking_duration}${_durationController.text}";
+
+      bool calendarSuccess = await _calendarService.saveBookingToGoogleCalendar(
+        title: title,
+        startDate: _dateController.text,
+        startTime: _timeController.text,
+        duration: _durationController.text,
+        location: address,
+        description: description,
+      );
+
+      if (calendarSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Event added to Google Calendar'),
+            backgroundColor: Colors.blue,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Calendar integration failed (non-critical): $e');
+      // Don't show error to user as this is optional
+    }
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: Colors.red,
+                size: 24,
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xff4a7c59),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(context.loc.common_close),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -720,30 +855,29 @@ class _DateTimePickerWithDropdownState
     return await _secureStorage.read(key: 'access');
   }
 
-@override
-void initState() {
-  super.initState();
-  _initialize();
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
 
-  _durationController.addListener(() {
-    String text = _durationController.text.replaceAll(':', '').replaceAll('.', '');
+    _durationController.addListener(() {
+      String text = _durationController.text.replaceAll(':', '').replaceAll('.', '');
 
-    if (text.length > 4) text = text.substring(0, 4); // Máximo 4 dígitos
+      if (text.length > 4) text = text.substring(0, 4);
 
-    String formatted = text;
-    if (text.length > 2) {
-      // Siempre pone los dos puntos tras el segundo dígito desde la izquierda
-      formatted = text.substring(0, 2) + ':' + text.substring(2);
-    } else {
-      formatted = text;
-    }
+      String formatted = text;
+      if (text.length > 2) {
+        formatted = text.substring(0, 2) + ':' + text.substring(2);
+      } else {
+        formatted = text;
+      }
 
-    _durationController.value = _durationController.value.copyWith(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
-    );
-  });
-}
+      _durationController.value = _durationController.value.copyWith(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
+    });
+  }
 
   Future<void> _initialize() async {
     token = await getAccessToken();
@@ -768,11 +902,10 @@ void initState() {
     } catch (e) {
       print('Error during HTTP request: $e');
     }
-    return '';
+    return null;
   }
 
-  Future<void> createReservationWithCalendar(
-      BuildContext context,
+  Future<bool> _createReservation(
       String id,
       String date,
       String hour,
@@ -801,26 +934,15 @@ void initState() {
 
       if (response.statusCode == 201) {
         print('Reservation created successfully');
-        addPoints();
-        final GoogleCalendarService calendarService = GoogleCalendarService();
-        String? address = await _fetchStations(id);
-        final title = "${context.loc.booking_title}";
-        final description = "${context.loc.booking_description}\n${context.loc.booking_station_address}$address\n${context.loc.booking_date}$date\n${context.loc.booking_time}$hour\n${context.loc.booking_duration}$duration";
-
-        await calendarService.saveBookingToGoogleCalendar(
-          title: title,
-          startDate: date,
-          startTime: hour,
-          duration: duration,
-          description: description,
-        );
-
-
+        await addPoints();
+        return true;
       } else {
         print('Failed to create reservation: ${response.statusCode} - ${response.body}');
+        return false;
       }
     } catch (e) {
-      print('Error: $e');
+      print('Error creating reservation: $e');
+      return false;
     }
   }
 
@@ -838,16 +960,12 @@ void initState() {
           utf8.decode(response.bodyBytes),
         );
         myId = data['id'];
-        print('Les dades són: $data');
+        print('User data: $data');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to load user info')),
-        );
+        print('Failed to load user info: ${response.statusCode}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      print('Error getting user info: $e');
     }
   }
 
@@ -873,15 +991,12 @@ void initState() {
       );
 
       if (response.statusCode == 200) {
-        print('Se han sumado bien los puntos');
+        print('Points added successfully');
       } else {
         print('Failed to add points: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error creating reservation: $e')),
-      );
+      print('Error adding points: $e');
     }
   }
 }
