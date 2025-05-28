@@ -53,7 +53,7 @@ class _RefugioScreenState extends State<RefugioScreen> {
     }
   }
 
-  Future<void> _openGoogleMaps(double latitude, double longitude) async {
+  Future<void> _openGoogleMaps(String latitude, String longitude) async {
     final url =
         'https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude';
     if (!await launchUrl(
@@ -142,11 +142,11 @@ Widget build(BuildContext context) {
                       const SizedBox(height: 32),
                       Center(
                         child: ElevatedButton.icon(
-                          onPressed: () {
+                          onPressed: () async {
                             if (refugio != null &&
                                 refugio!['latitud'] != null &&
                                 refugio!['longitud'] != null) {
-                              _openGoogleMaps(
+                             await  _openGoogleMaps(
                                 refugio!['latitud'],
                                 refugio!['longitud'],
                               );

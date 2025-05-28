@@ -396,7 +396,7 @@ class _EstacionScreenState extends State<EstacionScreen> {
         title: Text(
           isLoading
               ? 'Cargando...'
-              : 'Estación ${stationData['direccio'] ?? 'Desconocida'}',
+              : '${context.loc.station} ${stationData['direccio'] ?? 'Desconocida'}',
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.white,
@@ -432,7 +432,15 @@ class _EstacionScreenState extends State<EstacionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Status Card
+              Text('${context.loc.station} ${stationData['direccio'] ?? 'Desconocida'}',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xff4a7c59),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12,),
               _buildStatusCard(),
               const SizedBox(height: 20),
 

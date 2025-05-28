@@ -109,6 +109,7 @@ class _CarInfoState extends State<CarInfo> {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
+        print(data);
         setState(() {
           _vehicles = data.map((item) => Vehicle.fromJson(item)).toList();
           _isLoading = false;

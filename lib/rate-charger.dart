@@ -282,6 +282,7 @@ class _RatingScreenState extends State<RatingScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('${context.loc.review} $_rating ${context.loc.review_sent_correctly}')),
                           );
+                          Navigator.of(context).pop();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xE278A879),

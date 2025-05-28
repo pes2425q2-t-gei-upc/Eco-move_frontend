@@ -67,6 +67,8 @@ class FrontendRoutes {
   static const String tiposErrorEstacion = '/api_punts_carrega/tipos_error_estacion/';
   static String reportarErrorEstacion(String id) => '/api_punts_carrega/estacions/$id/reportar_error/';
 
+  static String reportChat = '/social/reports/report_from_chat/';
+
   //Bicis
   static const String biciDetailBase = '/api/bicing/estaciones/';
   static String biciDetailById(String id) => '/api/bicing/estaciones/$id';
